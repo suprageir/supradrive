@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import axios from "axios";
+import React, { FC, useState } from "react";
 import { useRouter } from "next/navigation";
+import axios from 'axios';
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
-const LoginPage = () => {
+const Login: FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const router = useRouter(); // Use Next.js router for navigation
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,16 +27,14 @@ const LoginPage = () => {
       if (response.status === 200) {
         const { username, token, userid } = response.data;
 
-        // Store user data in sessionStorage
         sessionStorage.setItem("supradriveuser", username);
         sessionStorage.setItem("supradrivetoken", token);
         sessionStorage.setItem("supradriveuserid", userid);
 
-        // Redirect to the home page
         router.push("/");
       }
+
     } catch (error: any) {
-      // Handle errors, e.g., invalid credentials
       if (error.response) {
         setErrorMessage(error.response.data.message || "Login failed");
       } else {
@@ -46,46 +44,63 @@ const LoginPage = () => {
     }
   };
 
+
   return (
-    <div className="h-screen bg-gray-900 flex items-center justify-center">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-sm w-full">
-        <h2 className="text-2xl text-white font-semibold mb-6 text-center">Login</h2>
-        <form onSubmit={handleSubmit}>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white text-center mb-6">SupraDrive login</h2>
+        <form>
           <div className="mb-4">
-            <label htmlFor="username" className="block text-white">Username</label>
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Username
+            </label>
             <input
-              id="username"
               type="text"
-              className="w-full p-2 mt-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              required
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="Enter your username"
             />
           </div>
+
           <div className="mb-6">
-            <label htmlFor="password" className="block text-white">Password</label>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Password
+            </label>
             <input
-              id="password"
               type="password"
-              className="w-full p-2 mt-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="Enter your password"
             />
           </div>
-          {errorMessage && (
-            <div className="mb-4 text-red-500 text-sm">{errorMessage}</div>
-          )}
+
           <button
-            type="submit"
-            className="w-full py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none"
+            onClick={handleSubmit}
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
           >
-            Log In
+            Login
           </button>
+
+          <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-4">
+            Don't have an account?
+            <a href="/signup" className="text-blue-500 hover:underline ml-1">
+              Sign up
+            </a>
+          </p>
         </form>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default Login;
