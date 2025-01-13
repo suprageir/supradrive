@@ -27,6 +27,7 @@ export default function Page() {
     const [iv, setIv] = useState<number[]>([]);
     const [salt, setSalt] = useState<number[]>([]);
     const [folders, setFolders] = useState<any[]>([]);
+    const [decryptedFolders, setDecryptedFolders] = useState<any[]>([]);
     const user = sessionStorage.getItem("supradriveusername") || "";
 
 
@@ -114,12 +115,18 @@ export default function Page() {
     };
 
     const refreshFolders = async () => {
+        console.log("Refreshing folders");
+        console.log(encryptionKey);
         await getFolders();
     }
 
     const getFolders = async () => {
+        console.log("Getting folders");
+        console.log(encryptionKey);
         axios.get(APIURL + "/supradrive/folder/1", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
             .then(async (response) => {
+                console.log("Folders received");
+                console.log(response.data);
                 setFolders(response.data);
             })
             .catch((error) => {
@@ -171,14 +178,13 @@ export default function Page() {
                     return { ...folder, decryptedName };
                 })
             );
-            console.log(decryptedFolders);
-            setFolders(decryptedFolders);
+            setDecryptedFolders(decryptedFolders);
         };
 
         if (encryptionKey && folders.length) {
             decryptFolders();
         }
-    }, [encryptionKey]);
+    }, [encryptionKey, folders]);
 
     if (loading) {
         return (
@@ -244,7 +250,7 @@ export default function Page() {
 
                             <div className="prose prose-sm prose-invert max-w-none">
                                 <div className="flex items-center justify-between">
-                                    {folders.map((folder) => {
+                                    {decryptedFolders.map((folder) => {
                                         if (folder.decryptedName) {
                                             return (
                                                 <div key={folder.folderid}>
