@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { redirect } from 'next/navigation';
 import axios from 'axios';
@@ -13,9 +14,12 @@ interface EncryptedResult {
 }
 
 export default function Page() {
+    const [token, setToken] = useState(sessionStorage.getItem("supradrivetoken") || "");
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalEncryptionOpen, setIsModalEncryptionOpen] = useState(false);
+    const [isModalNewFolderOpen, setIsModalNewFolderOpen] = useState(false);
+    const [folderName, setFolderName] = useState("");
     const [fileName, setFileName] = useState("Untitled.txt");
     const [fileContent, setFileContent] = useState("");
     const [encryptedContent, setEncryptedContent] = useState("");
@@ -25,6 +29,7 @@ export default function Page() {
     );
     const [iv, setIv] = useState<number[]>([]);
     const [salt, setSalt] = useState<number[]>([]);
+    const [folders, setFolders] = useState<any[]>([]);
     const user = sessionStorage.getItem("supradriveusername") || "";
 
 
@@ -59,7 +64,6 @@ export default function Page() {
 
     const setCookiePassword = () => {
         document.cookie = `encryptionPassword=${encryptionKey}; Secure; SameSite=Strict; Path=/`;
-        alert("Encryption key has been set successfully!");
         setIsModalEncryptionOpen(false);
     };
 
@@ -106,6 +110,61 @@ export default function Page() {
         };
     };
 
+
+    const decryptText = async (
+        encryptedText: string,
+        iv: Uint8Array,
+        salt: Uint8Array,
+        key: string
+    ): Promise<string | null> => {
+        if (!key || !encryptedText || !iv || !salt) return null; // Return null if any required parameter is missing
+
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+
+        // Import the key
+        const passwordKey = await window.crypto.subtle.importKey(
+            "raw",
+            encoder.encode(key),
+            { name: "PBKDF2" },
+            false,
+            ["deriveKey"]
+        );
+
+        // Convert the encrypted text back from base64 to Uint8Array
+        const encryptedData = new Uint8Array(atob(encryptedText).split("").map(c => c.charCodeAt(0)));
+
+        // Derive the encryption key from the password and salt
+        const encryptionKey = await window.crypto.subtle.deriveKey(
+            {
+                name: "PBKDF2",
+                salt,
+                iterations: 100000,
+                hash: "SHA-256",
+            },
+            passwordKey,
+            { name: "AES-GCM", length: 256 },
+            false,
+            ["decrypt"]
+        );
+
+        try {
+            // Decrypt the data
+            const decryptedData = await window.crypto.subtle.decrypt(
+                { name: "AES-GCM", iv },
+                encryptionKey,
+                encryptedData
+            );
+
+            // Return the decrypted text as a string
+            return decoder.decode(decryptedData);
+        } catch (err) {
+            console.error("Decryption failed:", err);
+            return null; // Return null if decryption fails
+        }
+    };
+
+
     const handleFileContentChange = async (text: string) => {
         setFileContent(text);
 
@@ -126,10 +185,51 @@ export default function Page() {
     const closeModal = () => setIsModalOpen(false);
     const openModalEncryption = () => setIsModalEncryptionOpen(true);
     const closeModalEncryption = () => setIsModalEncryptionOpen(false);
+    const openModalNewFolder = () => setIsModalNewFolderOpen(true);
+    const closeModalNewFolder = () => setIsModalNewFolderOpen(false);
 
+
+
+    const getFolders = async () => {
+        axios.get(APIURL + "/supradrive/folder/1", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
+            .then(async (response) => {
+                console.log(response.data);
+
+                for (let i = 0; i < response.data.length; i++) {
+                    console.log(response.data[i].foldername);
+                    // let decryptedfoldername = await decryptText(response.data[i].foldername, response.data[i].folderiv, response.data[i].foldersalt, encryptionKey);
+                    // console.log(decryptedfoldername);
+                }
+
+                setFolders(response.data);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    };
+
+    const createNewFolder = async () => {
+        let encryptedfoldername = await encryptText(folderName, encryptionKey);
+        let json = {
+            foldersysid: 1,
+            foldername: typeof encryptedfoldername === 'string' ? encryptedfoldername : encryptedfoldername.encryptedText,
+            foldersalt: typeof encryptedfoldername === 'string' ? encryptedfoldername : encryptedfoldername.salt,
+            folderiv: typeof encryptedfoldername === 'string' ? encryptedfoldername : encryptedfoldername.iv,
+        }
+
+        let folderjson = JSON.stringify(json);
+        axios.post(APIURL + "/supradrive/folder", folderjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
+            .then((response) => {
+
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+
+        closeModalNewFolder();
+    };
 
     useEffect(() => {
-        const token = sessionStorage.getItem("supradrivetoken") || "";
         const checkToken = async () => {
             axios.get(APIURL + "/supradrive/auth/token", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
                 .then(() => {
@@ -140,6 +240,7 @@ export default function Page() {
                 });
         };
         checkToken();
+        getFolders();
     }, []);
 
     if (loading) {
@@ -163,25 +264,36 @@ export default function Page() {
 
                 <div className="grid grid-cols-12 gap-4">
                     <div className="col-span-12 md:col-span-8 p-4">
-                        <h5 className="text-xl font-bold">Encrypted Text files</h5>
+                        <h5 className="text-xl font-bold">Encrypted Text files &nbsp; &nbsp;
+                            {encryptionKey ? <span className="text-green-500 p-2 rounded-lg bg-green-500/10">Unlocked</span> : <span className="text-red-500 p-2 rounded-lg bg-red-500/10">Locked</span>}
+
+
+                        </h5>
+                        <div className="flex gap-4 pt-4">
+                            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500" onClick={encryptionKey ? openModalNewFolder : openModalEncryption}>
+                                Create New Folder
+                            </button>
+                            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500">
+                                Upload New Text File
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+                                onClick={openModal}
+                            >
+                                Create New Text File
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+                                onClick={openModalEncryption}
+                            >
+                                Set Encryption Password
+                            </button>
+                        </div>
                     </div>
-
-                    <div className="col-span-12 md:col-span-4 flex justify-end space-x-4 p-4">
-                        <button className="px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-600">Button 1</button>
-                        <button className="px-4 py-2 bg-green-500 text-white rounded shadow hover:bg-green-600">Button 2</button>
-                        <button className="px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600">Button 3</button>
-
-                    </div>
-
                 </div>
 
 
                 <div className="mx-auto space-y-8 px-2 pt-20 lg:px-8 lg:py-8">
-                    <div className="rounded-lg bg-vc-border-gradient p-px shadow-lg shadow-black/20">
-                        <div className="rounded-lg bg-black">
-
-                        </div>
-                    </div>
 
                     <div className="rounded-lg bg-vc-border-gradient p-px shadow-lg shadow-black/20">
                         <div className="rounded-lg bg-black p-3.5 lg:p-6 w-full">
@@ -189,27 +301,11 @@ export default function Page() {
 
                             <div className="prose prose-sm prose-invert max-w-none">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-xl font-bold">Encrypted Textfiles</h3>
-                                    <div className="flex gap-4">
-                                        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
-                                            Create New Folder
-                                        </button>
-                                        <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500">
-                                            Upload New Text File
-                                        </button>
-                                        <button
-                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-                                            onClick={openModal}
-                                        >
-                                            Create New Text File
-                                        </button>
-                                        <button
-                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-                                            onClick={openModalEncryption}
-                                        >
-                                            Set Encryption Password
-                                        </button>
-                                    </div>
+                                    {folders.map((folder) => (
+                                        <div key={folder[0].folderid}>
+                                            folder name: {folder[0].foldername}
+                                        </div>
+                                    ))}
                                 </div>
 
                                 {/* Modal for Creating a New File */}
@@ -332,6 +428,39 @@ export default function Page() {
                                         </div>
                                     </div>
                                 )}
+
+
+
+
+                                {isModalNewFolderOpen && (
+                                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                        <div className="w-full max-w-md bg-gray-800 text-white rounded-lg shadow-lg p-6">
+                                            <h4 className="text-lg font-bold mb-4">New folder name</h4>
+                                            <input
+                                                type="text"
+                                                value={folderName}
+                                                onChange={(e) => setFolderName(e.target.value)}
+                                                className="w-full px-4 py-2 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Enter your password"
+                                            />
+                                            <div className="flex justify-end gap-4 mt-4">
+                                                <button
+                                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500"
+                                                    onClick={closeModalNewFolder}
+                                                >
+                                                    Close
+                                                </button>
+                                                <button
+                                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500"
+                                                    onClick={createNewFolder}
+                                                >
+                                                    Activate
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                             </div>
 
                         </div>

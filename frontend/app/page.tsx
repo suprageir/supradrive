@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { redirect } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
+import LoadingScreen from './components/LoadingScreen';
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
@@ -28,9 +29,7 @@ export default function Page() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <h1 className="text-xl font-medium text-gray-300">Checking authentication...</h1>
-      </div>
+      <LoadingScreen />
     );
   }
 

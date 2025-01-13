@@ -3,10 +3,12 @@
 import React, { FC, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from 'axios';
+import LoadingScreen from "../components/LoadingScreen";
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
 const Login: FC = () => {
+  const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -18,6 +20,7 @@ const Login: FC = () => {
     const loginData = { username, password };
 
     try {
+      setLoading(true);
       const response = await axios.post(
         `${APIURL}/supradrive/auth/login`,
         loginData,
@@ -37,14 +40,19 @@ const Login: FC = () => {
     } catch (error: any) {
       if (error.response) {
         setErrorMessage(error.response.data.message || "Login failed");
+        setLoading(false);
       } else {
         console.error("Error:", error);
         setErrorMessage("An unexpected error occurred.");
+        setLoading(false);
       }
     }
   };
 
-
+  if (loading) {
+    return <LoadingScreen />;
+  }
+else {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
@@ -98,9 +106,10 @@ const Login: FC = () => {
             </a>
           </p>
         </form>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 };
 
 export default Login;
