@@ -4,14 +4,10 @@ import { useEffect, useState } from "react";
 import { redirect } from 'next/navigation';
 import axios from 'axios';
 import Link from "next/link";
+import { Encrypt } from "@/app/components/Encrypt";
+import { Decrypt } from "@/app/components/Decrypt";
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
-
-interface EncryptedResult {
-    iv: number[];
-    salt: number[];
-    encryptedText: string;
-}
 
 export default function Page() {
     const [token, setToken] = useState(sessionStorage.getItem("supradrivetoken") || "");
@@ -24,6 +20,7 @@ export default function Page() {
     const [fileContent, setFileContent] = useState("");
     const [encryptedContent, setEncryptedContent] = useState("");
     const [encryptionKey, setEncryptionKey] = useState("");
+    const [newKey, setNewKey] = useState("");
     const [activeTab, setActiveTab] = useState<"plaintext" | "encrypted">(
         "plaintext"
     );
@@ -63,114 +60,17 @@ export default function Page() {
     };
 
     const setCookiePassword = () => {
-        document.cookie = `encryptionPassword=${encryptionKey}; Secure; SameSite=Strict; Path=/`;
+        setEncryptionKey(newKey)
+        document.cookie = `encryptionPassword=${newKey}; Secure; SameSite=Strict; Path=/`;
         setIsModalEncryptionOpen(false);
     };
-
-    const encryptText = async (text: string, key: string): Promise<EncryptedResult | string> => {
-        if (!key) return ""; // Return an empty string if no key is provided
-        const encoder = new TextEncoder();
-        const passwordKey = await window.crypto.subtle.importKey(
-            "raw",
-            encoder.encode(key),
-            { name: "PBKDF2" },
-            false,
-            ["deriveKey"]
-        );
-
-        const salt = window.crypto.getRandomValues(new Uint8Array(16));
-        setSalt(Array.from(salt)); // Store salt in state
-
-        const encryptionKey = await window.crypto.subtle.deriveKey(
-            {
-                name: "PBKDF2",
-                salt,
-                iterations: 100000,
-                hash: "SHA-256",
-            },
-            passwordKey,
-            { name: "AES-GCM", length: 256 },
-            false,
-            ["encrypt"]
-        );
-
-        const iv = window.crypto.getRandomValues(new Uint8Array(12));
-        setIv(Array.from(iv)); // Store IV in state
-
-        const encryptedData = await window.crypto.subtle.encrypt(
-            { name: "AES-GCM", iv },
-            encryptionKey,
-            encoder.encode(text)
-        );
-
-        return {
-            iv: Array.from(iv),
-            salt: Array.from(salt),
-            encryptedText: btoa(String.fromCharCode(...new Uint8Array(encryptedData))),
-        };
-    };
-
-
-    const decryptText = async (
-        encryptedText: string,
-        iv: Uint8Array,
-        salt: Uint8Array,
-        key: string
-    ): Promise<string | null> => {
-        if (!key || !encryptedText || !iv || !salt) return null; // Return null if any required parameter is missing
-
-        const encoder = new TextEncoder();
-        const decoder = new TextDecoder();
-
-        // Import the key
-        const passwordKey = await window.crypto.subtle.importKey(
-            "raw",
-            encoder.encode(key),
-            { name: "PBKDF2" },
-            false,
-            ["deriveKey"]
-        );
-
-        // Convert the encrypted text back from base64 to Uint8Array
-        const encryptedData = new Uint8Array(atob(encryptedText).split("").map(c => c.charCodeAt(0)));
-
-        // Derive the encryption key from the password and salt
-        const encryptionKey = await window.crypto.subtle.deriveKey(
-            {
-                name: "PBKDF2",
-                salt,
-                iterations: 100000,
-                hash: "SHA-256",
-            },
-            passwordKey,
-            { name: "AES-GCM", length: 256 },
-            false,
-            ["decrypt"]
-        );
-
-        try {
-            // Decrypt the data
-            const decryptedData = await window.crypto.subtle.decrypt(
-                { name: "AES-GCM", iv },
-                encryptionKey,
-                encryptedData
-            );
-
-            // Return the decrypted text as a string
-            return decoder.decode(decryptedData);
-        } catch (err) {
-            console.error("Decryption failed:", err);
-            return null; // Return null if decryption fails
-        }
-    };
-
 
     const handleFileContentChange = async (text: string) => {
         setFileContent(text);
 
         const password = getEncryptionPassword();
         if (password) {
-            const result = await encryptText(text, password);
+            const result = await Encrypt(text, password);
             if (typeof result !== "string") {
                 setEncryptedContent(result.encryptedText);
             } else {
@@ -187,20 +87,39 @@ export default function Page() {
     const closeModalEncryption = () => setIsModalEncryptionOpen(false);
     const openModalNewFolder = () => setIsModalNewFolderOpen(true);
     const closeModalNewFolder = () => setIsModalNewFolderOpen(false);
+    const [error, setError] = useState<string | null>(null);
 
+    const handleDecrypt = async (encryptedText: any, iv: any, salt: any, key: any) => {
+        try {
+            // Combine iv, salt, and encryptedText into a JSON object
+            const jsonInput = JSON.stringify({
+                iv, // Raw array, not stringified
+                salt, // Raw array, not stringified
+                encryptedText,
+            });
 
+            // Pass the JSON string to the Decrypt function
+            const decrypted = await Decrypt(jsonInput, key);
+
+            if (decrypted) {
+                console.log("Decrypted text:", decrypted);
+                return decrypted;
+            } else {
+                setError("Decryption failed. Check your inputs.");
+            }
+        } catch (err) {
+            console.error("Error during decryption:", err);
+            setError("Decryption encountered an error.");
+        }
+    };
+
+    const refreshFolders = async () => {
+        await getFolders();
+    }
 
     const getFolders = async () => {
         axios.get(APIURL + "/supradrive/folder/1", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
             .then(async (response) => {
-                console.log(response.data);
-
-                for (let i = 0; i < response.data.length; i++) {
-                    console.log(response.data[i].foldername);
-                    // let decryptedfoldername = await decryptText(response.data[i].foldername, response.data[i].folderiv, response.data[i].foldersalt, encryptionKey);
-                    // console.log(decryptedfoldername);
-                }
-
                 setFolders(response.data);
             })
             .catch((error) => {
@@ -209,7 +128,7 @@ export default function Page() {
     };
 
     const createNewFolder = async () => {
-        let encryptedfoldername = await encryptText(folderName, encryptionKey);
+        let encryptedfoldername = await Encrypt(folderName, encryptionKey);
         let json = {
             foldersysid: 1,
             foldername: typeof encryptedfoldername === 'string' ? encryptedfoldername : encryptedfoldername.encryptedText,
@@ -218,15 +137,15 @@ export default function Page() {
         }
 
         let folderjson = JSON.stringify(json);
-        axios.post(APIURL + "/supradrive/folder", folderjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
-            .then((response) => {
 
+        await axios.post(APIURL + "/supradrive/folder", folderjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
+            .then((response) => {
             })
             .catch((error) => {
                 console.log(error);
             });
-
         closeModalNewFolder();
+        getFolders();
     };
 
     useEffect(() => {
@@ -242,6 +161,24 @@ export default function Page() {
         checkToken();
         getFolders();
     }, []);
+
+
+    useEffect(() => {
+        const decryptFolders = async () => {
+            const decryptedFolders = await Promise.all(
+                folders.map(async (folder) => {
+                    const decryptedName = await handleDecrypt(folder.foldername, folder.folderiv, folder.foldersalt, encryptionKey);
+                    return { ...folder, decryptedName };
+                })
+            );
+            console.log(decryptedFolders);
+            setFolders(decryptedFolders);
+        };
+
+        if (encryptionKey && folders.length) {
+            decryptFolders();
+        }
+    }, [encryptionKey]);
 
     if (loading) {
         return (
@@ -288,6 +225,12 @@ export default function Page() {
                             >
                                 Set Encryption Password
                             </button>
+                            <button
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+                                onClick={refreshFolders}
+                            >
+                                Refresh Folders
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -301,11 +244,27 @@ export default function Page() {
 
                             <div className="prose prose-sm prose-invert max-w-none">
                                 <div className="flex items-center justify-between">
-                                    {folders.map((folder) => (
-                                        <div key={folder[0].folderid}>
-                                            folder name: {folder[0].foldername}
-                                        </div>
-                                    ))}
+                                    {folders.map((folder) => {
+                                        if (folder.decryptedName) {
+                                            return (
+                                                <div key={folder.folderid}>
+                                                    <div className="flex flex-col items-center group">
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            fill="yellow"
+                                                            width="60"
+                                                            height="60"
+                                                            viewBox="0 0 24 24"
+                                                            className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
+                                                        >
+                                                            <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
+                                                        </svg>
+                                                        <span className="text-white group-hover:text-gray-300 transition duration-300">{folder.decryptedName}</span>
+                                                    </div>
+                                                </div>
+                                            )
+                                        }
+                                    })}
                                 </div>
 
                                 {/* Modal for Creating a New File */}
@@ -406,8 +365,8 @@ export default function Page() {
                                             <h4 className="text-lg font-bold mb-4">Set Encryption Password</h4>
                                             <input
                                                 type="password"
-                                                value={encryptionKey}
-                                                onChange={(e) => setEncryptionKey(e.target.value)}
+                                                value={newKey}
+                                                onChange={(e) => setNewKey(e.target.value)}
                                                 className="w-full px-4 py-2 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
                                                 placeholder="Enter your password"
                                             />
