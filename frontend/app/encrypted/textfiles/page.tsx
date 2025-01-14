@@ -65,6 +65,7 @@ export default function Page() {
         setEncryptionKey(newKey)
         document.cookie = `encryptionPassword=${newKey}; Secure; SameSite=Strict; Path=/`;
         setIsModalEncryptionOpen(false);
+        getFilesAndFolders();
     };
 
     const handleFileContentChange = async (text: string) => {
@@ -106,11 +107,9 @@ export default function Page() {
             if (decrypted) {
                 return decrypted;
             } else {
-                return "error";
             }
         } catch (err) {
-            console.log(err);
-            return "error";
+            return;
         }
     };
 
@@ -162,20 +161,29 @@ export default function Page() {
     useEffect(() => {
         const token = sessionStorage.getItem("supradrivetoken") || "";
         setToken(token);
+
         const user = sessionStorage.getItem("supradriveuser") || "";
         setUser(user);
+
         const checkToken = async () => {
-            axios.get(APIURL + "/supradrive/auth/token", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
-                .then(() => {
-                    setLoading(false);
-                })
-                .catch(() => {
-                    redirect('/login');
+            try {
+                await axios.get(APIURL + "/supradrive/auth/token", {
+                    withCredentials: true,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
                 });
+                setLoading(false);
+            } catch (error) {
+                redirect('/login');
+            }
         };
+
         checkToken();
         getFilesAndFolders();
-    });
+    }, []); // Dependency array ensures this runs only once
+
 
 
     useEffect(() => {
