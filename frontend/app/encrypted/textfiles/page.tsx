@@ -108,6 +108,7 @@ export default function Page() {
                 return decrypted;
             } else {
             }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             return;
         }
@@ -175,6 +176,7 @@ export default function Page() {
                     },
                 });
                 setLoading(false);
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (error) {
                 redirect('/login');
             }
