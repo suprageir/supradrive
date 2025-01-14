@@ -8,7 +8,6 @@ export const Decrypt = async (jsonInput: any, key: any) => {
         throw new Error("Input must contain iv, salt, and encryptedText");
     }
 
-    // Convert iv and salt back to arrays if they are strings
     const ivArray = Array.isArray(iv) ? new Uint8Array(iv) : new Uint8Array(JSON.parse(iv));
     const saltArray = Array.isArray(salt) ? new Uint8Array(salt) : new Uint8Array(JSON.parse(salt));
 

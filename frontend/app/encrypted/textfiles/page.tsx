@@ -26,9 +26,10 @@ export default function Page() {
     );
     const [iv, setIv] = useState<number[]>([]);
     const [salt, setSalt] = useState<number[]>([]);
-    const [folders, setFolders] = useState<any[]>([]);
-    const [decryptedFolders, setDecryptedFolders] = useState<any[]>([]);
+    const [filesAndFolders, setFilesAndFolders] = useState<any[]>([]);
+    const [filesAndFoldersDecrypted, setFilesAndFoldersDecrypted] = useState<any[]>([]);
     const user = sessionStorage.getItem("supradriveusername") || "";
+    const [folderid, setFolderid] = useState(0);
 
 
     const saveFile = () => {
@@ -92,46 +93,46 @@ export default function Page() {
 
     const handleDecrypt = async (encryptedText: any, iv: any, salt: any, key: any) => {
         try {
-            // Combine iv, salt, and encryptedText into a JSON object
             const jsonInput = JSON.stringify({
-                iv, // Raw array, not stringified
-                salt, // Raw array, not stringified
+                iv,
+                salt,
                 encryptedText,
             });
 
-            // Pass the JSON string to the Decrypt function
             const decrypted = await Decrypt(jsonInput, key);
 
             if (decrypted) {
-                console.log("Decrypted text:", decrypted);
                 return decrypted;
             } else {
                 setError("Decryption failed. Check your inputs.");
             }
         } catch (err) {
-            console.error("Error during decryption:", err);
             setError("Decryption encountered an error.");
         }
     };
 
     const refreshFolders = async () => {
-        console.log("Refreshing folders");
-        console.log(encryptionKey);
-        await getFolders();
+        await getFilesAndFolders();
     }
 
-    const getFolders = async () => {
-        console.log("Getting folders");
-        console.log(encryptionKey);
-        axios.get(APIURL + "/supradrive/folder/1", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
-            .then(async (response) => {
-                console.log("Folders received");
-                console.log(response.data);
-                setFolders(response.data);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
+    const getFilesAndFolders = async () => {
+        if (folderid === 0) {
+            axios.get(APIURL + "/supradrive/folder/1", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
+                .then(async (response) => {
+                    setFilesAndFolders(response.data);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        } else {
+            axios.get(APIURL + "/supradrive/filesandfolders/" + folderid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
+                .then(async (response) => {
+                    setFilesAndFolders(response.data);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
     };
 
     const createNewFolder = async () => {
@@ -152,7 +153,7 @@ export default function Page() {
                 console.log(error);
             });
         closeModalNewFolder();
-        getFolders();
+        getFilesAndFolders();
     };
 
     useEffect(() => {
@@ -166,25 +167,25 @@ export default function Page() {
                 });
         };
         checkToken();
-        getFolders();
+        getFilesAndFolders();
     }, []);
 
 
     useEffect(() => {
         const decryptFolders = async () => {
             const decryptedFolders = await Promise.all(
-                folders.map(async (folder) => {
+                filesAndFolders.map(async (folder) => {
                     const decryptedName = await handleDecrypt(folder.foldername, folder.folderiv, folder.foldersalt, encryptionKey);
                     return { ...folder, decryptedName };
                 })
             );
-            setDecryptedFolders(decryptedFolders);
+            setFilesAndFoldersDecrypted(decryptedFolders);
         };
 
-        if (encryptionKey && folders.length) {
+        if (encryptionKey && filesAndFolders.length) {
             decryptFolders();
         }
-    }, [encryptionKey, folders]);
+    }, [encryptionKey, filesAndFolders]);
 
     if (loading) {
         return (
@@ -202,6 +203,7 @@ export default function Page() {
                         <Link href="/"><li className="after:content-['/'] after:px-2">Home</li></Link>
                         <li className="after:content-['/'] after:px-2">Encrypted</li>
                         <li className="after:content-['/'] after:px-2">Text files</li>
+                        {folderid !== 0 && <li className="after:content-['/'] after:px-2">{filesAndFoldersDecrypted.find(folder => folder.folderid === folderid)?.decryptedName}</li>}
                     </ol>
                 </nav>
 
@@ -212,31 +214,41 @@ export default function Page() {
 
 
                         </h5>
+
                         <div className="flex gap-4 pt-4">
-                            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500" onClick={encryptionKey ? openModalNewFolder : openModalEncryption}>
-                                Create New Folder
-                            </button>
-                            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500">
-                                Upload New Text File
-                            </button>
                             <button
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-                                onClick={openModal}
-                            >
-                                Create New Text File
-                            </button>
-                            <button
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+                                className={`px-4 py-2 text-white rounded-lg focus:ring-2 ${encryptionKey ? "bg-green-600 hover:bg-green-700 focus:ring-green-500" : "bg-red-600 hover:bg-red-700 focus:ring-red-500"}`}
                                 onClick={openModalEncryption}
                             >
-                                Set Encryption Password
+                                {encryptionKey ? "Change encryption password" : "Set encryption password"}
                             </button>
-                            <button
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-                                onClick={refreshFolders}
-                            >
-                                Refresh Folders
-                            </button>
+                            {encryptionKey && (
+                                <>
+                                    {(folderid !== 0) && (
+                                        <>
+                                            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500" onClick={encryptionKey ? openModalNewFolder : openModalEncryption}>
+                                                New Folder
+                                            </button>
+                                            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500">
+                                                Upload Text File
+                                            </button>
+                                            <button
+                                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+                                                onClick={openModal}
+                                            >
+                                                New Text File
+                                            </button>
+                                        </>
+                                    )}
+                                    <button
+                                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+                                        onClick={refreshFolders}
+                                    >
+                                        Refresh Folders
+                                    </button>
+                                </>
+                            )}
+
                         </div>
                     </div>
                 </div>
@@ -250,10 +262,27 @@ export default function Page() {
 
                             <div className="prose prose-sm prose-invert max-w-none">
                                 <div className="flex items-center justify-between">
-                                    {decryptedFolders.map((folder) => {
+                                    {folderid !== 0 && (
+                                        <div key={0} onClick={() => setFolderid(0)}>
+                                            <div className="flex flex-col items-center group">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="yellow"
+                                                    width="60"
+                                                    height="60"
+                                                    viewBox="0 0 24 24"
+                                                    className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
+                                                >
+                                                    <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
+                                                </svg>
+                                                <span className="text-white group-hover:text-gray-300 transition duration-300">..</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {filesAndFoldersDecrypted.map((folder) => {
                                         if (folder.decryptedName) {
                                             return (
-                                                <div key={folder.folderid}>
+                                                <div key={folder.folderid} onClick={() => setFolderid(folder.folderid)}>
                                                     <div className="flex flex-col items-center group">
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
@@ -406,7 +435,7 @@ export default function Page() {
                                                 value={folderName}
                                                 onChange={(e) => setFolderName(e.target.value)}
                                                 className="w-full px-4 py-2 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Enter your password"
+                                                placeholder="Enter folder name"
                                             />
                                             <div className="flex justify-end gap-4 mt-4">
                                                 <button
@@ -419,7 +448,7 @@ export default function Page() {
                                                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500"
                                                     onClick={createNewFolder}
                                                 >
-                                                    Activate
+                                                    Create Folder
                                                 </button>
                                             </div>
                                         </div>
