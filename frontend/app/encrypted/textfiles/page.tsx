@@ -10,7 +10,8 @@ import { Decrypt } from "@/app/components/Decrypt";
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
 export default function Page() {
-    const [token, setToken] = useState(sessionStorage.getItem("supradrivetoken") || "");
+    const [user, setUser] = useState("");
+    const [token, setToken] = useState("");
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalEncryptionOpen, setIsModalEncryptionOpen] = useState(false);
@@ -28,7 +29,6 @@ export default function Page() {
     const [salt, setSalt] = useState<number[]>([]);
     const [filesAndFolders, setFilesAndFolders] = useState<any[]>([]);
     const [filesAndFoldersDecrypted, setFilesAndFoldersDecrypted] = useState<any[]>([]);
-    const user = sessionStorage.getItem("supradriveusername") || "";
     const [folderid, setFolderid] = useState(0);
 
 
@@ -69,7 +69,10 @@ export default function Page() {
 
     const handleFileContentChange = async (text: string) => {
         setFileContent(text);
-
+        const salt = window.crypto.getRandomValues(new Uint8Array(16));
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+        setSalt(Array.from(salt));
+        setIv(Array.from(iv));
         const password = getEncryptionPassword();
         if (password) {
             const result = await Encrypt(text, password);
@@ -89,7 +92,6 @@ export default function Page() {
     const closeModalEncryption = () => setIsModalEncryptionOpen(false);
     const openModalNewFolder = () => setIsModalNewFolderOpen(true);
     const closeModalNewFolder = () => setIsModalNewFolderOpen(false);
-    const [error, setError] = useState<string | null>(null);
 
     const handleDecrypt = async (encryptedText: any, iv: any, salt: any, key: any) => {
         try {
@@ -104,10 +106,11 @@ export default function Page() {
             if (decrypted) {
                 return decrypted;
             } else {
-                setError("Decryption failed. Check your inputs.");
+                return "error";
             }
         } catch (err) {
-            setError("Decryption encountered an error.");
+            console.log(err);
+            return "error";
         }
     };
 
@@ -136,18 +139,18 @@ export default function Page() {
     };
 
     const createNewFolder = async () => {
-        let encryptedfoldername = await Encrypt(folderName, encryptionKey);
-        let json = {
+        const encryptedfoldername = await Encrypt(folderName, encryptionKey);
+        const json = {
             foldersysid: 1,
             foldername: typeof encryptedfoldername === 'string' ? encryptedfoldername : encryptedfoldername.encryptedText,
             foldersalt: typeof encryptedfoldername === 'string' ? encryptedfoldername : encryptedfoldername.salt,
             folderiv: typeof encryptedfoldername === 'string' ? encryptedfoldername : encryptedfoldername.iv,
         }
 
-        let folderjson = JSON.stringify(json);
+        const folderjson = JSON.stringify(json);
 
         await axios.post(APIURL + "/supradrive/folder", folderjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
-            .then((response) => {
+            .then(() => {
             })
             .catch((error) => {
                 console.log(error);
@@ -157,6 +160,10 @@ export default function Page() {
     };
 
     useEffect(() => {
+        const token = sessionStorage.getItem("supradrivetoken") || "";
+        setToken(token);
+        const user = sessionStorage.getItem("supradriveuser") || "";
+        setUser(user);
         const checkToken = async () => {
             axios.get(APIURL + "/supradrive/auth/token", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
                 .then(() => {
@@ -168,22 +175,24 @@ export default function Page() {
         };
         checkToken();
         getFilesAndFolders();
-    }, []);
+    });
 
 
     useEffect(() => {
-        const decryptFolders = async () => {
-            const decryptedFolders = await Promise.all(
-                filesAndFolders.map(async (folder) => {
-                    const decryptedName = await handleDecrypt(folder.foldername, folder.folderiv, folder.foldersalt, encryptionKey);
-                    return { ...folder, decryptedName };
-                })
-            );
-            setFilesAndFoldersDecrypted(decryptedFolders);
-        };
+        if (encryptionKey) {
+            const decryptFolders = async () => {
+                const decryptedFolders = await Promise.all(
+                    filesAndFolders.map(async (folder) => {
+                        const decryptedName = await handleDecrypt(folder.foldername, folder.folderiv, folder.foldersalt, encryptionKey);
+                        return { ...folder, decryptedName };
+                    })
+                );
+                setFilesAndFoldersDecrypted(decryptedFolders);
+            };
 
-        if (encryptionKey && filesAndFolders.length) {
-            decryptFolders();
+            if (encryptionKey && filesAndFolders.length) {
+                decryptFolders();
+            }
         }
     }, [encryptionKey, filesAndFolders]);
 
@@ -201,6 +210,7 @@ export default function Page() {
                 <nav className="p-4 bg-gray-200 dark:bg-gray-800">
                     <ol className="flex space-x-2">
                         <Link href="/"><li className="after:content-['/'] after:px-2">Home</li></Link>
+                        <li className="after:content-['/'] after:px-2">{user}</li>
                         <li className="after:content-['/'] after:px-2">Encrypted</li>
                         <li className="after:content-['/'] after:px-2">Text files</li>
                         {folderid !== 0 && <li className="after:content-['/'] after:px-2">{filesAndFoldersDecrypted.find(folder => folder.folderid === folderid)?.decryptedName}</li>}
@@ -211,8 +221,6 @@ export default function Page() {
                     <div className="col-span-12 md:col-span-8 p-4">
                         <h5 className="text-xl font-bold">Encrypted Text files &nbsp; &nbsp;
                             {encryptionKey ? <span className="text-green-500 p-2 rounded-lg bg-green-500/10">Unlocked</span> : <span className="text-red-500 p-2 rounded-lg bg-red-500/10">Locked</span>}
-
-
                         </h5>
 
                         <div className="flex gap-4 pt-4">
@@ -224,11 +232,11 @@ export default function Page() {
                             </button>
                             {encryptionKey && (
                                 <>
+                                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500" onClick={encryptionKey ? openModalNewFolder : openModalEncryption}>
+                                        New Folder
+                                    </button>
                                     {(folderid !== 0) && (
                                         <>
-                                            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500" onClick={encryptionKey ? openModalNewFolder : openModalEncryption}>
-                                                New Folder
-                                            </button>
                                             <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500">
                                                 Upload Text File
                                             </button>
@@ -258,10 +266,9 @@ export default function Page() {
 
                     <div className="rounded-lg bg-vc-border-gradient p-px shadow-lg shadow-black/20">
                         <div className="rounded-lg bg-black p-3.5 lg:p-6 w-full">
-
-
                             <div className="prose prose-sm prose-invert max-w-none">
-                                <div className="flex items-center justify-between">
+
+                                <div className="flex flex-wrap items-center justify-start gap-10">
                                     {folderid !== 0 && (
                                         <div key={0} onClick={() => setFolderid(0)}>
                                             <div className="flex flex-col items-center group">
@@ -275,7 +282,9 @@ export default function Page() {
                                                 >
                                                     <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
                                                 </svg>
-                                                <span className="text-white group-hover:text-gray-300 transition duration-300">..</span>
+                                                <span className="text-white group-hover:text-gray-300 transition duration-300 text-center max-w-[12.5rem] break-words">
+                                                    ..
+                                                </span>
                                             </div>
                                         </div>
                                     )}
@@ -294,166 +303,178 @@ export default function Page() {
                                                         >
                                                             <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
                                                         </svg>
-                                                        <span className="text-white group-hover:text-gray-300 transition duration-300">{folder.decryptedName}</span>
+                                                        <span className="text-white group-hover:text-gray-300 transition duration-300 text-center max-w-[12.5rem] break-words">
+                                                            {folder.decryptedName}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                            )
+                                            );
                                         }
                                     })}
                                 </div>
 
+
+
+
+
                                 {/* Modal for Creating a New File */}
-                                {isModalOpen && (
-                                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                        <div className="w-full max-w-3xl bg-gray-800 text-white rounded-lg shadow-lg p-4">
-                                            {/* Modal Header */}
-                                            <div className="flex flex-col mb-4 space-y-2">
-                                                <div className="flex items-center justify-between">
-                                                    <input
-                                                        type="text"
-                                                        value={fileName}
-                                                        onChange={(e) => setFileName(e.target.value)}
-                                                        className="px-2 py-1 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                        placeholder="Enter file name"
-                                                    />
+                                {
+                                    isModalOpen && (
+                                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                            <div className="w-full max-w-3xl bg-gray-800 text-white rounded-lg shadow-lg p-4">
+                                                {/* Modal Header */}
+                                                <div className="flex flex-col mb-4 space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <input
+                                                            type="text"
+                                                            value={fileName}
+                                                            onChange={(e) => setFileName(e.target.value)}
+                                                            className="px-2 py-1 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                            placeholder="Enter file name"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col space-y-1 mt-2">
+                                                        <span className="text-sm">IV:</span>
+                                                        <span className="text-sm">{iv.length ? iv.join(', ') : 'Not generated'}</span>
+                                                    </div>
+                                                    <div className="flex flex-col space-y-1 mt-2">
+                                                        <span className="text-sm">Salt:</span>
+                                                        <span className="text-sm">{salt.length ? salt.join(', ') : 'Not generated'}</span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-col space-y-1 mt-2">
-                                                    <span className="text-sm">IV:</span>
-                                                    <span className="text-sm">{iv.length ? iv.join(', ') : 'Not generated'}</span>
+
+                                                {/* Tabs for Plain Text and Encrypted Content */}
+                                                <div className="mb-4">
+                                                    <button
+                                                        className={`px-4 py-2 rounded-t-lg ${activeTab === "plaintext" ? "bg-gray-700 text-white" : "bg-gray-600 text-gray-300"}`}
+                                                        onClick={() => setActiveTab("plaintext")}
+                                                    >
+                                                        Plain Text
+                                                    </button>
+                                                    <button
+                                                        className={`px-4 py-2 rounded-t-lg ${activeTab === "encrypted" ? "bg-gray-700 text-white" : "bg-gray-600 text-gray-300"}`}
+                                                        onClick={() => setActiveTab("encrypted")}
+                                                    >
+                                                        Encrypted Text
+                                                    </button>
                                                 </div>
-                                                <div className="flex flex-col space-y-1 mt-2">
-                                                    <span className="text-sm">Salt:</span>
-                                                    <span className="text-sm">{salt.length ? salt.join(', ') : 'Not generated'}</span>
+
+                                                {/* Tab Content */}
+                                                <div className="bg-gray-700 p-4 rounded-lg">
+                                                    {activeTab === "plaintext" && (
+                                                        <textarea
+                                                            className="w-full h-64 p-2 bg-gray-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500"
+                                                            value={fileContent}
+                                                            onChange={(e) => handleFileContentChange(e.target.value)}
+                                                            placeholder="Write your text here..."
+                                                        ></textarea>
+                                                    )}
+                                                    {activeTab === "encrypted" && (
+                                                        <p className="break-words text-sm">
+                                                            {encryptedContent || "Encrypted content will appear here."}
+                                                        </p>
+                                                    )}
                                                 </div>
-                                            </div>
 
-                                            {/* Tabs for Plain Text and Encrypted Content */}
-                                            <div className="mb-4">
-                                                <button
-                                                    className={`px-4 py-2 rounded-t-lg ${activeTab === "plaintext" ? "bg-gray-700 text-white" : "bg-gray-600 text-gray-300"}`}
-                                                    onClick={() => setActiveTab("plaintext")}
-                                                >
-                                                    Plain Text
-                                                </button>
-                                                <button
-                                                    className={`px-4 py-2 rounded-t-lg ${activeTab === "encrypted" ? "bg-gray-700 text-white" : "bg-gray-600 text-gray-300"}`}
-                                                    onClick={() => setActiveTab("encrypted")}
-                                                >
-                                                    Encrypted Text
-                                                </button>
-                                            </div>
-
-                                            {/* Tab Content */}
-                                            <div className="bg-gray-700 p-4 rounded-lg">
-                                                {activeTab === "plaintext" && (
-                                                    <textarea
-                                                        className="w-full h-64 p-2 bg-gray-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500"
-                                                        value={fileContent}
-                                                        onChange={(e) => handleFileContentChange(e.target.value)}
-                                                        placeholder="Write your text here..."
-                                                    ></textarea>
-                                                )}
-                                                {activeTab === "encrypted" && (
-                                                    <p className="break-words text-sm">
-                                                        {encryptedContent || "Encrypted content will appear here."}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            {/* Modal Footer */}
-                                            <div className="flex justify-end mt-4">
-                                                <button
-                                                    className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 mr-2 inline-flex items-center gap-2"
-                                                    onClick={closeModal}
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                    Close
-                                                </button>
-                                                <button
-                                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2 inline-flex items-center gap-2 focus:ring-2 focus:ring-green-500"
-                                                    onClick={() => {
-                                                        console.log("Filename:", fileName);
-                                                        console.log("Original Content:", fileContent);
-                                                        console.log("Encrypted Content:", encryptedContent);
-                                                        console.log("IV:", iv);
-                                                        console.log("Salt:", salt);
-                                                        saveFile();
-                                                        closeModal();
-                                                    }}
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                                    </svg>
-                                                    Save
-                                                </button>
+                                                {/* Modal Footer */}
+                                                <div className="flex justify-end mt-4">
+                                                    <button
+                                                        className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 mr-2 inline-flex items-center gap-2"
+                                                        onClick={closeModal}
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                        Close
+                                                    </button>
+                                                    <button
+                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2 inline-flex items-center gap-2 focus:ring-2 focus:ring-green-500"
+                                                        onClick={() => {
+                                                            console.log("Filename:", fileName);
+                                                            console.log("Original Content:", fileContent);
+                                                            console.log("Encrypted Content:", encryptedContent);
+                                                            console.log("IV:", iv);
+                                                            console.log("Salt:", salt);
+                                                            saveFile();
+                                                            closeModal();
+                                                        }}
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                        </svg>
+                                                        Save
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )
+                                }
 
                                 {/* Modal for Setting Encryption Password */}
-                                {isModalEncryptionOpen && (
-                                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                        <div className="w-full max-w-md bg-gray-800 text-white rounded-lg shadow-lg p-6">
-                                            <h4 className="text-lg font-bold mb-4">Set Encryption Password</h4>
-                                            <input
-                                                type="password"
-                                                value={newKey}
-                                                onChange={(e) => setNewKey(e.target.value)}
-                                                className="w-full px-4 py-2 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Enter your password"
-                                            />
-                                            <div className="flex justify-end gap-4 mt-4">
-                                                <button
-                                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500"
-                                                    onClick={closeModalEncryption}
-                                                >
-                                                    Close
-                                                </button>
-                                                <button
-                                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500"
-                                                    onClick={setCookiePassword}
-                                                >
-                                                    Activate
-                                                </button>
+                                {
+                                    isModalEncryptionOpen && (
+                                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                            <div className="w-full max-w-md bg-gray-800 text-white rounded-lg shadow-lg p-6">
+                                                <h4 className="text-lg font-bold mb-4">Set Encryption Password</h4>
+                                                <input
+                                                    type="password"
+                                                    value={newKey}
+                                                    onChange={(e) => setNewKey(e.target.value)}
+                                                    className="w-full px-4 py-2 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Enter your password"
+                                                />
+                                                <div className="flex justify-end gap-4 mt-4">
+                                                    <button
+                                                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500"
+                                                        onClick={closeModalEncryption}
+                                                    >
+                                                        Close
+                                                    </button>
+                                                    <button
+                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500"
+                                                        onClick={setCookiePassword}
+                                                    >
+                                                        Activate
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )
+                                }
 
 
 
 
-                                {isModalNewFolderOpen && (
-                                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                        <div className="w-full max-w-md bg-gray-800 text-white rounded-lg shadow-lg p-6">
-                                            <h4 className="text-lg font-bold mb-4">New folder name</h4>
-                                            <input
-                                                type="text"
-                                                value={folderName}
-                                                onChange={(e) => setFolderName(e.target.value)}
-                                                className="w-full px-4 py-2 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Enter folder name"
-                                            />
-                                            <div className="flex justify-end gap-4 mt-4">
-                                                <button
-                                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500"
-                                                    onClick={closeModalNewFolder}
-                                                >
-                                                    Close
-                                                </button>
-                                                <button
-                                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500"
-                                                    onClick={createNewFolder}
-                                                >
-                                                    Create Folder
-                                                </button>
+                                {
+                                    isModalNewFolderOpen && (
+                                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                            <div className="w-full max-w-md bg-gray-800 text-white rounded-lg shadow-lg p-6">
+                                                <h4 className="text-lg font-bold mb-4">New folder name</h4>
+                                                <input
+                                                    type="text"
+                                                    value={folderName}
+                                                    onChange={(e) => setFolderName(e.target.value)}
+                                                    className="w-full px-4 py-2 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Enter folder name"
+                                                />
+                                                <div className="flex justify-end gap-4 mt-4">
+                                                    <button
+                                                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500"
+                                                        onClick={closeModalNewFolder}
+                                                    >
+                                                        Close
+                                                    </button>
+                                                    <button
+                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500"
+                                                        onClick={createNewFolder}
+                                                    >
+                                                        Create Folder
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )
+                                }
 
                             </div>
 

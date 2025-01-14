@@ -48,6 +48,6 @@ export const Decrypt = async (jsonInput: any, key: any) => {
 
         return new TextDecoder().decode(decryptedData);
     } catch (error) {
-        throw new Error("Decryption failed. Make sure the key is correct and the input is valid.");
+        throw new Error("Decryption failed. Make sure the key is correct and the input is valid." + error);
     }
 };

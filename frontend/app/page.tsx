@@ -10,10 +10,11 @@ const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
 export default function Page() {
   const [loading, setLoading] = useState(true);
-  const user = sessionStorage.getItem("supradriveuser") || "";
+  const [user, setUser] = useState("");
 
   useEffect(() => {
     const token = sessionStorage.getItem("supradrivetoken") || "";
+    setUser(sessionStorage.getItem("supradriveuser") || "");
 
     const checkToken = async () => {
       axios.get(APIURL + "/supradrive/auth/token", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
@@ -43,7 +44,7 @@ export default function Page() {
 
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 md:col-span-8 p-4">
-          <h5 className="text-xl font-bold">{user}'s files</h5>
+          <h5 className="text-xl font-bold">{user}s files</h5>
         </div>
 
         <div className="col-span-12 md:col-span-4 flex justify-end space-x-4 p-4">

@@ -16,7 +16,6 @@ export const Encrypt = async (text: string, key: string): Promise<EncryptedResul
     );
 
     const salt = window.crypto.getRandomValues(new Uint8Array(16));
-    const saltArray = Array.from(salt);
 
     const encryptionKey = await window.crypto.subtle.deriveKey(
         {
@@ -32,7 +31,6 @@ export const Encrypt = async (text: string, key: string): Promise<EncryptedResul
     );
 
     const iv = window.crypto.getRandomValues(new Uint8Array(12));
-    const ivArray = Array.from(iv);
 
     const encryptedData = await window.crypto.subtle.encrypt(
         { name: "AES-GCM", iv },

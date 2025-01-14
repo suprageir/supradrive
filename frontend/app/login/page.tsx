@@ -98,9 +98,9 @@ else {
           >
             Login
           </button>
-
+          {errorMessage && <p className="text-center text-red-500 text-sm mt-4">{errorMessage}</p>}
           <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-4">
-            Don't have an account?
+            Dont have an account?
             <a href="/signup" className="text-blue-500 hover:underline ml-1">
               Sign up
             </a>
