@@ -373,7 +373,7 @@ export default function Page() {
                                     {decryptedFiles.map((file) => {
                                         if (file.decryptedName) {
                                             return (
-                                                <div key={file.fileid} onClick={() => handleSelectFile(file.fileid)}>
+                                                <div key={file.fileid} onClick={() => handleSelectFile()}>
                                                     <div className="flex flex-col items-center group">
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
