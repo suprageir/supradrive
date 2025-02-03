@@ -66,14 +66,14 @@ export default function Page() {
         getFilesAndFolders(newfolderid);
     }
 
-    const handleSelectFile = (newfileid: number) => {
+    const handleSelectFile = () => {
     }
 
     const saveFile = async () => {
         setSavingfile(true);
         const password = getEncryptionPassword();
-        let EncFilename = await Encrypt(fileName, password);
-        let EncContent = await Encrypt(fileContent, password);
+        const EncFilename = await Encrypt(fileName, password);
+        const EncContent = await Encrypt(fileContent, password);
         const fileData = {
             folderid: folderid,
             filename: typeof EncFilename === 'string' ? EncFilename : EncFilename.encryptedText,
@@ -211,12 +211,14 @@ export default function Page() {
 
         checkToken();
         getFilesAndFolders(folderid);
-    }, []); // Dependency array ensures this runs only once
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (encryptionKey && ((filesAndFolders[0].folders.length > 0) || (filesAndFolders[0].files.length > 0))) {
             decryptFilesAndFolders();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filesAndFolders, encryptionKey]);
 
     if (loading) {
