@@ -11,6 +11,12 @@ export default function Page() {
   const [token, setToken] = useState("");
   const router = useRouter();
 
+  const logout = () => {
+    sessionStorage.clear();
+    localStorage.clear();
+    router.push("/login");
+  }
+
   useEffect(() => {
     const storedToken = sessionStorage.getItem("supradrivetoken") || "";
 
@@ -41,7 +47,7 @@ export default function Page() {
           </div>
 
           <div className="col-span-12 md:col-span-4 flex justify-end space-x-4 p-4">
-            <button className="px-4 py-2 bg-red-500 text-white rounded-sm shadow-sm hover:bg-red-600">
+            <button className="px-4 py-2 bg-red-500 text-white rounded-sm shadow-sm hover:bg-red-600" onClick={logout}>
               Logout
             </button>
           </div>
