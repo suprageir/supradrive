@@ -10,9 +10,8 @@ import { Decrypt } from "@/app/components/Decrypt";
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
 export default function Page() {
-    const [user, setUser] = useState("");
-    const [token, setToken] = useState("");
     const [loading, setLoading] = useState(true);
+    const [decrypting, setDecrypting] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalEncryptionOpen, setIsModalEncryptionOpen] = useState(false);
     const [isModalNewFolderOpen, setIsModalNewFolderOpen] = useState(false);
@@ -28,12 +27,44 @@ export default function Page() {
     const [iv, setIv] = useState<number[]>([]);
     const [salt, setSalt] = useState<number[]>([]);
     const [filesAndFolders, setFilesAndFolders] = useState<any[]>([]);
-    const [filesAndFoldersDecrypted, setFilesAndFoldersDecrypted] = useState<any[]>([]);
+    const [decryptedFolders, setDecryptedFolders] = useState<any[]>([]);
+    const [decryptedFiles, setDecryptedFiles] = useState<any[]>([]);
     const [folderid, setFolderid] = useState(0);
+    const [foldername, setFoldername] = useState("");
+    const [upFolderId, setUpFolderId] = useState(0);
 
+    const decryptFilesAndFolders = async () => {
+        setDecrypting(true);
+        setDecryptedFolders([]);
+        setDecryptedFiles([]);
+        if (encryptionKey) {
+            const decryptedFolders = await Promise.all(
+                filesAndFolders[0].folders.map(async (folder: any) => {
+                    const decryptedName = await handleDecrypt(folder.foldername, folder.folderiv, folder.foldersalt, encryptionKey);
+                    return { ...folder, decryptedName };
+                })
+            );
+            setDecryptedFolders(decryptedFolders);
+            const decryptedFiles = await Promise.all(
+                filesAndFolders[0].files.map(async (file: any) => {
+                    const decryptedName = await handleDecrypt(file.filename, file.iv, file.salt, encryptionKey);
+                    return { ...file, decryptedName };
+                })
+            );
+            setDecryptedFiles(decryptedFiles);
+        }
+        setDecrypting(false);
+    };
+
+
+    const handleSelectFolder = (newfolderid: number) => {
+        setFolderid(newfolderid);
+        setFoldername(decryptedFolders.find(folder => folder.folderid === newfolderid)?.decryptedName ?? "");
+        setUpFolderId(decryptedFolders.find(folder => folder.folderid === newfolderid)?.foldersubid ?? 0);
+        getFilesAndFolders(newfolderid);
+    }
 
     const saveFile = () => {
-        // Create the content to save
         const fileData = {
             fileName: fileName,
             iv: iv,
@@ -41,15 +72,13 @@ export default function Page() {
             content: encryptedContent || "No encryption key set",
         };
 
-        // Convert the file data to a Blob (for downloading)
         const blob = new Blob([JSON.stringify(fileData, null, 2)], {
             type: "application/json",
         });
 
-        // Create a link element to trigger the download
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `${fileName}.json`; // Save as .json file
+        link.download = `${fileName}.json`;
         link.click();
     };
 
@@ -61,11 +90,10 @@ export default function Page() {
         return cookie ? decodeURIComponent(cookie.split("=")[1]) : "";
     };
 
-    const setCookiePassword = () => {
-        setEncryptionKey(newKey)
+    const setCookiePassword = async () => {
+        setEncryptionKey(newKey);
         document.cookie = `encryptionPassword=${newKey}; Secure; SameSite=Strict; Path=/`;
         setIsModalEncryptionOpen(false);
-        getFilesAndFolders();
     };
 
     const handleFileContentChange = async (text: string) => {
@@ -115,33 +143,27 @@ export default function Page() {
     };
 
     const refreshFolders = async () => {
-        await getFilesAndFolders();
+        await getFilesAndFolders(folderid);
     }
 
-    const getFilesAndFolders = async () => {
-        if (folderid === 0) {
-            axios.get(APIURL + "/supradrive/folder/1", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
-                .then(async (response) => {
-                    setFilesAndFolders(response.data);
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        } else {
-            axios.get(APIURL + "/supradrive/filesandfolders/" + folderid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
-                .then(async (response) => {
-                    setFilesAndFolders(response.data);
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        }
+    const getFilesAndFolders = async (folderiduse: number | undefined) => {
+        const folderidext = folderiduse ?? folderid;
+        axios.get(APIURL + "/supradrive/folder/" + folderidext, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+            .then(async (response) => {
+                setDecryptedFolders([]);
+                setDecryptedFiles([]);
+                setFilesAndFolders(response.data);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
     };
 
     const createNewFolder = async () => {
         const encryptedfoldername = await Encrypt(folderName, encryptionKey);
         const json = {
             foldersysid: 1,
+            foldersubid: folderid,
             foldername: typeof encryptedfoldername === 'string' ? encryptedfoldername : encryptedfoldername.encryptedText,
             foldersalt: typeof encryptedfoldername === 'string' ? encryptedfoldername : encryptedfoldername.salt,
             folderiv: typeof encryptedfoldername === 'string' ? encryptedfoldername : encryptedfoldername.iv,
@@ -149,29 +171,23 @@ export default function Page() {
 
         const folderjson = JSON.stringify(json);
 
-        await axios.post(APIURL + "/supradrive/folder", folderjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
+        await axios.post(APIURL + "/supradrive/folder", folderjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(() => {
             })
             .catch((error) => {
                 console.log(error);
             });
         closeModalNewFolder();
-        getFilesAndFolders();
+        getFilesAndFolders(folderid);
     };
 
     useEffect(() => {
-        const token = sessionStorage.getItem("supradrivetoken") || "";
-        setToken(token);
-
-        const user = sessionStorage.getItem("supradriveuser") || "";
-        setUser(user);
-
         const checkToken = async () => {
             try {
                 await axios.get(APIURL + "/supradrive/auth/token", {
                     withCredentials: true,
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': `Bearer ${sessionStorage.getItem("supradrivetoken")}`,
                         'Content-Type': 'application/json',
                     },
                 });
@@ -183,33 +199,27 @@ export default function Page() {
         };
 
         checkToken();
-        getFilesAndFolders();
+        getFilesAndFolders(folderid);
     }, []); // Dependency array ensures this runs only once
 
-
-
     useEffect(() => {
-        if (encryptionKey) {
-            const decryptFolders = async () => {
-                const decryptedFolders = await Promise.all(
-                    filesAndFolders.map(async (folder) => {
-                        const decryptedName = await handleDecrypt(folder.foldername, folder.folderiv, folder.foldersalt, encryptionKey);
-                        return { ...folder, decryptedName };
-                    })
-                );
-                setFilesAndFoldersDecrypted(decryptedFolders);
-            };
-
-            if (encryptionKey && filesAndFolders.length) {
-                decryptFolders();
-            }
+        if (encryptionKey && ((filesAndFolders[0].folders.length > 0) || (filesAndFolders[0].files.length > 0))) {
+            decryptFilesAndFolders();
         }
-    }, [encryptionKey, filesAndFolders]);
+    }, [filesAndFolders, encryptionKey]);
 
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center">
                 <h1 className="text-xl font-medium text-gray-300">Checking authentication...</h1>
+            </div>
+        );
+    }
+
+    if (decrypting) {
+        return (
+            <div className="flex h-screen items-center justify-center">
+                <h1 className="text-xl font-medium text-gray-300">Decrypting...</h1>
             </div>
         );
     }
@@ -220,10 +230,10 @@ export default function Page() {
                 <nav className="p-4 bg-gray-200 dark:bg-gray-800">
                     <ol className="flex space-x-2">
                         <Link href="/"><li className="after:content-['/'] after:px-2">Home</li></Link>
-                        <li className="after:content-['/'] after:px-2">{user}</li>
+                        <li className="after:content-['/'] after:px-2">{sessionStorage.getItem("supradriveuser")}</li>
                         <li className="after:content-['/'] after:px-2">Encrypted</li>
                         <li className="after:content-['/'] after:px-2">Text files</li>
-                        {folderid !== 0 && <li className="after:content-['/'] after:px-2">{filesAndFoldersDecrypted.find(folder => folder.folderid === folderid)?.decryptedName}</li>}
+                        {folderid !== 0 && <li className="after:content-['/'] after:px-2">{foldername}</li>}
                     </ol>
                 </nav>
 
@@ -280,28 +290,47 @@ export default function Page() {
 
                                 <div className="flex flex-wrap items-center justify-start gap-10">
                                     {folderid !== 0 && (
-                                        <div key={0} onClick={() => setFolderid(0)}>
-                                            <div className="flex flex-col items-center group">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    fill="yellow"
-                                                    width="60"
-                                                    height="60"
-                                                    viewBox="0 0 24 24"
-                                                    className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
-                                                >
-                                                    <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
-                                                </svg>
-                                                <span className="text-white group-hover:text-gray-300 transition duration-300 text-center max-w-[12.5rem] break-words">
-                                                    ..
-                                                </span>
+                                        <>
+                                            <div key="back0" onClick={() => handleSelectFolder(0)}>
+                                                <div className="flex flex-col items-center group">
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="yellow"
+                                                        width="60"
+                                                        height="60"
+                                                        viewBox="0 0 24 24"
+                                                        className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
+                                                    >
+                                                        <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
+                                                    </svg>
+                                                    <span className="text-white group-hover:text-gray-300 transition duration-300 text-center max-w-[12.5rem] break-words">
+                                                        .
+                                                    </span>
+                                                </div>
                                             </div>
-                                        </div>
+                                            <div key="back1" onClick={() => handleSelectFolder(upFolderId)}>
+                                                <div className="flex flex-col items-center group">
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="yellow"
+                                                        width="60"
+                                                        height="60"
+                                                        viewBox="0 0 24 24"
+                                                        className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
+                                                    >
+                                                        <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
+                                                    </svg>
+                                                    <span className="text-white group-hover:text-gray-300 transition duration-300 text-center max-w-[12.5rem] break-words">
+                                                        ..
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </>
                                     )}
-                                    {filesAndFoldersDecrypted.map((folder) => {
+                                    {decryptedFolders.map((folder) => {
                                         if (folder.decryptedName) {
                                             return (
-                                                <div key={folder.folderid} onClick={() => setFolderid(folder.folderid)}>
+                                                <div key={folder.folderid} onClick={() => handleSelectFolder(folder.folderid)}>
                                                     <div className="flex flex-col items-center group">
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
@@ -322,8 +351,6 @@ export default function Page() {
                                         }
                                     })}
                                 </div>
-
-
 
 
 

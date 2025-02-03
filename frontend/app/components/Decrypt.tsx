@@ -24,8 +24,8 @@ export const Decrypt = async (jsonInput: any, key: any) => {
         {
             name: "PBKDF2",
             salt: saltArray,
-            iterations: 100000,
-            hash: "SHA-256",
+            iterations: 500000,
+            hash: "SHA-512",
         },
         passwordKey,
         { name: "AES-GCM", length: 256 },

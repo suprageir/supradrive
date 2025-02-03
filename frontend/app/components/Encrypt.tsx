@@ -21,8 +21,8 @@ export const Encrypt = async (text: string, key: string): Promise<EncryptedResul
         {
             name: "PBKDF2",
             salt,
-            iterations: 100000,
-            hash: "SHA-256",
+            iterations: 500000,
+            hash: "SHA-512",
         },
         passwordKey,
         { name: "AES-GCM", length: 256 },
