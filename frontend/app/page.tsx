@@ -15,7 +15,7 @@ export default function Page() {
     const storedToken = sessionStorage.getItem("supradrivetoken") || "";
     console.log("Token:", storedToken);
 
-    if (storedToken) {
+    if (storedToken && storedToken !== "") {
       setToken(storedToken);
       setLoading(false);
     } else {
