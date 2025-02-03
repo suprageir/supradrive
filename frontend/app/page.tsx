@@ -48,9 +48,9 @@ export default function Page() {
         </div>
 
         <div className="col-span-12 md:col-span-4 flex justify-end space-x-4 p-4">
-          <button className="px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-600">Button 1</button>
-          <button className="px-4 py-2 bg-green-500 text-white rounded shadow hover:bg-green-600">Button 2</button>
-          <button className="px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600">Button 3</button>
+          <button className="px-4 py-2 bg-blue-500 text-white rounded-sm shadow-sm hover:bg-blue-600">Button 1</button>
+          <button className="px-4 py-2 bg-green-500 text-white rounded-sm shadow-sm hover:bg-green-600">Button 2</button>
+          <button className="px-4 py-2 bg-red-500 text-white rounded-sm shadow-sm hover:bg-red-600">Button 3</button>
 
         </div>
 
