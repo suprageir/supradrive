@@ -1,32 +1,51 @@
 "use client";
 
-import React, { FC, useState } from "react";
+import axios from "axios";
 import { useRouter } from "next/navigation";
-import axios from 'axios';
-import LoadingScreen from "../components/LoadingScreen";
-
+import { useState, useEffect, useRef } from "react";
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
-const Login: FC = () => {
-  const [loading, setLoading] = useState(false);
+
+const Login = () => {
+  const router = useRouter();
+  const [step, setStep] = useState(1);
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState<string>("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [checking, setChecking] = useState<string | null>(null);
+  const outputRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (step === 1) {
+      if (input.trim() === "") {
+        setError("Please enter a username.");
+        return;
+      }
+      setUsername(input);
+      setError(null);
+      setStep(2);
+      setOutput((prev) => prev + "\n" + "> " + input);
+      setInput("");
+    } else if (step === 2) {
+      if (input.trim() === "") {
+        setError("Please enter a password.");
+        return;
+      }
+      setPassword(input);
+      setError(null);
+      setOutput((prev) => prev + "\n" + "> " + "*".repeat(input.length));
+      setInput("");
+    }
+  };
 
-    const loginData = { username, password };
-
+  const checkLogin = async () => {
     try {
-      setLoading(true);
-      const response = await axios.post(
-        `${APIURL}/supradrive/auth/login`,
-        loginData,
-        { headers: { "Content-Type": "application/json" } }
-      );
-
+      setChecking("Verifying login credentials, please wait...");
+      const loginData = { username, password };
+      const response = await axios.post(`${APIURL}/supradrive/auth/login`, loginData, { headers: { "Content-Type": "application/json" } });
       if (response.status === 200) {
         const { username, token, userid } = response.data;
 
@@ -39,77 +58,63 @@ const Login: FC = () => {
 
     } catch (error: any) {
       if (error.response) {
-        setErrorMessage(error.response.data.message || "Login failed");
-        setLoading(false);
+        setError("Invalid credentials!");
       } else {
         console.error("Error:", error);
-        setErrorMessage("An unexpected error occurred.");
-        setLoading(false);
+        setError("An unexpected error occurred.");
       }
     }
+    setChecking(null);
   };
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
-else {
+  useEffect(() => {
+    if (step === 1) {
+      setOutput("Enter your username: ");
+    } else if (step === 2) {
+      setOutput((prev) => prev + "\nEnter your password: ");
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
+  }, [output]);
+
+  useEffect(() => {
+    if (password.length > 0) {
+      checkLogin();
+    }
+  }, [password]);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white text-center mb-6">SupraDrive login</h2>
-        <form>
-          <div className="mb-4">
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              placeholder="Enter your username"
-            />
-          </div>
-
-          <div className="mb-6">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              placeholder="Enter your password"
-            />
-          </div>
-
-          <button
-            onClick={handleSubmit}
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
-          >
-            Login
-          </button>
-          {errorMessage && <p className="text-center text-red-500 text-sm mt-4">{errorMessage}</p>}
-          <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-4">
-            Dont have an account?
-            <a href="/signup" className="text-blue-500 hover:underline ml-1">
-              Sign up
-            </a>
-          </p>
-        </form>
+    <div className="min-h-screen bg-black text-green-500 font-mono flex justify-center items-center">
+      <div className="w-[600px] p-6 border border-green-500 border-2 rounded-md shadow-lg">
+        <h1 className="text-3xl text-green-500 text-center mb-6">SupraDrive login</h1>
+        <div
+          ref={outputRef}
+          className="h-72 overflow-y-auto bg-black p-4 border border-green-900 rounded-md"
+        >
+          <pre className="whitespace-pre-wrap">{output}</pre>
+          {error && <p className="text-red-500">{error}</p>}
+          {checking && <p className="text-green-500">{checking}</p>}
         </div>
+
+        <form onSubmit={handleSubmit} className="mt-4">
+          <div className="flex items-center">
+            <span className="text-green-500">{step === 1 ? ">" : ">"}</span>
+            <input
+              type={step === 2 ? "password" : "text"}
+              className="ml-2 bg-black text-green-500 border border-green-500 p-2 w-full focus:outline-none"
+              placeholder={step === 1 ? "Username" : "Password"}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+            />
+          </div>
+        </form>
       </div>
-    );
-  }
+    </div>
+  );
 };
 
 export default Login;
