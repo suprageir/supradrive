@@ -8,26 +8,18 @@ import LoadingScreen from "./components/LoadingScreen";
 export default function Page() {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState("");
-  const router = useRouter(); // Use useRouter instead of redirect
+  const router = useRouter();
 
   useEffect(() => {
-    console.log("Checking token...");
     const storedToken = sessionStorage.getItem("supradrivetoken") || "";
-    console.log("Token:", storedToken);
 
     if (storedToken && storedToken !== "") {
       setToken(storedToken);
       setLoading(false);
     } else {
-      setLoading(false); // Allow render before redirect
+      router.push("/login");
     }
   }, []);
-
-  useEffect(() => {
-    if (!loading && !token) {
-      router.push("/login"); // Ensure redirect happens after state update
-    }
-  }, [loading, token, router]);
 
   if (loading) {
     return <LoadingScreen />;
