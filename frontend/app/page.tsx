@@ -7,6 +7,7 @@ import LoadingScreen from "./components/LoadingScreen";
 
 export default function Page() {
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [token, setToken] = useState("");
   const router = useRouter();
 
@@ -19,6 +20,7 @@ export default function Page() {
     } else {
       router.push("/login");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {
