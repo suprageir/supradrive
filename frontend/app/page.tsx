@@ -57,7 +57,7 @@ export default function Page() {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 md:col-span-8 p-2">
-            <h1 className="text-3xl text-green-500">{username}'s files</h1>
+            <h1 className="text-3xl text-green-500">{username}&apos;s files</h1>
           </div>
 
         </div>
