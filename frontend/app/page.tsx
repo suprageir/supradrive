@@ -10,6 +10,7 @@ export default function Page() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [token, setToken] = useState("");
   const [username, setUsername] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [userid, setUserid] = useState("");
   const router = useRouter();
 
