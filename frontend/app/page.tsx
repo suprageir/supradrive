@@ -25,7 +25,6 @@ export default function Page() {
     setUserid(sessionStorage.getItem("supradriveuserid") || "");
     setToken(sessionStorage.getItem("supradrivetoken") || "");
     setLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {

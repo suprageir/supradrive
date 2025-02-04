@@ -84,6 +84,7 @@ const Login = () => {
     if (password.length > 0 && username.length > 0) {
       checkLogin();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [password]);
 
   return (
