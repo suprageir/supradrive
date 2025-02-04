@@ -81,10 +81,9 @@ const Login = () => {
   }, [output]);
 
   useEffect(() => {
-    if (password.length > 0) {
+    if (password.length > 0 && username.length > 0) {
       checkLogin();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [password]);
 
   return (
@@ -99,7 +98,7 @@ const Login = () => {
           {error && <p className="text-red-500">{error}</p>}
           {checking && <p className="text-green-500">{checking}</p>}
         </div>
-  
+
         <form onSubmit={handleSubmit} className="mt-4">
           <div className="flex items-center">
             <div className="relative w-full">
@@ -117,7 +116,7 @@ const Login = () => {
       </div>
     </div>
   );
-  
+
 };
 
 export default Login;
