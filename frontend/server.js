@@ -12,8 +12,8 @@ app.prepare().then(() => {
 
   // Use HTTPS with self-signed certificates
   const options = {
-    key: fs.readFileSync('c:/ssl/localhost.key'),
-    cert: fs.readFileSync('c:/ssl/localhost.pem'),
+    key: fs.readFileSync(process.env.NEXT_PUBLIC_SSL_KEY),
+    cert: fs.readFileSync(process.env.NEXT_PUBLIC_SSL_CERT),
   };
 
   server.all('*', (req, res) => {
@@ -22,8 +22,8 @@ app.prepare().then(() => {
 
   https
     .createServer(options, server)
-    .listen(443, (err) => {
+    .listen(process.env.NEXT_PUBLIC_PORT, (err) => {
       if (err) throw err;
-      console.log('> Ready on https://localhost:443');
+      console.log('> Ready on https://localhost:' + process.env.NEXT_PUBLIC_PORT);
     });
 });
