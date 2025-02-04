@@ -47,11 +47,10 @@ const Login = () => {
       const loginData = { username, password };
       const response = await axios.post(`${APIURL}/supradrive/auth/login`, loginData, { headers: { "Content-Type": "application/json" } });
       if (response.status === 200) {
-        console.log(response.data);
-        sessionStorage.setItem("supradriveuser", response.data.username);
+        document.cookie = `token=${response.data.token}; Secure; SameSite=Strict; Path=/`;
         sessionStorage.setItem("supradrivetoken", response.data.token);
+        sessionStorage.setItem("supradriveuser", response.data.username);
         sessionStorage.setItem("supradriveuserid", response.data.userid);
-
         router.push("/");
       }
 
