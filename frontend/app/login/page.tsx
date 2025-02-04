@@ -43,7 +43,7 @@ const Login = () => {
 
   const checkLogin = async () => {
     try {
-      setChecking("Verifying login credentials, please wait...");
+      setChecking("Verifying login, please wait...");
       const loginData = { username, password };
       const response = await axios.post(`${APIURL}/supradrive/auth/login`, loginData, { headers: { "Content-Type": "application/json" } });
       if (response.status === 200) {
