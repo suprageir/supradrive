@@ -9,6 +9,8 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [token, setToken] = useState("");
+  const [username, setUsername] = useState("");
+  const [userid, setUserid] = useState("");
   const router = useRouter();
 
   const logout = () => {
@@ -21,6 +23,8 @@ export default function Page() {
     const storedToken = sessionStorage.getItem("supradrivetoken") || "";
 
     if (storedToken && storedToken !== "") {
+      setUsername(sessionStorage.getItem("supradriveuser") || "");
+      setUserid(sessionStorage.getItem("supradriveuserid") || "");
       setToken(storedToken);
       setLoading(false);
     } else {
@@ -34,30 +38,40 @@ export default function Page() {
   }
   else {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <nav className="p-4 bg-gray-200 dark:bg-gray-800">
+      <div className="min-h-screen bg-black text-gray-900 dark:text-gray-100">
+
+        <nav className="p-4 bg-black flex justify-between items-center">
           <ol className="flex space-x-2">
-            <li className="after:content-['/'] after:px-2">Home</li>
+            <li className="after:content-['/'] after:px-2 text-green-500">Home</li>
           </ol>
+          <button className="px-2 py-1 border border-red-500 text-red-500 text-sm rounded shadow-sm flex items-center gap-1 hover:bg-red-500 hover:text-white transition" onClick={logout}>
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16.293 7.293a1 1 0 011.414 1.414L15.414 11H21a1 1 0 110 2h-5.586l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4z"></path>
+              <path d="M10 4a1 1 0 011 1v2a1 1 0 11-2 0V6H7a3 3 0 00-3 3v6a3 3 0 003 3h2v-1a1 1 0 112 0v2a1 1 0 01-1 1H7a5 5 0 01-5-5V9a5 5 0 015-5h2V4a1 1 0 011-1z"></path>
+            </svg>
+            Logout
+          </button>
         </nav>
 
+
         <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-12 md:col-span-8 p-4">
-            <h5 className="text-xl font-bold">...s files</h5>
+          <div className="col-span-12 md:col-span-8 p-2">
+            <h1 className="text-3xl text-green-500">{username}'s files</h1>
           </div>
 
-          <div className="col-span-12 md:col-span-4 flex justify-end space-x-4 p-4">
-            <button className="px-4 py-2 bg-red-500 text-white rounded-sm shadow-sm hover:bg-red-600" onClick={logout}>
-              Logout
-            </button>
-          </div>
         </div>
 
-        <div className="flex items-center justify-center mt-10">
-          <div className="w-full h-96 bg-gray-800 dark:bg-gray-700 rounded-lg shadow-lg p-6 mr-8 ml-8">
+        <div className="flex items-center justify-center mt-5">
+          <div className="w-full h-96 bg-black rounded-lg shadow-lg p-6 mr-8 ml-8 border border-green-500">
             <div className="flex flex-col space-y-4">
-              <h5 className="text-xl font-bold text-white">Encrypted Folders</h5>
-              <div className="flex items-center space-x-4">
+              <div className="text-xl text-green-500 flex items-center gap-2">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V7a5 5 0 00-5-5zm-3 8V7a3 3 0 116 0v3h-6zm3 3a2 2 0 110 4 2 2 0 010-4z"></path>
+                </svg>
+                Encrypted Folders
+              </div>
+
+              <div className="flex items-center space-x-10">
                 <Link href="/encrypted/textfiles">
                   <div className="flex flex-col items-center group">
                     <svg
@@ -70,7 +84,7 @@ export default function Page() {
                     >
                       <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
                     </svg>
-                    <span className="text-white group-hover:text-gray-300 transition duration-300">
+                    <span className="text-green-500 group-hover:text-white transition duration-300">
                       Text files
                     </span>
                   </div>
@@ -87,7 +101,7 @@ export default function Page() {
                     >
                       <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
                     </svg>
-                    <span className="text-white group-hover:text-gray-300 transition duration-300">
+                    <span className="text-green-500 group-hover:text-white transition duration-300">
                       Images
                     </span>
                   </div>

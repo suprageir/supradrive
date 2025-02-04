@@ -47,11 +47,10 @@ const Login = () => {
       const loginData = { username, password };
       const response = await axios.post(`${APIURL}/supradrive/auth/login`, loginData, { headers: { "Content-Type": "application/json" } });
       if (response.status === 200) {
-        const { username, token, userid } = response.data;
-
-        sessionStorage.setItem("supradriveuser", username);
-        sessionStorage.setItem("supradrivetoken", token);
-        sessionStorage.setItem("supradriveuserid", userid);
+        console.log(response.data);
+        sessionStorage.setItem("supradriveuser", response.data.username);
+        sessionStorage.setItem("supradrivetoken", response.data.token);
+        sessionStorage.setItem("supradriveuserid", response.data.userid);
 
         router.push("/");
       }
@@ -89,8 +88,8 @@ const Login = () => {
   }, [password]);
 
   return (
-    <div className="min-h-screen bg-black text-green-500 font-mono flex justify-center items-center">
-      <div className="w-[600px] p-6 border border-green-500 border-2 rounded-md shadow-lg">
+    <div className="min-h-screen bg-black text-green-500 font-mono flex justify-center sm:items-start sm:px-4">
+      <div className="w-[600px] p-6 border border-green-500 border-2 rounded-md shadow-lg sm:w-full sm:max-w-md sm:mt-50">
         <h1 className="text-3xl text-green-500 text-center mb-6">SupraDrive login</h1>
         <div
           ref={outputRef}
@@ -100,22 +99,25 @@ const Login = () => {
           {error && <p className="text-red-500">{error}</p>}
           {checking && <p className="text-green-500">{checking}</p>}
         </div>
-
+  
         <form onSubmit={handleSubmit} className="mt-4">
           <div className="flex items-center">
-            <span className="text-green-500">{step === 1 ? ">" : ">"}</span>
-            <input
-              type={step === 2 ? "password" : "text"}
-              className="ml-2 bg-black text-green-500 border border-green-500 p-2 w-full focus:outline-none"
-              placeholder={step === 1 ? "Username" : "Password"}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-            />
+            <div className="relative w-full">
+              <input
+                type={step === 2 ? "password" : "text"}
+                className="bg-black text-green-500 border border-green-500 p-2 pl-6 w-full focus:outline-none"
+                placeholder={step === 1 ? "Username" : "Password"}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+              />
+              <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-green-500">{">"}</span>
+            </div>
           </div>
         </form>
       </div>
     </div>
   );
+  
 };
 
 export default Login;
