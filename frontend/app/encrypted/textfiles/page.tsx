@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Encrypt } from "@/app/components/Encrypt";
 import { Decrypt } from "@/app/components/Decrypt";
 import crypto from 'crypto';
+import moment from 'moment';
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
@@ -30,7 +31,9 @@ export default function Page() {
     const [decryptedFiles, setDecryptedFiles] = useState<any[]>([]);
     const [folderid, setFolderid] = useState(0);
     const [foldername, setFoldername] = useState("");
+    const [fileSaved, setFileSaved] = useState("");
     const [upFolderId, setUpFolderId] = useState(0);
+    const [fileid, setFileid] = useState(0);
 
     type MenuItem = {
         label: string;
@@ -104,9 +107,6 @@ export default function Page() {
         getFilesAndFolders(newfolderid);
     }
 
-    const handleSelectFile = () => {
-    }
-
     const saveFile = async () => {
         setSavingfile(true);
         const password = getEncryptionPassword();
@@ -133,6 +133,23 @@ export default function Page() {
         refreshFolders();
         setSavingfile(false);
     };
+
+    const handleOpenTXTFile = async (fileid: number) => {
+        setIsModalOpen(true);
+        axios.get(APIURL + "/supradrive/file/" + fileid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+            .then(async (response) => {
+                setDecrypting(true);
+                setFileid(response.data[0].fileinfo[0]?.fileid || 0);
+                setFileSaved(response.data[0].fileinfo[0]?.filets || "");
+                setFileName(await handleDecrypt(response.data[0].fileinfo[0]?.filename, response.data[0].fileinfo[0]?.filenameiv, response.data[0].fileinfo[0]?.filenamesalt, encryptionKey) || "");
+                setFileContent(await handleDecrypt(response.data[0].fileContent, response.data[0].fileinfo[0]?.iv, response.data[0].fileinfo[0]?.salt, encryptionKey) || "");
+                setDecrypting(false);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+
 
     const getEncryptionPassword = () => {
         const cookie = document.cookie
@@ -357,7 +374,6 @@ export default function Page() {
                                                     <path
                                                         d="M9 12L12 9L15 12"
                                                         stroke="#1976D2"
-                                                        stroke-width="1.5"
                                                     />
 
                                                     <line
@@ -445,7 +461,7 @@ export default function Page() {
                                     {decryptedFiles.map((file) => {
                                         if (file.decryptedName) {
                                             return (
-                                                <div key={file.fileid} onClick={() => handleSelectFile()}>
+                                                <div key={file.fileid} onClick={() => handleOpenTXTFile(file.fileid)}>
                                                     <div className="FileMenu flex flex-col items-center group" onContextMenu={handleContextMenu}>
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
@@ -494,49 +510,56 @@ export default function Page() {
 
                                 {isModalOpen && (
                                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                        <div className="w-full max-w-3xl bg-gray-800 text-white rounded-lg shadow-lg p-4">
+                                        <div className="w-full max-w-3xl border border-2 border-green-900 bg-black-800 text-white rounded-lg shadow-lg p-4">
                                             <div className="flex flex-col mb-4 space-y-2">
                                                 <div className="flex items-center justify-between">
                                                     <input
                                                         type="text"
                                                         value={fileName}
                                                         onChange={(e) => setFileName(e.target.value)}
-                                                        className="px-2 py-1 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                        className="px-2 py-1 text-lg bg-white-100 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
                                                         placeholder="Enter file name"
                                                     />
+                                                    #{fileid}
                                                 </div>
                                             </div>
 
                                             <div className="bg-gray-700 p-4 rounded-lg">
                                                 <textarea
-                                                    className="w-full h-64 p-2 bg-gray-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500"
+                                                    className="w-full h-64 p-2 bg-gray-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-900"
                                                     value={fileContent}
                                                     onChange={(e) => handleFileContentChange(e.target.value)}
                                                     placeholder="Write your text here..."
                                                 ></textarea>
                                             </div>
-                                            <div className="flex justify-end mt-4">
-                                                <button
-                                                    className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 mr-2 inline-flex items-center gap-2"
-                                                    onClick={closeModal}
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                    Close
-                                                </button>
-                                                <button
-                                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2 inline-flex items-center gap-2 focus:ring-2 focus:ring-green-500"
-                                                    onClick={() => {
-                                                        saveFile();
-                                                        closeModal();
-                                                    }}
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                                    </svg>
-                                                    Save
-                                                </button>
+                                            <div className="flex justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    Last saved: {fileSaved ? moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss") : "never"}
+                                                </div>
+
+                                                <div className="flex justify-end mt-4">
+                                                    <button
+                                                        className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 mr-2 inline-flex items-center gap-2"
+                                                        onClick={closeModal}
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                        Close
+                                                    </button>
+                                                    <button
+                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2 inline-flex items-center gap-2 focus:ring-2 focus:ring-green-500"
+                                                        onClick={() => {
+                                                            saveFile();
+                                                            closeModal();
+                                                        }}
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                        </svg>
+                                                        Save
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

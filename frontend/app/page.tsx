@@ -21,10 +21,17 @@ export default function Page() {
   }
 
   useEffect(() => {
-    setUsername(sessionStorage.getItem("supradriveuser") || "");
-    setUserid(sessionStorage.getItem("supradriveuserid") || "");
-    setToken(sessionStorage.getItem("supradrivetoken") || "");
-    setLoading(false);
+    if (sessionStorage.getItem("supradriveuser") && sessionStorage.getItem("supradriveuserid") && sessionStorage.getItem("supradrivetoken")) {
+      setUsername(sessionStorage.getItem("supradriveuser") || "");
+      setUserid(sessionStorage.getItem("supradriveuserid") || "");
+      setToken(sessionStorage.getItem("supradrivetoken") || "");
+      setLoading(false);
+    }
+    else {
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push("/login");
+    }
   }, []);
 
   if (loading) {
