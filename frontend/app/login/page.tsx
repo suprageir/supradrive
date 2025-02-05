@@ -87,12 +87,12 @@ const Login = () => {
   }, [password]);
 
   return (
-    <div className="min-h-screen bg-black text-green-500 font-mono flex justify-center sm:items-start sm:px-4">
-      <div className="w-[600px] p-6 border border-green-500 border-2 rounded-md shadow-lg sm:w-full sm:max-w-md sm:mt-50">
-        <h1 className="text-3xl text-green-500 text-center mb-6">SupraDrive login</h1>
+    <div className="text-green-500 font-mono flex justify-center sm:items-start sm:px-4">
+      <div className="w-[600px] p-6 shadow-lg sm:w-full sm:max-w-md sm:mt-50 xs:mt-0">
+        <h1 className="text-3xl text-green-500 text-center mb-6">SupraDrive Login</h1>
         <div
           ref={outputRef}
-          className="h-72 overflow-y-auto bg-black p-4 border border-green-900 rounded-md"
+          className="h-72 overflow-y-auto bg-black p-4 border border-green-900"
         >
           <pre className="whitespace-pre-wrap">{output}</pre>
           {error && <p className="text-red-500">{error}</p>}

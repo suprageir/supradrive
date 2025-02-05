@@ -383,12 +383,12 @@ export default function Page() {
                                                             className="hi-document-lock text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
                                                         >
 
-                                                            <rect x="4" y="2" width="14" height="20" rx="2" ry="2" fill="white" stroke="black" stroke-width="1.5" />
-                                                            <path d="M6 6h10M6 10h10M6 14h6" stroke="black" stroke-width="1.5" stroke-linecap="round" />
+                                                            <rect x="4" y="2" width="14" height="20" rx="2" ry="2" fill="white" stroke="black" />
+                                                            <path d="M6 6h10M6 10h10M6 14h6" stroke="black" />
 
 
-                                                            <rect x="9" y="16" width="6" height="5" rx="1" ry="1" fill="yellow" stroke="black" stroke-width="1.5" />
-                                                            <path d="M11 16V14a2 2 0 1 1 4 0v2" stroke="black" stroke-width="1.5" stroke-linecap="round" />
+                                                            <rect x="9" y="16" width="6" height="5" rx="1" ry="1" fill="yellow" stroke="black" />
+                                                            <path d="M11 16V14a2 2 0 1 1 4 0v2" stroke="black" />
                                                         </svg>
 
                                                         <span className="text-white group-hover:text-gray-300 transition duration-300 text-center max-w-[12.5rem] break-words">
