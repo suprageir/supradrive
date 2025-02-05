@@ -5,11 +5,18 @@ import axios from 'axios';
 import Link from "next/link";
 import { Encrypt } from "@/app/components/Encrypt";
 import { Decrypt } from "@/app/components/Decrypt";
+import crypto from 'crypto';
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
 export default function Page() {
     const [loading, setLoading] = useState(true);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [token, setToken] = useState("");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [username, setUsername] = useState("");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [userid, setUserid] = useState("");
     const [decrypting, setDecrypting] = useState(false);
     const [savingfile, setSavingfile] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,7 +38,6 @@ export default function Page() {
         label: string;
         action: () => void;
     };
-
 
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -70,8 +76,6 @@ export default function Page() {
         return () => document.removeEventListener("click", handleClickOutside);
     }, []);
 
-
-
     const decryptFilesAndFolders = async () => {
         setDecrypting(true);
         setDecryptedFolders([]);
@@ -86,7 +90,6 @@ export default function Page() {
             setDecryptedFolders(decryptedFolders);
             const decryptedFiles = await Promise.all(
                 filesAndFolders[0].files.map(async (file: any) => {
-                    console.log("decrypting file", file);
                     const decryptedName = await handleDecrypt(file.filename, file.filenameiv, file.filenamesalt, encryptionKey);
                     return { ...file, decryptedName };
                 })
@@ -95,7 +98,6 @@ export default function Page() {
         }
         setDecrypting(false);
     };
-
 
     const handleSelectFolder = (newfolderid: number) => {
         setFolderid(newfolderid);
@@ -112,11 +114,13 @@ export default function Page() {
         const password = getEncryptionPassword();
         const EncFilename = await Encrypt(fileName, password);
         const EncContent = await Encrypt(fileContent, password);
+        const FileSHA1 = crypto.createHash('sha1').update(fileContent).digest('hex');
         const fileData = {
             folderid: folderid,
             filename: typeof EncFilename === 'string' ? EncFilename : EncFilename.encryptedText,
             filenameiv: typeof EncFilename === 'string' ? '' : EncFilename.iv,
             filenamesalt: typeof EncFilename === 'string' ? '' : EncFilename.salt,
+            filesha1: FileSHA1,
             iv: typeof EncContent === 'string' ? '' : EncContent.iv,
             salt: typeof EncContent === 'string' ? '' : EncContent.salt,
             content: typeof EncContent === 'string' ? EncContent : EncContent.encryptedText,
@@ -216,23 +220,10 @@ export default function Page() {
     };
 
     useEffect(() => {
-        const checkToken = async () => {
-            try {
-                await axios.get(APIURL + "/supradrive/auth/token", {
-                    withCredentials: true,
-                    headers: {
-                        'Authorization': `Bearer ${sessionStorage.getItem("supradrivetoken")}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                setLoading(false);
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            } catch (error) {
-                redirect('/login');
-            }
-        };
-
-        checkToken();
+        setUsername(sessionStorage.getItem("supradriveuser") || "");
+        setUserid(sessionStorage.getItem("supradriveuserid") || "");
+        setToken(sessionStorage.getItem("supradrivetoken") || "");
+        setLoading(false);
         getFilesAndFolders(folderid);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -273,7 +264,7 @@ export default function Page() {
                 <nav className="p-4 bg-black">
                     <ol className="flex space-x-2">
                         <Link href="/"><li className="text-green-700">Home</li></Link>
-                        <li className="before:content-['»'] before:pr-2 text-green-700">{sessionStorage.getItem("supradriveuser")}</li>
+                        <li className="before:content-['»'] before:pr-2 text-green-700">{username}</li>
                         <li className="before:content-['»'] before:pr-2 text-green-700">Encrypted</li>
                         <li className="before:content-['»'] before:pr-2 text-green-700">Text</li>
                         {folderid !== 0 && <li className="before:content-['»'] before:pr-2 text-green-700">{foldername}</li>}
