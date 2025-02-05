@@ -510,34 +510,32 @@ export default function Page() {
 
                                 {isModalOpen && (
                                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                        <div className="w-full max-w-3xl border border-2 border-green-900 bg-black-800 text-white rounded-lg shadow-lg p-4">
-                                            <div className="flex flex-col mb-4 space-y-2">
-                                                <div className="flex items-center justify-between">
-                                                    <input
-                                                        type="text"
-                                                        value={fileName}
-                                                        onChange={(e) => setFileName(e.target.value)}
-                                                        className="px-2 py-1 text-lg bg-white-100 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                                                        placeholder="Enter file name"
-                                                    />
-                                                    #{fileid}
-                                                </div>
+                                        <div className="w-full h-full bg-black rounded-none shadow-lg p-6 flex flex-col">
+                                            <div className="flex justify-between items-center mb-4 text-green-700">
+                                                <input
+                                                    type="text"
+                                                    value={fileName}
+                                                    onChange={(e) => setFileName(e.target.value)}
+                                                    className="px-2 py-1 text-lg bg-neutral-900 rounded-lg focus:ring-2 focus:ring-green-900 focus:outline-none"
+                                                    placeholder="Enter file name"
+                                                />
+                                                #{fileid}
                                             </div>
 
-                                            <div className="bg-gray-700 p-4 rounded-lg">
-                                                <textarea
-                                                    className="w-full h-64 p-2 bg-gray-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-900"
-                                                    value={fileContent}
-                                                    onChange={(e) => handleFileContentChange(e.target.value)}
-                                                    placeholder="Write your text here..."
-                                                ></textarea>
-                                            </div>
-                                            <div className="flex justify-between">
+                                            <textarea
+                                                className="flex-1 w-full p-2 bg-neutral-900 text-white focus:ring-2 focus:ring-green-900 focus:outline-none resize-none"
+                                                value={fileContent}
+                                                onChange={(e) => handleFileContentChange(e.target.value)}
+                                                placeholder="Write your text here..."
+                                            >
+                                            </textarea>
+
+                                            <div className="flex justify-between text-green-700 mt-4">
                                                 <div className="flex items-center gap-2">
                                                     Last saved: {fileSaved ? moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss") : "never"}
                                                 </div>
 
-                                                <div className="flex justify-end mt-4">
+                                                <div className="flex justify-end">
                                                     <button
                                                         className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 mr-2 inline-flex items-center gap-2"
                                                         onClick={closeModal}
@@ -548,7 +546,7 @@ export default function Page() {
                                                         Close
                                                     </button>
                                                     <button
-                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2 inline-flex items-center gap-2 focus:ring-2 focus:ring-green-500"
+                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 inline-flex items-center gap-2 focus:ring-2 focus:ring-green-500"
                                                         onClick={() => {
                                                             saveFile();
                                                             closeModal();
@@ -563,8 +561,8 @@ export default function Page() {
                                             </div>
                                         </div>
                                     </div>
-                                )
-                                }
+                                )}
+
 
                                 {isModalEncryptionOpen && (
                                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
