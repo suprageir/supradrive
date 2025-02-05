@@ -41,12 +41,13 @@ export default function Page() {
 
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [context, setContext] = useState<string | null>(null);
 
     const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
 
-        let target = event.target as HTMLElement;
+        const target = event.target as HTMLElement;
 
         if (target.closest(".FileMenu")) {
             setContext("box");
