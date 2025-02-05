@@ -105,6 +105,7 @@ const Login = () => {
                                 placeholder={step === 1 ? "Username" : "Password"}
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
+                                autoFocus
                             />
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-green-500">{">"}</span>
                         </div>
