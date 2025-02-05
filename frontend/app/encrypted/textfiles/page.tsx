@@ -269,20 +269,19 @@ export default function Page() {
 
                         <div className="flex gap-4 pt-4">
                             <button
-                                className={`flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-700 rounded-lg ${encryptionKey ? "bg-transparent hover:border-green-500" : "bg-transparent hover:border-green-500"}`}
+                                className={`flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg ${encryptionKey ? "bg-transparent hover:border-green-500" : "bg-transparent hover:border-green-500"}`}
                                 onClick={openModalEncryption}
                             >
-                                <svg className="w-5 h-5" fill={encryptionKey ? "green" : "red"} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <svg width="28" height="28" fill={encryptionKey ? "green" : "red"} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V7a5 5 0 00-5-5zm-3 8V7a3 3 0 116 0v3h-6zm3 3a2 2 0 110 4 2 2 0 010-4z"></path>
                                 </svg>
-                                {encryptionKey ? "Change password" : "Set password"}
                             </button>
                             {encryptionKey && (
                                 <>
-                                    <button className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-700 rounded-lg bg-transparent hover:border-green-500" onClick={encryptionKey ? openModalNewFolder : openModalEncryption}>
+                                    <button className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500" onClick={encryptionKey ? openModalNewFolder : openModalEncryption}>
                                         <svg
-                                            width="18"
-                                            height="18"
+                                            width="28"
+                                            height="28"
                                             viewBox="0 0 24 24"
                                             fill="none"
                                             xmlns="http://www.w3.org/2000/svg"
@@ -296,17 +295,16 @@ export default function Page() {
                                             <line x1="17" y1="13.5" x2="17" y2="16.5" stroke="#E0A800" />
                                             <line x1="15.5" y1="15" x2="18.5" y2="15" stroke="#E0A800" />
                                         </svg>
-                                        New Folder
                                     </button>
                                     {(folderid !== 0) && (
                                         <>
                                             <button
-                                                className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-700 rounded-lg bg-transparent hover:border-green-500"
+                                                className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500"
                                                 onClick={openModal}
                                             >
                                                 <svg
-                                                    width="18"
-                                                    height="18"
+                                                    width="28"
+                                                    height="28"
                                                     viewBox="0 0 24 24"
                                                     fill="none"
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -325,12 +323,11 @@ export default function Page() {
                                                     <line x1="17" y1="13.5" x2="17" y2="16.5" stroke="#BDBDBD" />
                                                     <line x1="15.5" y1="15" x2="18.5" y2="15" stroke="#BDBDBD" />
                                                 </svg>
-                                                New Text File
                                             </button>
-                                            <button className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-700 rounded-lg bg-transparent hover:border-green-500">
+                                            <button className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500">
                                                 <svg
-                                                    width="18"
-                                                    height="18"
+                                                    width="28"
+                                                    height="28"
                                                     viewBox="0 0 24 24"
                                                     fill="none"
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -355,7 +352,6 @@ export default function Page() {
                                                         stroke="#1976D2"
                                                     />
                                                 </svg>
-                                                Upload Text File
                                             </button>
                                         </>
                                     )}
