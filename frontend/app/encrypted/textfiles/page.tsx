@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { redirect } from 'next/navigation';
 import axios from 'axios';
 import Link from "next/link";
 import { Encrypt } from "@/app/components/Encrypt";
@@ -13,7 +12,6 @@ export default function Page() {
     const [loading, setLoading] = useState(true);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [token, setToken] = useState("");
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [username, setUsername] = useState("");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [userid, setUserid] = useState("");
