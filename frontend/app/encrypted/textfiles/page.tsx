@@ -153,21 +153,6 @@ export default function Page() {
 
     const handleFileContentChange = async (text: string) => {
         setFileContent(text);
-        const salt = window.crypto.getRandomValues(new Uint8Array(16));
-        const iv = window.crypto.getRandomValues(new Uint8Array(12));
-        setSalt(Array.from(salt));
-        setIv(Array.from(iv));
-        const password = getEncryptionPassword();
-        if (password) {
-            const result = await Encrypt(text, password);
-            if (typeof result !== "string") {
-                setEncryptedContent(result.encryptedText);
-            } else {
-                setEncryptedContent("");
-            }
-        } else {
-            alert("Encryption password is not set.");
-        }
     };
 
     const openModal = () => setIsModalOpen(true);
@@ -537,44 +522,15 @@ export default function Page() {
                                                         placeholder="Enter file name"
                                                     />
                                                 </div>
-                                                <div className="flex flex-col space-y-1 mt-2">
-                                                    <span className="text-sm">IV:</span>
-                                                    <span className="text-sm">{iv.length ? iv.join(', ') : 'Not generated'}</span>
-                                                </div>
-                                                <div className="flex flex-col space-y-1 mt-2">
-                                                    <span className="text-sm">Salt:</span>
-                                                    <span className="text-sm">{salt.length ? salt.join(', ') : 'Not generated'}</span>
-                                                </div>
                                             </div>
 
-                                            <div className="mb-4">
-                                                <button
-                                                    className={`px-4 py-2 rounded-t-lg ${activeTab === "plaintext" ? "bg-gray-700 text-white" : "bg-gray-600 text-gray-300"}`}
-                                                    onClick={() => setActiveTab("plaintext")}
-                                                >
-                                                    Plain Text
-                                                </button>
-                                                <button
-                                                    className={`px-4 py-2 rounded-t-lg ${activeTab === "encrypted" ? "bg-gray-700 text-white" : "bg-gray-600 text-gray-300"}`}
-                                                    onClick={() => setActiveTab("encrypted")}
-                                                >
-                                                    Encrypted Text
-                                                </button>
-                                            </div>
                                             <div className="bg-gray-700 p-4 rounded-lg">
-                                                {activeTab === "plaintext" && (
-                                                    <textarea
-                                                        className="w-full h-64 p-2 bg-gray-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500"
-                                                        value={fileContent}
-                                                        onChange={(e) => handleFileContentChange(e.target.value)}
-                                                        placeholder="Write your text here..."
-                                                    ></textarea>
-                                                )}
-                                                {activeTab === "encrypted" && (
-                                                    <p className="break-words text-sm">
-                                                        {encryptedContent || "Encrypted content will appear here."}
-                                                    </p>
-                                                )}
+                                                <textarea
+                                                    className="w-full h-64 p-2 bg-gray-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500"
+                                                    value={fileContent}
+                                                    onChange={(e) => handleFileContentChange(e.target.value)}
+                                                    placeholder="Write your text here..."
+                                                ></textarea>
                                             </div>
                                             <div className="flex justify-end mt-4">
                                                 <button
