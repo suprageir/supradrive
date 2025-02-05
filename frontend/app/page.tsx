@@ -36,7 +36,7 @@ export default function Page() {
 
         <nav className="p-4 bg-black flex justify-between items-center">
           <ol className="flex space-x-2">
-            <li className="after:content-['/'] after:px-2 text-green-500">Home</li>
+            <Link href="/"><li className="text-green-700">Home</li></Link>
           </ol>
           <button className="px-2 py-1 border border-red-500 text-red-500 text-sm rounded shadow-sm flex items-center gap-1 hover:bg-red-500 hover:text-white transition" onClick={logout}>
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -56,7 +56,7 @@ export default function Page() {
         </div>
 
         <div className="flex items-center justify-center mt-5">
-          <div className="w-full h-96 bg-black rounded-lg shadow-lg p-6 mr-8 ml-8 border border-green-500">
+          <div className="w-full h-96 bg-black rounded-lg shadow-lg p-6 mr-8 ml-2">
             <div className="flex flex-col space-y-4">
               <div className="text-xl text-green-500 flex items-center gap-2">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -79,7 +79,7 @@ export default function Page() {
                       <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
                     </svg>
                     <span className="text-green-500 group-hover:text-white transition duration-300">
-                      Text files
+                      Text
                     </span>
                   </div>
                 </Link>

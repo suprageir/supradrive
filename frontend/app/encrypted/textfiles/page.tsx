@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { redirect } from 'next/navigation';
 import axios from 'axios';
@@ -246,54 +245,120 @@ export default function Page() {
     }
     return (
         <>
-            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-                <nav className="p-4 bg-gray-200 dark:bg-gray-800">
+            <div className="min-h-screen bg-black text-gray-900 dark:text-gray-100">
+                <nav className="p-4 bg-black">
                     <ol className="flex space-x-2">
-                        <Link href="/"><li className="after:content-['/'] after:px-2">Home</li></Link>
-                        <li className="after:content-['/'] after:px-2">{sessionStorage.getItem("supradriveuser")}</li>
-                        <li className="after:content-['/'] after:px-2">Encrypted</li>
-                        <li className="after:content-['/'] after:px-2">Text files</li>
-                        {folderid !== 0 && <li className="after:content-['/'] after:px-2">{foldername}</li>}
+                        <Link href="/"><li className="text-green-700">Home</li></Link>
+                        <li className="before:content-['»'] before:pr-2 text-green-700">{sessionStorage.getItem("supradriveuser")}</li>
+                        <li className="before:content-['»'] before:pr-2 text-green-700">Encrypted</li>
+                        <li className="before:content-['»'] before:pr-2 text-green-700">Text</li>
+                        {folderid !== 0 && <li className="before:content-['»'] before:pr-2 text-green-700">{foldername}</li>}
                     </ol>
                 </nav>
 
                 <div className="grid grid-cols-12 gap-4">
                     <div className="col-span-12 md:col-span-8 p-4">
-                        <h5 className="text-xl font-bold">Encrypted Text files &nbsp; &nbsp;
+                        <div className="text-xl text-green-500 flex items-center gap-2">
+                            <svg className="w-6 h-6" fill={encryptionKey ? "green" : "red"} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V7a5 5 0 00-5-5zm-3 8V7a3 3 0 116 0v3h-6zm3 3a2 2 0 110 4 2 2 0 010-4z"></path>
+                            </svg>
                             {encryptionKey ? <span className="text-green-500 p-2 rounded-lg bg-green-500/10">Unlocked</span> : <span className="text-red-500 p-2 rounded-lg bg-red-500/10">Locked</span>}
-                        </h5>
+                            Encrypted Text Files
+                        </div>
+
 
                         <div className="flex gap-4 pt-4">
                             <button
-                                className={`px-4 py-2 text-white rounded-lg focus:ring-2 ${encryptionKey ? "bg-green-600 hover:bg-green-700 focus:ring-green-500" : "bg-red-600 hover:bg-red-700 focus:ring-red-500"}`}
+                                className={`flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-700 rounded-lg ${encryptionKey ? "bg-transparent hover:border-green-500" : "bg-transparent hover:border-green-500"}`}
                                 onClick={openModalEncryption}
                             >
-                                {encryptionKey ? "Change encryption password" : "Set encryption password"}
+                                <svg className="w-5 h-5" fill={encryptionKey ? "green" : "red"} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V7a5 5 0 00-5-5zm-3 8V7a3 3 0 116 0v3h-6zm3 3a2 2 0 110 4 2 2 0 010-4z"></path>
+                                </svg>
+                                {encryptionKey ? "Change password" : "Set password"}
                             </button>
                             {encryptionKey && (
                                 <>
-                                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500" onClick={encryptionKey ? openModalNewFolder : openModalEncryption}>
+                                    <button className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-700 rounded-lg bg-transparent hover:border-green-500" onClick={encryptionKey ? openModalNewFolder : openModalEncryption}>
+                                        <svg
+                                            width="18"
+                                            height="18"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path
+                                                d="M3 5C3 4.44772 3.44772 4 4 4H10L12 6H20C20.5523 6 21 6.44772 21 7V19C21 19.5523 20.5523 20 20 20H4C3.44772 20 3 19.5523 3 19V5Z"
+                                                fill="#FFC107"
+                                                stroke="#E0A800"
+                                            />
+                                            <circle cx="17" cy="15" r="4" fill="white" stroke="#E0A800" />
+                                            <line x1="17" y1="13.5" x2="17" y2="16.5" stroke="#E0A800" />
+                                            <line x1="15.5" y1="15" x2="18.5" y2="15" stroke="#E0A800" />
+                                        </svg>
                                         New Folder
                                     </button>
                                     {(folderid !== 0) && (
                                         <>
-                                            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500">
-                                                Upload Text File
-                                            </button>
                                             <button
-                                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+                                                className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-700 rounded-lg bg-transparent hover:border-green-500"
                                                 onClick={openModal}
                                             >
+                                                <svg
+                                                    width="18"
+                                                    height="18"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                >
+                                                    <path
+                                                        d="M6 2C5.44772 2 5 2.44772 5 3V21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21V8.82843C19 8.29799 18.7893 7.78929 18.4142 7.41421L14.5858 3.58579C14.2107 3.21071 13.702 3 13.1716 3H6Z"
+                                                        fill="#F5F5F5"
+                                                        stroke="#BDBDBD"
+                                                    />
+
+                                                    <line x1="8" y1="10" x2="16" y2="10" stroke="#BDBDBD" />
+                                                    <line x1="8" y1="14" x2="16" y2="14" stroke="#BDBDBD" />
+                                                    <line x1="8" y1="18" x2="14" y2="18" stroke="#BDBDBD" />
+
+                                                    <circle cx="17" cy="15" r="4" fill="white" stroke="#BDBDBD" />
+                                                    <line x1="17" y1="13.5" x2="17" y2="16.5" stroke="#BDBDBD" />
+                                                    <line x1="15.5" y1="15" x2="18.5" y2="15" stroke="#BDBDBD" />
+                                                </svg>
                                                 New Text File
+                                            </button>
+                                            <button className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-700 rounded-lg bg-transparent hover:border-green-500">
+                                                <svg
+                                                    width="18"
+                                                    height="18"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                >
+                                                    <path
+                                                        d="M6 2C5.44772 2 5 2.44772 5 3V21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21V8.82843C19 8.29799 18.7893 7.78929 18.4142 7.41421L14.5858 3.58579C14.2107 3.21071 13.702 3 13.1716 3H6Z"
+                                                        fill="#E3F2FD"
+                                                    />
+
+                                                    <path
+                                                        d="M12 16V10"
+                                                        stroke="#1976D2"
+                                                    />
+                                                    <path
+                                                        d="M9 12L12 9L15 12"
+                                                        stroke="#1976D2"
+                                                        stroke-width="1.5"
+                                                    />
+
+                                                    <line
+                                                        x1="8" y1="18" x2="16" y2="18"
+                                                        stroke="#1976D2"
+                                                    />
+                                                </svg>
+                                                Upload Text File
                                             </button>
                                         </>
                                     )}
-                                    <button
-                                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-                                        onClick={refreshFolders}
-                                    >
-                                        Refresh Folders
-                                    </button>
                                 </>
                             )}
 
@@ -489,7 +554,7 @@ export default function Page() {
                                                 type="password"
                                                 value={newKey}
                                                 onChange={(e) => setNewKey(e.target.value)}
-                                                onKeyDown={(e) => e.key === "Enter" && setCookiePassword()} 
+                                                onKeyDown={(e) => e.key === "Enter" && setCookiePassword()}
                                                 className="w-full px-4 py-2 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
                                                 placeholder="Enter your password"
                                             />
