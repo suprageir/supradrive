@@ -18,14 +18,8 @@ export default function Page() {
     const [folderName, setFolderName] = useState("");
     const [fileName, setFileName] = useState("Untitled.txt");
     const [fileContent, setFileContent] = useState("");
-    const [encryptedContent, setEncryptedContent] = useState("");
     const [encryptionKey, setEncryptionKey] = useState("");
     const [newKey, setNewKey] = useState("");
-    const [activeTab, setActiveTab] = useState<"plaintext" | "encrypted">(
-        "plaintext"
-    );
-    const [iv, setIv] = useState<number[]>([]);
-    const [salt, setSalt] = useState<number[]>([]);
     const [filesAndFolders, setFilesAndFolders] = useState<any[]>([]);
     const [decryptedFolders, setDecryptedFolders] = useState<any[]>([]);
     const [decryptedFiles, setDecryptedFiles] = useState<any[]>([]);
