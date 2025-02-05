@@ -33,6 +33,50 @@ export default function Page() {
     const [foldername, setFoldername] = useState("");
     const [upFolderId, setUpFolderId] = useState(0);
 
+    type MenuItem = {
+        label: string;
+        action: () => void;
+    };
+
+
+    const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    const [context, setContext] = useState<string | null>(null);
+
+    const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+
+        let target = event.target as HTMLElement;
+
+        if (target.closest(".FileMenu")) {
+            setContext("box");
+            setMenuItems([
+                { label: "View", action: () => alert("Open") },
+                { label: "Delete", action: () => alert("Deleted") },
+            ]);
+        } else if (target.closest(".text-item")) {
+            setContext("text");
+            setMenuItems([
+                { label: "Copy Text", action: () => alert("Text Copied") },
+                { label: "Change Text", action: () => alert("Changing Text") },
+            ]);
+        } else {
+            setContext("default");
+            setMenuItems([{ label: "Refresh", action: () => window.location.reload() }]);
+        }
+
+        setMenuPosition({ x: event.clientX, y: event.clientY });
+    };
+
+    const handleClickOutside = () => setMenuPosition(null);
+
+    useEffect(() => {
+        document.addEventListener("click", handleClickOutside);
+        return () => document.removeEventListener("click", handleClickOutside);
+    }, []);
+
+
+
     const decryptFilesAndFolders = async () => {
         setDecrypting(true);
         setDecryptedFolders([]);
@@ -59,7 +103,6 @@ export default function Page() {
 
 
     const handleSelectFolder = (newfolderid: number) => {
-        setDecrypting(true);
         setFolderid(newfolderid);
         setFoldername(decryptedFolders.find(folder => folder.folderid === newfolderid)?.decryptedName ?? "");
         setUpFolderId(decryptedFolders.find(folder => folder.folderid === newfolderid)?.foldersubid ?? 0);
@@ -258,7 +301,7 @@ export default function Page() {
                 </nav>
 
                 <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-12 md:col-span-8 p-4">
+                    <div className="col-span-12 md:col-span-8 p-2">
                         <div className="text-xl text-green-500 flex items-center gap-2">
                             <svg className="w-6 h-6" fill={encryptionKey ? "green" : "red"} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V7a5 5 0 00-5-5zm-3 8V7a3 3 0 116 0v3h-6zm3 3a2 2 0 110 4 2 2 0 010-4z"></path>
@@ -364,12 +407,10 @@ export default function Page() {
                 </div>
 
 
-                <div className="mx-auto space-y-8 px-2 pt-8 lg:px-8 lg:py-8">
-
+                <div className="mx-auto space-y-8 px-2 lg:px-8 lg:py-8">
                     <div className="rounded-lg bg-vc-border-gradient p-px shadow-lg shadow-black/20">
                         <div className="rounded-lg bg-black p-3.5 lg:p-6 w-full">
                             <div className="prose prose-sm prose-invert max-w-none">
-
                                 <div className="flex flex-wrap items-center justify-start gap-10">
                                     {folderid !== 0 && (
                                         <>
@@ -436,7 +477,7 @@ export default function Page() {
                                         if (file.decryptedName) {
                                             return (
                                                 <div key={file.fileid} onClick={() => handleSelectFile()}>
-                                                    <div className="flex flex-col items-center group">
+                                                    <div className="FileMenu flex flex-col items-center group" onContextMenu={handleContextMenu}>
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
                                                             width="60"
@@ -457,6 +498,25 @@ export default function Page() {
                                                             {file.decryptedName}
                                                         </span>
                                                     </div>
+                                                    {menuPosition && (
+                                                        <ul
+                                                            className="absolute bg-black text-green-700 shadow-lg border rounded-lg w-40 p-2 space-y-2"
+                                                            style={{ top: menuPosition.y, left: menuPosition.x }}
+                                                        >
+                                                            {menuItems.map((item, index) => (
+                                                                <li
+                                                                    key={index}
+                                                                    className="p-2 hover:text-green-500 cursor-pointer"
+                                                                    onClick={() => {
+                                                                        item.action();
+                                                                        setMenuPosition(null);
+                                                                    }}
+                                                                >
+                                                                    {item.label}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
                                                 </div>
                                             );
                                         }
