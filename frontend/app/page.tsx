@@ -32,6 +32,7 @@ export default function Page() {
       localStorage.clear();
       router.push("/login");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {
