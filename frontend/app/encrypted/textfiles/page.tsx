@@ -6,6 +6,7 @@ import { Encrypt } from "@/app/components/Encrypt";
 import { Decrypt } from "@/app/components/Decrypt";
 import crypto from 'crypto';
 import moment from 'moment';
+import { motion } from "framer-motion";
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
@@ -29,11 +30,13 @@ export default function Page() {
     const [filesAndFolders, setFilesAndFolders] = useState<any[]>([]);
     const [decryptedFolders, setDecryptedFolders] = useState<any[]>([]);
     const [decryptedFiles, setDecryptedFiles] = useState<any[]>([]);
+    const [fileRevisions, setFileRevisions] = useState<any[]>([]);
     const [folderid, setFolderid] = useState(0);
     const [foldername, setFoldername] = useState("");
     const [fileSaved, setFileSaved] = useState("");
     const [upFolderId, setUpFolderId] = useState(0);
     const [fileid, setFileid] = useState(0);
+    const [activeTab, setActiveTab] = useState(0);
 
     type MenuItem = {
         label: string;
@@ -119,6 +122,7 @@ export default function Page() {
             filenameiv: typeof EncFilename === 'string' ? '' : EncFilename.iv,
             filenamesalt: typeof EncFilename === 'string' ? '' : EncFilename.salt,
             filesha1: FileSHA1,
+            fileid: fileid,
             iv: typeof EncContent === 'string' ? '' : EncContent.iv,
             salt: typeof EncContent === 'string' ? '' : EncContent.salt,
             content: typeof EncContent === 'string' ? EncContent : EncContent.encryptedText,
@@ -138,11 +142,13 @@ export default function Page() {
         setIsModalOpen(true);
         axios.get(APIURL + "/supradrive/file/" + fileid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
+                console.log(response.data);
                 setDecrypting(true);
                 setFileid(response.data[0].fileinfo[0]?.fileid || 0);
-                setFileSaved(response.data[0].fileinfo[0]?.filets || "");
-                setFileName(await handleDecrypt(response.data[0].fileinfo[0]?.filename, response.data[0].fileinfo[0]?.filenameiv, response.data[0].fileinfo[0]?.filenamesalt, encryptionKey) || "");
-                setFileContent(await handleDecrypt(response.data[0].fileContent, response.data[0].fileinfo[0]?.iv, response.data[0].fileinfo[0]?.salt, encryptionKey) || "");
+                setFileSaved(response.data[0]?.fileinfo[0]?.filets || "");
+                setFileName(await handleDecrypt(response.data[0]?.fileinfo[0]?.filename, response.data[0]?.fileinfo[0]?.filenameiv, response.data[0]?.fileinfo[0]?.filenamesalt, encryptionKey) || "");
+                setFileContent(await handleDecrypt(response.data[0]?.fileContent, response.data[0]?.fileinfo[0]?.iv, response.data[0]?.fileinfo[0]?.salt, encryptionKey) || "");
+                setFileRevisions(response.data[0]?.revisions || []);
                 setDecrypting(false);
             })
             .catch((error) => {
@@ -169,7 +175,12 @@ export default function Page() {
     };
 
     const openModal = () => setIsModalOpen(true);
-    const closeModal = () => setIsModalOpen(false);
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setFileid(0);
+        setFileContent("");
+        setFileName("Untitled.txt");
+    }
     const openModalEncryption = () => setIsModalEncryptionOpen(true);
     const closeModalEncryption = () => setIsModalEncryptionOpen(false);
     const openModalNewFolder = () => setIsModalNewFolderOpen(true);
@@ -522,14 +533,70 @@ export default function Page() {
                                                 #{fileid}
                                             </div>
 
-                                            <textarea
-                                                className="flex-1 w-full p-2 bg-neutral-900 text-white focus:ring-2 focus:ring-green-900 focus:outline-none resize-none"
-                                                value={fileContent}
-                                                onChange={(e) => handleFileContentChange(e.target.value)}
-                                                placeholder="Write your text here..."
-                                            >
-                                            </textarea>
 
+                                            <div className="flex space-x-2">
+                                                <button
+                                                    key={0}
+                                                    onClick={() => setActiveTab(0)}
+                                                    className={`relative px-4 py-2 text-sm font-medium focus:outline-none transition-colors ${activeTab === 0 ? "text-blue-600" : "text-gray-500"
+                                                        }`}
+                                                >
+                                                    File content
+                                                    {activeTab === 0 && (
+                                                        <motion.div
+                                                            layoutId="underline"
+                                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                                                        />
+                                                    )}
+                                                </button>
+                                                <button
+                                                    key={1}
+                                                    onClick={() => setActiveTab(1)}
+                                                    className={`relative px-4 py-2 text-sm font-medium focus:outline-none transition-colors ${activeTab === 1 ? "text-blue-600" : "text-gray-500"
+                                                        }`}
+                                                >
+                                                    Revisions ({fileRevisions.length})
+                                                    {activeTab === 1 && (
+                                                        <motion.div
+                                                            layoutId="underline"
+                                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                                                        />
+                                                    )}
+                                                </button>
+                                                <button
+                                                    key={2}
+                                                    onClick={() => setActiveTab(2)}
+                                                    className={`relative px-4 py-2 text-sm font-medium focus:outline-none transition-colors ${activeTab === 1 ? "text-blue-600" : "text-gray-500"
+                                                        }`}
+                                                >
+                                                    Encryption Info
+                                                    {activeTab === 2 && (
+                                                        <motion.div
+                                                            layoutId="underline"
+                                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                                                        />
+                                                    )}
+                                                </button>
+                                            </div>
+                                            {activeTab === 0 && (
+                                                <motion.div
+                                                    key={0}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    transition={{ duration: 0.2 }}
+                                                    className="h-full flex flex-col"
+                                                >
+                                                    <textarea
+                                                        className="flex-1 w-full h-full p-2 bg-neutral-900 text-white focus:ring-2 focus:ring-green-900 focus:outline-none resize-none"
+                                                        value={fileContent}
+                                                        onChange={(e) => handleFileContentChange(e.target.value)}
+                                                        placeholder="Write your text here..."
+                                                    >
+                                                    </textarea>
+
+                                                </motion.div>
+                                            )}
                                             <div className="flex justify-between text-green-700 mt-4">
                                                 <div className="flex items-center gap-2">
                                                     Last saved: {fileSaved ? moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss") : "never"}
