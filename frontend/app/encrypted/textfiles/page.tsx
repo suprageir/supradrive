@@ -37,6 +37,13 @@ export default function Page() {
     const [upFolderId, setUpFolderId] = useState(0);
     const [fileid, setFileid] = useState(0);
     const [activeTab, setActiveTab] = useState(0);
+    const [fileidref, setFileidRef] = useState(0);
+    const [filenameencrypted, setFilenameEncrypted] = useState("");
+    const [filenamedisk, setFilenameDisk] = useState("");
+    const [filenameiv, setFilenameIV] = useState("");
+    const [filenamesalt, setFilenameSalt] = useState("");
+    const [filesha1, setFileSHA1] = useState("");
+    const [filefolderid, setFileFolderid] = useState(0);
 
     type MenuItem = {
         label: string;
@@ -145,6 +152,13 @@ export default function Page() {
                 console.log(response.data);
                 setDecrypting(true);
                 setFileid(response.data[0].fileinfo[0]?.fileid || 0);
+                setFileFolderid(response.data[0].fileinfo[0]?.folderid || 0);
+                setFileidRef(response.data[0].fileinfo[0]?.fileidref || 0);
+                setFilenameEncrypted(response.data[0].fileinfo[0]?.filename || "");
+                setFilenameDisk(response.data[0].fileinfo[0]?.filenamedisk || "");
+                setFilenameIV(response.data[0].fileinfo[0]?.filenameiv || "");
+                setFilenameSalt(response.data[0].fileinfo[0]?.filenamesalt || "");
+                setFileSHA1(response.data[0].fileinfo[0]?.filesha1 || "");
                 setFileSaved(response.data[0]?.fileinfo[0]?.filets || "");
                 setFileName(await handleDecrypt(response.data[0]?.fileinfo[0]?.filename, response.data[0]?.fileinfo[0]?.filenameiv, response.data[0]?.fileinfo[0]?.filenamesalt, encryptionKey) || "");
                 setFileContent(await handleDecrypt(response.data[0]?.fileContent, response.data[0]?.fileinfo[0]?.iv, response.data[0]?.fileinfo[0]?.salt, encryptionKey) || "");
@@ -538,42 +552,42 @@ export default function Page() {
                                                 <button
                                                     key={0}
                                                     onClick={() => setActiveTab(0)}
-                                                    className={`relative px-4 py-2 text-sm font-medium focus:outline-none transition-colors ${activeTab === 0 ? "text-blue-600" : "text-gray-500"
+                                                    className={`relative px-4 py-2 text-sm font-medium focus:outline-none transition-colors ${activeTab === 0 ? "text-green-500" : "text-gray-500"
                                                         }`}
                                                 >
-                                                    File content
+                                                    Content
                                                     {activeTab === 0 && (
                                                         <motion.div
                                                             layoutId="underline"
-                                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-700"
                                                         />
                                                     )}
                                                 </button>
                                                 <button
                                                     key={1}
                                                     onClick={() => setActiveTab(1)}
-                                                    className={`relative px-4 py-2 text-sm font-medium focus:outline-none transition-colors ${activeTab === 1 ? "text-blue-600" : "text-gray-500"
+                                                    className={`relative px-4 py-2 text-sm font-medium focus:outline-none transition-colors ${activeTab === 1 ? "text-green-500" : "text-gray-500"
                                                         }`}
                                                 >
-                                                    Revisions ({fileRevisions.length})
+                                                    Revisions ({fileRevisions?.length})
                                                     {activeTab === 1 && (
                                                         <motion.div
                                                             layoutId="underline"
-                                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-700"
                                                         />
                                                     )}
                                                 </button>
                                                 <button
                                                     key={2}
                                                     onClick={() => setActiveTab(2)}
-                                                    className={`relative px-4 py-2 text-sm font-medium focus:outline-none transition-colors ${activeTab === 1 ? "text-blue-600" : "text-gray-500"
+                                                    className={`relative px-4 py-2 text-sm font-medium focus:outline-none transition-colors ${activeTab === 2 ? "text-green-500" : "text-gray-500"
                                                         }`}
                                                 >
-                                                    Encryption Info
+                                                    File Info
                                                     {activeTab === 2 && (
                                                         <motion.div
                                                             layoutId="underline"
-                                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-700"
                                                         />
                                                     )}
                                                 </button>
@@ -584,48 +598,96 @@ export default function Page() {
                                                     initial={{ opacity: 0, y: 10 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     exit={{ opacity: 0, y: -10 }}
-                                                    transition={{ duration: 0.2 }}
+                                                    transition={{ duration: 0.5 }}
                                                     className="h-full flex flex-col"
                                                 >
                                                     <textarea
-                                                        className="flex-1 w-full h-full p-2 bg-neutral-900 text-white focus:ring-2 focus:ring-green-900 focus:outline-none resize-none"
+                                                        className="flex-1 w-full h-full p-2 bg-neutral-900 text-white focus:ring-2 focus:ring-green-900 focus:outline-none resize-none mt-4"
                                                         value={fileContent}
                                                         onChange={(e) => handleFileContentChange(e.target.value)}
                                                         placeholder="Write your text here..."
                                                     >
                                                     </textarea>
+                                                    <div className="flex justify-between text-green-700 mt-4">
+                                                        <div className="flex items-center gap-2">
+                                                            Last saved: {fileSaved ? moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss") : "never"}
+                                                        </div>
+
+                                                        <div className="flex justify-end">
+                                                            <button
+                                                                className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 mr-2 inline-flex items-center gap-2"
+                                                                onClick={closeModal}
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                                Close
+                                                            </button>
+                                                            <button
+                                                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 inline-flex items-center gap-2 focus:ring-2 focus:ring-green-500"
+                                                                onClick={() => {
+                                                                    saveFile();
+                                                                    closeModal();
+                                                                }}
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                                </svg>
+                                                                Save
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+
+                                            {activeTab === 1 && (
+                                                <motion.div
+                                                    key={0}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    transition={{ duration: 0.5 }}
+                                                    className="h-full flex flex-col"
+                                                >
+                                                    <div className="flex flex-col gap-2 mt-4 text-green-700">
+                                                        {fileRevisions?.map((revision) => {
+                                                            return (
+                                                                <div key={"rev" + revision.fileid}>
+                                                                    {moment.unix(parseInt(revision.filets)).format("DD.MM.YYYY HH:mm:ss")}
+                                                                </div>
+                                                            )
+                                                        })}
+                                                    </div>
 
                                                 </motion.div>
                                             )}
-                                            <div className="flex justify-between text-green-700 mt-4">
-                                                <div className="flex items-center gap-2">
-                                                    Last saved: {fileSaved ? moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss") : "never"}
-                                                </div>
 
-                                                <div className="flex justify-end">
-                                                    <button
-                                                        className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 mr-2 inline-flex items-center gap-2"
-                                                        onClick={closeModal}
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                        Close
-                                                    </button>
-                                                    <button
-                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 inline-flex items-center gap-2 focus:ring-2 focus:ring-green-500"
-                                                        onClick={() => {
-                                                            saveFile();
-                                                            closeModal();
-                                                        }}
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                                        </svg>
-                                                        Save
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            {activeTab === 2 && (
+                                                <motion.div
+                                                    key={0}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    transition={{ duration: 0.5 }}
+                                                    className="h-full flex flex-col"
+                                                >
+                                                    <div className="flex flex-col mt-4 text-green-700">
+                                                        <span className="text-green-700 text-xs">Folder ID / File ID:</span>
+                                                        <span className="text-green-500 text-lg">#{filefolderid} / #{fileid}</span><br />
+                                                        <span className="text-green-700 text-xs">File Name:</span>
+                                                        <span className="text-green-500 text-lg">{fileName}</span><br />
+                                                        <span className="text-green-700 text-xs">File Name Disk:</span>
+                                                        <span className="text-green-500 text-lg">{filenamedisk}.txt</span><br />
+                                                        <span className="text-green-700 text-xs">SHA1 checksum:</span>
+                                                        <span className="text-green-500 text-lg">{filesha1}</span><br />
+                                                        <span className="text-green-700 text-xs">Encryption IV:</span>
+                                                        <span className="text-green-500 text-lg">{filenameiv}</span><br />
+                                                        <span className="text-green-700 text-xs">Encryption Salt:</span>
+                                                        <span className="text-green-500 text-lg">{filenamesalt}</span><br />
+                                                    </div>
+
+                                                </motion.div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
