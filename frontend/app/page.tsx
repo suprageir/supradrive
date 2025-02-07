@@ -36,9 +36,9 @@ export default function Page() {
   }, []);
 
   if (loading) {
-    return <LoadingScreen />;
+    return <LoadingScreen text="Loading" />;
   }
-  else {
+  if (!loading) {
     return (
       <div className="min-h-screen bg-black text-gray-900 dark:text-gray-100">
 

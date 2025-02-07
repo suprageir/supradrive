@@ -7,6 +7,7 @@ import { Decrypt } from "@/app/components/Decrypt";
 import crypto from 'crypto';
 import moment from 'moment';
 import { motion } from "framer-motion";
+import LoadingScreen from "@/app/components/LoadingScreen";
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
@@ -289,25 +290,19 @@ export default function Page() {
 
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center">
-                <h1 className="text-xl font-medium text-gray-300">Checking authentication...</h1>
-            </div>
+            <LoadingScreen text="Checking authentication" />
         );
     }
 
     if (decrypting) {
         return (
-            <div className="flex h-screen items-center justify-center">
-                <h1 className="text-xl font-medium text-gray-300">Decrypting...</h1>
-            </div>
+            <LoadingScreen text="Decrypting" />
         );
     }
 
     if (savingfile) {
         return (
-            <div className="flex h-screen items-center justify-center">
-                <h1 className="text-xl font-medium text-gray-300">Encrypting and saving file...</h1>
-            </div>
+            <LoadingScreen text="Encrypting and saving file" />
         );
     }
     return (
