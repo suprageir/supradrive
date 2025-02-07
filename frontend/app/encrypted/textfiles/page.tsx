@@ -125,7 +125,11 @@ export default function Page() {
     const saveFile = async () => {
         setSavingfile(true);
         const password = getEncryptionPassword();
-        const EncFilename = await Encrypt(fileName, password);
+        var fnuse = fileName;
+        if (!fileName.endsWith(".txt")) {
+            fnuse = fileName + ".txt";
+        }
+        const EncFilename = await Encrypt(fnuse, password);
         const EncContent = await Encrypt(fileContent, password);
         const FileSHA1 = crypto.createHash('sha1').update(fileContent).digest('hex');
         const fileData = {
