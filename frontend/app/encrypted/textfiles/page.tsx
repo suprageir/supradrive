@@ -23,7 +23,7 @@ export default function Page() {
     const [isModalEncryptionOpen, setIsModalEncryptionOpen] = useState(false);
     const [isModalNewFolderOpen, setIsModalNewFolderOpen] = useState(false);
     const [folderName, setFolderName] = useState("");
-    const [fileName, setFileName] = useState("Untitled.txt");
+    const [fileName, setFileName] = useState("Untitled");
     const [fileContent, setFileContent] = useState("");
     const [fileContentSaved, setFileContentSaved] = useState(false);
     const [encryptionKey, setEncryptionKey] = useState("");
@@ -545,20 +545,30 @@ export default function Page() {
                                 {isModalOpen && (
                                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                                         <div className="w-full h-full bg-black rounded-none shadow-lg p-6 flex flex-col">
-                                            <div className="flex justify-between items-center mb-4 text-green-700">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 text-green-700">
                                                 <input
                                                     type="text"
                                                     value={fileName}
                                                     onChange={(e) => setFileName(e.target.value)}
-                                                    className="px-2 py-1 text-lg bg-neutral-900 rounded-lg focus:ring-2 focus:ring-green-900 focus:outline-none"
+                                                    className="w-full sm:w-2/3 px-3 py-2 text-lg bg-neutral-900 rounded-lg focus:ring-2 focus:ring-green-900 focus:outline-none"
                                                     placeholder="Enter file name"
                                                     disabled={!filecurrentrevision}
                                                 />
-                                                {filecurrentrevision ?
-                                                    fileContentSaved ? <span className="text-green-500">{fileSaved ? moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss") : "never"}</span> : <span className="text-red-500">Not saved</span>
-                                                    :
-                                                    <span className="text-red-700">(Old rev {moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss")})</span>
-                                                }
+                                                <div className="mt-2 sm:mt-0">
+                                                    {filecurrentrevision ? (
+                                                        fileContentSaved ? (
+                                                            <span className="text-green-500">
+                                                                {fileSaved ? moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss") : "never"}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-red-500">Not saved</span>
+                                                        )
+                                                    ) : (
+                                                        <span className="text-red-700">
+                                                            (Rev {moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss")})
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="flex space-x-2">
                                                 <button
