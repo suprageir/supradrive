@@ -25,6 +25,7 @@ export default function Page() {
     const [folderName, setFolderName] = useState("");
     const [fileName, setFileName] = useState("Untitled.txt");
     const [fileContent, setFileContent] = useState("");
+    const [fileContentSaved, setFileContentSaved] = useState(false);
     const [encryptionKey, setEncryptionKey] = useState("");
     const [newKey, setNewKey] = useState("");
     const [filesAndFolders, setFilesAndFolders] = useState<any[]>([]);
@@ -44,6 +45,10 @@ export default function Page() {
     const [filenamesalt, setFilenameSalt] = useState("");
     const [filesha1, setFileSHA1] = useState("");
     const [filefolderid, setFileFolderid] = useState(0);
+    const [fileiv, setFileIV] = useState("");
+    const [filesalt, setFileSalt] = useState("");
+    const [filecontentencrypted, setFileContentEncrypted] = useState("");
+    const [filecurrentrevision, setFileCurrentRevision] = useState(true);
 
     type MenuItem = {
         label: string;
@@ -149,7 +154,6 @@ export default function Page() {
         setIsModalOpen(true);
         axios.get(APIURL + "/supradrive/file/" + fileid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
-                console.log(response.data);
                 setDecrypting(true);
                 setFileid(response.data[0].fileinfo[0]?.fileid || 0);
                 setFileFolderid(response.data[0].fileinfo[0]?.folderid || 0);
@@ -158,18 +162,22 @@ export default function Page() {
                 setFilenameDisk(response.data[0].fileinfo[0]?.filenamedisk || "");
                 setFilenameIV(response.data[0].fileinfo[0]?.filenameiv || "");
                 setFilenameSalt(response.data[0].fileinfo[0]?.filenamesalt || "");
+                setFileIV(response.data[0].fileinfo[0]?.iv || "");
+                setFileSalt(response.data[0].fileinfo[0]?.salt || "");
                 setFileSHA1(response.data[0].fileinfo[0]?.filesha1 || "");
                 setFileSaved(response.data[0]?.fileinfo[0]?.filets || "");
                 setFileName(await handleDecrypt(response.data[0]?.fileinfo[0]?.filename, response.data[0]?.fileinfo[0]?.filenameiv, response.data[0]?.fileinfo[0]?.filenamesalt, encryptionKey) || "");
                 setFileContent(await handleDecrypt(response.data[0]?.fileContent, response.data[0]?.fileinfo[0]?.iv, response.data[0]?.fileinfo[0]?.salt, encryptionKey) || "");
+                setFileContentSaved(true);
+                setFileContentEncrypted(response.data[0]?.fileContent || "");
                 setFileRevisions(response.data[0]?.revisions || []);
+                setFileCurrentRevision(response.data[0]?.fileinfo[0]?.currentfile || false);
                 setDecrypting(false);
             })
             .catch((error) => {
                 console.log(error);
             });
     }
-
 
     const getEncryptionPassword = () => {
         const cookie = document.cookie
@@ -186,6 +194,7 @@ export default function Page() {
 
     const handleFileContentChange = async (text: string) => {
         setFileContent(text);
+        setFileContentSaved(false);
     };
 
     const openModal = () => setIsModalOpen(true);
@@ -543,11 +552,14 @@ export default function Page() {
                                                     onChange={(e) => setFileName(e.target.value)}
                                                     className="px-2 py-1 text-lg bg-neutral-900 rounded-lg focus:ring-2 focus:ring-green-900 focus:outline-none"
                                                     placeholder="Enter file name"
+                                                    disabled={!filecurrentrevision}
                                                 />
-                                                #{fileid}
+                                                {filecurrentrevision ?
+                                                    fileContentSaved ? <span className="text-green-500">{fileSaved ? moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss") : "never"}</span> : <span className="text-red-500">Not saved</span>
+                                                    :
+                                                    <span className="text-red-700">(Old rev {moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss")})</span>
+                                                }
                                             </div>
-
-
                                             <div className="flex space-x-2">
                                                 <button
                                                     key={0}
@@ -606,11 +618,11 @@ export default function Page() {
                                                         value={fileContent}
                                                         onChange={(e) => handleFileContentChange(e.target.value)}
                                                         placeholder="Write your text here..."
+                                                        disabled={!filecurrentrevision}
                                                     >
                                                     </textarea>
                                                     <div className="flex justify-between text-green-700 mt-4">
                                                         <div className="flex items-center gap-2">
-                                                            Last saved: {fileSaved ? moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss") : "never"}
                                                         </div>
 
                                                         <div className="flex justify-end">
@@ -624,11 +636,12 @@ export default function Page() {
                                                                 Close
                                                             </button>
                                                             <button
-                                                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 inline-flex items-center gap-2 focus:ring-2 focus:ring-green-500"
+                                                                className={`px-4 py-2 ${filecurrentrevision ? "bg-green-600 hover:bg-green-700" : "bg-gray-600"} text-white rounded-lg inline-flex items-center gap-2 focus:ring-2 focus:ring-green-500`}
                                                                 onClick={() => {
                                                                     saveFile();
                                                                     closeModal();
                                                                 }}
+                                                                disabled={!filecurrentrevision}
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -654,6 +667,16 @@ export default function Page() {
                                                             return (
                                                                 <div key={"rev" + revision.fileid}>
                                                                     {moment.unix(parseInt(revision.filets)).format("DD.MM.YYYY HH:mm:ss")}
+                                                                    <button className="px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2 inline-flex items-center gap-2 text-xs ml-4" onClick={() => {
+                                                                        setActiveTab(0);
+                                                                        handleOpenTXTFile(revision.fileid);
+                                                                    }}>
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-3-3 3 3 0 016 0z" />
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.46 21.438V12.707c0-1.689-.95-2.389-1.814-1.732L1.516 12.707c-.766.657-.066 1.607.7 1.607h10.234c.734 0 1.434-.693 1.434-1.607V2.562a1.625 1.625 0 00-2.425-.143L1.233 11.234a1.625 1.625 0 000 2.268l8.265 7.515a1.625 1.625 0 002.425-.143z" />
+                                                                        </svg>
+                                                                        View
+                                                                    </button>
                                                                 </div>
                                                             )
                                                         })}
@@ -669,21 +692,28 @@ export default function Page() {
                                                     animate={{ opacity: 1, y: 0 }}
                                                     exit={{ opacity: 0, y: -10 }}
                                                     transition={{ duration: 0.5 }}
-                                                    className="h-full flex flex-col"
+                                                    className="h-full flex flex-col break-all"
                                                 >
-                                                    <div className="flex flex-col mt-4 text-green-700">
+                                                    <div className="flex flex-col mt-4 text-green-700 space-y-1">
                                                         <span className="text-green-700 text-xs">Folder ID / File ID:</span>
-                                                        <span className="text-green-500 text-lg">#{filefolderid} / #{fileid}</span><br />
+                                                        <span className="text-green-500 text-md">#{filefolderid} / #{fileid} {fileidref ? " (Original File ID: " + fileidref + ")" : ""}</span><br />
                                                         <span className="text-green-700 text-xs">File Name:</span>
-                                                        <span className="text-green-500 text-lg">{fileName}</span><br />
+                                                        <span className="text-green-500 text-md">{fileName}</span>
+                                                        <br />
+                                                        <span className="text-green-700 text-xs">Last saved:</span>
+                                                        <span className="text-green-500 text-md">{fileSaved ? moment.unix(parseInt(fileSaved)).format("DD.MM.YYYY HH:mm:ss") : "never"}</span>
+                                                        <br />
+                                                        <span className="text-green-700 text-xs">File Name Encrypted:</span>
+                                                        <span className="text-gray-600 text-xs"><i>IV: {filenameiv} / Salt: {filenamesalt}</i></span>
+                                                        <span className="text-green-500 text-md">{filenameencrypted}</span>
+                                                        <br />
                                                         <span className="text-green-700 text-xs">File Name Disk:</span>
-                                                        <span className="text-green-500 text-lg">{filenamedisk}.txt</span><br />
+                                                        <span className="text-green-500 text-md">{filenamedisk}.txt</span><br />
                                                         <span className="text-green-700 text-xs">SHA1 checksum:</span>
-                                                        <span className="text-green-500 text-lg">{filesha1}</span><br />
-                                                        <span className="text-green-700 text-xs">Encryption IV:</span>
-                                                        <span className="text-green-500 text-lg">{filenameiv}</span><br />
-                                                        <span className="text-green-700 text-xs">Encryption Salt:</span>
-                                                        <span className="text-green-500 text-lg">{filenamesalt}</span><br />
+                                                        <span className="text-green-500 text-md">{filesha1}</span><br />
+                                                        <span className="text-green-700 text-xs">Encrypted Content:</span>
+                                                        <span className="text-gray-600 text-xs"><i>IV: {fileiv} / Salt: {filesalt}</i></span>
+                                                        <span className="text-green-500 text-md">{filecontentencrypted}</span>
                                                     </div>
 
                                                 </motion.div>
