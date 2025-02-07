@@ -125,11 +125,10 @@ export default function Page() {
     const saveFile = async () => {
         setSavingfile(true);
         const password = getEncryptionPassword();
-        var fnuse = fileName;
         if (!fileName.endsWith(".txt")) {
-            fnuse = fileName + ".txt";
+            setFileName(fileName + ".txt");
         }
-        const EncFilename = await Encrypt(fnuse, password);
+        const EncFilename = await Encrypt(fileName, password);
         const EncContent = await Encrypt(fileContent, password);
         const FileSHA1 = crypto.createHash('sha1').update(fileContent).digest('hex');
         const fileData = {
@@ -206,7 +205,7 @@ export default function Page() {
         setIsModalOpen(false);
         setFileid(0);
         setFileContent("");
-        setFileName("Untitled.txt");
+        setFileName("Untitled");
     }
     const openModalEncryption = () => setIsModalEncryptionOpen(true);
     const closeModalEncryption = () => setIsModalEncryptionOpen(false);
@@ -553,7 +552,12 @@ export default function Page() {
                                                 <input
                                                     type="text"
                                                     value={fileName}
-                                                    onChange={(e) => setFileName(e.target.value)}
+                                                    onChange={(e) => {
+                                                        if (!fileName.endsWith(".txt")) {
+                                                            setFileName(fileName + ".txt");
+                                                        }
+                                                        setFileName(e.target.value)
+                                                    }}
                                                     className="w-full sm:w-2/3 px-3 py-2 text-lg bg-neutral-900 rounded-lg focus:ring-2 focus:ring-green-900 focus:outline-none"
                                                     placeholder="Enter file name"
                                                     disabled={!filecurrentrevision}
