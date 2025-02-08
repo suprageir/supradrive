@@ -14,7 +14,7 @@ const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
-    const [checking, setChecking] = useState<string | null>(null);
+    const [checking, setChecking] = useState(false);
     const [loginfail, setLoginfail] = useState(false);
     const outputRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -41,8 +41,7 @@ const Login = () => {
 
     const checkLogin = async () => {
         try {
-            setChecking("Verifying login, please wait...");
-
+            setChecking(true);
             const response = await axios.post(`${APIURL}/supradrive/auth/login`, { username, password });
 
             if (response.status === 200) {
@@ -54,9 +53,9 @@ const Login = () => {
             }
         } catch (error) {
             setLoginfail(true);
+            setChecking(false);
             console.log(error);
         }
-        setChecking(null);
     };
 
     useEffect(() => {
