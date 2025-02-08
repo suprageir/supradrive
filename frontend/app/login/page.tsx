@@ -52,7 +52,8 @@ const Login = () => {
                 sessionStorage.setItem("supradriveuserid", response.data.userid);
                 router.push("/");
             }
-        } catch (error: any) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error) {
             setLoginfail(true);
         }
         setChecking(null);
@@ -68,6 +69,7 @@ const Login = () => {
         if (step === 3 && username.length > 0 && password.length > 0) {
             checkLogin();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [step]);
 
     useEffect(() => {
