@@ -2,39 +2,39 @@
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import LoadingScreen from "../components/LoadingScreen";
+import { motion } from "framer-motion";
+
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
 const Login = () => {
     const router = useRouter();
     const [step, setStep] = useState(1);
     const [input, setInput] = useState("");
-    const [output, setOutput] = useState<string>("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [checking, setChecking] = useState<string | null>(null);
+    const [loginfail, setLoginfail] = useState(false);
     const outputRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (input.trim() === "") {
+            setError(step === 1 ? "Please enter a username." : "Please enter a password.");
+            return;
+        }
+
+        setError(null);
+
         if (step === 1) {
-            if (input.trim() === "") {
-                setError("Please enter a username.");
-                return;
-            }
             setUsername(input);
-            setError(null);
             setStep(2);
-            setOutput((prev) => prev + "\n" + "> " + input);
             setInput("");
-        } else if (step === 2) {
-            if (input.trim() === "") {
-                setError("Please enter a password.");
-                return;
-            }
+        } else {
             setPassword(input);
-            setError(null);
-            setOutput((prev) => prev + "\n" + "> " + "*".repeat(input.length));
+            setStep(3); // Move to next phase (login verification)
             setInput("");
         }
     };
@@ -42,8 +42,9 @@ const Login = () => {
     const checkLogin = async () => {
         try {
             setChecking("Verifying login, please wait...");
-            const loginData = { username, password };
-            const response = await axios.post(`${APIURL}/supradrive/auth/login`, loginData, { headers: { "Content-Type": "application/json" } });
+
+            const response = await axios.post(`${APIURL}/supradrive/auth/login`, { username, password });
+
             if (response.status === 200) {
                 document.cookie = `token=${response.data.token}; Secure; SameSite=Strict; Path=/`;
                 sessionStorage.setItem("supradrivetoken", response.data.token);
@@ -51,66 +52,122 @@ const Login = () => {
                 sessionStorage.setItem("supradriveuserid", response.data.userid);
                 router.push("/");
             }
-
         } catch (error: any) {
-            if (error.response) {
-                setError("Invalid credentials!");
-            } else {
-                console.error("Error:", error);
-                setError("An unexpected error occurred.");
-            }
+            setLoginfail(true);
         }
         setChecking(null);
     };
 
     useEffect(() => {
-        if (step === 1) {
-            setOutput("Enter your username: ");
-        } else if (step === 2) {
-            setOutput((prev) => prev + "\nEnter your password: ");
+        if (outputRef.current) {
+            outputRef.current.scrollTop = outputRef.current.scrollHeight;
+        }
+    }, [username, password]);
+
+    useEffect(() => {
+        if (step === 3 && username.length > 0 && password.length > 0) {
+            checkLogin();
         }
     }, [step]);
 
     useEffect(() => {
-        if (outputRef.current) {
-            outputRef.current.scrollTop = outputRef.current.scrollHeight;
+        if (loginfail) {
+            const timer = setTimeout(() => {
+                setLoginfail(false);
+                setStep(1);
+                setUsername("");
+                setPassword("");
+                setInput("");
+            }, 3000);
+            return () => clearTimeout(timer);
         }
-    }, [output]);
+    }, [loginfail]);
 
-    useEffect(() => {
-        if (password.length > 0 && username.length > 0) {
-            checkLogin();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [password]);
-
+    if (checking) {
+        return (
+            <LoadingScreen text="Checking credentials" />
+        );
+    }
+    if (loginfail) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-black">
+                <motion.div
+                    className="relative flex flex-col items-center"
+                >
+                    <motion.span
+                        className="text-red-700 mt-4 text-lg font-semibold flex"
+                    >
+                        <div className="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="32" height="32">
+                                <circle cx="32" cy="32" r="30" fill="#FF0000" />
+                                <line x1="16" y1="16" x2="48" y2="48" stroke="#ffffff" />
+                                <line x1="48" y1="16" x2="16" y2="48" stroke="#ffffff" />
+                            </svg>
+                            Login failed
+                        </div>
+                    </motion.span>
+                </motion.div>
+            </div>
+        );
+    }
     return (
         <div className="text-green-500 font-mono flex justify-center sm:items-start sm:px-4">
-            <div className="w-[600px] p-6 shadow-lg sm:w-full sm:max-w-md sm:mt-50 xs:mt-0">
+            <div className="w-[600px] p-6 shadow-lg sm:w-full sm:max-w-lg sm:mt-50 xs:mt-0">
                 <h1 className="text-3xl text-green-500 text-center mb-6">SupraDrive Login</h1>
-                <div
-                    ref={outputRef}
-                    className="h-72 overflow-y-auto bg-black p-4 border border-green-900"
-                >
-                    <pre className="whitespace-pre-wrap">{output}</pre>
-                    {error && <p className="text-red-500">{error}</p>}
-                    {checking && <p className="text-green-500">{checking}</p>}
-                </div>
-                <form onSubmit={handleSubmit} className="mt-4">
-                    <div className="flex items-center">
-                        <div className="relative w-full">
-                            <input
-                                type={step === 2 ? "password" : "text"}
-                                className="bg-black text-green-500 border border-green-500 p-2 pl-6 w-full focus:outline-none"
-                                placeholder={step === 1 ? "Username" : "Password"}
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                autoFocus
-                            />
-                            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-green-500">{">"}</span>
+                <div ref={outputRef} className="h-72 overflow-y-auto bg-black p-4 border border-green-900">
+
+                    {/* Display Entered Username */}
+                    {username && (
+                        <p className="text-green-500">
+                            <span>Username:</span> {username}
+                        </p>
+                    )}
+
+                    {/* Username Input */}
+                    {step === 1 && (
+                        <div className="flex items-center">
+                            <span className="text-green-500 mr-2">Username:</span>
+                            <form onSubmit={handleSubmit} className="inline-block">
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    className="bg-transparent text-green-500 border-none outline-none p-0 w-auto inline-block"
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    autoFocus
+                                />
+                            </form>
                         </div>
-                    </div>
-                </form>
+                    )}
+
+                    {/* Display Entered Password */}
+                    {password && (
+                        <p className="text-green-500">
+                            <span>Password:</span> {"•".repeat(password.length)}
+                        </p>
+                    )}
+
+                    {/* Password Input */}
+                    {step === 2 && (
+                        <div className="mt-2 flex items-center">
+                            <span className="text-green-500 mr-2">Password:</span>
+                            <form onSubmit={handleSubmit} className="inline-block">
+                                <input
+                                    ref={inputRef}
+                                    type="password"
+                                    className="bg-transparent text-green-500 border-none outline-none p-0 w-auto inline-block"
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    autoFocus
+                                />
+                            </form>
+                        </div>
+                    )}
+
+                    {/* Login Verification */}
+                    {checking && <p className="text-green-500 mt-2">{checking}</p>}
+                    {error && <p className="text-red-500 mt-2">{error}</p>}
+                </div>
             </div>
         </div>
     );
