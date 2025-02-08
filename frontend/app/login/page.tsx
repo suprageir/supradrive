@@ -52,9 +52,9 @@ const Login = () => {
                 sessionStorage.setItem("supradriveuserid", response.data.userid);
                 router.push("/");
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error) {
             setLoginfail(true);
+            console.log(error);
         }
         setChecking(null);
     };
