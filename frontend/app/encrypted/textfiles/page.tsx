@@ -208,10 +208,20 @@ export default function Page() {
         setFileContent("");
         setFileName("Untitled");
     }
-    const openModalEncryption = () => setIsModalEncryptionOpen(true);
+    const openModalEncryption = () => {
+        setNewKey("");
+        setIsModalEncryptionOpen(true);
+
+    }
     const closeModalEncryption = () => setIsModalEncryptionOpen(false);
-    const openModalNewFolder = () => setIsModalNewFolderOpen(true);
-    const closeModalNewFolder = () => setIsModalNewFolderOpen(false);
+    const openModalNewFolder = () => {
+        setIsModalNewFolderOpen(true);
+        setIsModalEncryptionOpen(false);
+    }
+    const closeModalNewFolder = () => {
+        setIsModalNewFolderOpen(false);
+        setFolderName("");
+    }
 
     const handleDecrypt = async (encryptedText: any, iv: any, salt: any, key: any) => {
         try {
@@ -270,6 +280,7 @@ export default function Page() {
             });
         closeModalNewFolder();
         getFilesAndFolders(folderid);
+        setFolderName("");
     };
 
     useEffect(() => {
@@ -738,28 +749,47 @@ export default function Page() {
 
                                 {isModalEncryptionOpen && (
                                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                        <div className="w-full max-w-md bg-gray-800 text-white rounded-lg shadow-lg p-6">
-                                            <h4 className="text-lg font-bold mb-4">Set Encryption Password</h4>
+                                        <div className="w-full max-w-md bg-black text-green-700 rounded-lg shadow-lg p-6">
+                                            <h4 className="text-lg mb-4">Set encryption passphrase:</h4>
                                             <input
                                                 type="password"
                                                 value={newKey}
                                                 onChange={(e) => setNewKey(e.target.value)}
                                                 onKeyDown={(e) => e.key === "Enter" && setCookiePassword()}
-                                                className="w-full px-4 py-2 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Enter your password"
+                                                className="w-full px-4 py-2 border border-green-900 text-lg bg-black focus:border-green-700 focus:outline-none"
+                                                placeholder="Enter passphrase"
+                                                autoFocus
                                             />
                                             <div className="flex justify-end gap-4 mt-4">
                                                 <button
-                                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500"
-                                                    onClick={closeModalEncryption}
-                                                >
-                                                    Close
-                                                </button>
-                                                <button
-                                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500"
+                                                    className="flex items-center px-4 py-1 border border-green-900 text-green-700 rounded-lg hover:border-green-500 hover:text-green-500 focus:ring-2 focus:ring-green-500"
                                                     onClick={setCookiePassword}
                                                 >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 22 22"
+                                                        width="18"
+                                                        height="18"
+                                                        className="mr-2 transform transition-transform duration-200 hover:scale-110"
+                                                    >
+                                                        <path d="M9 19l-7-7 1.41-1.41L9 16.17l11.59-11.59L22 6l-13 13z" fill="green" />
+                                                    </svg>
                                                     Activate
+                                                </button>
+                                                <button
+                                                    className="flex items-center px-4 py-1 border border-red-900 text-red-700 rounded-lg hover:border-red-500 hover:text-red-500 focus:ring-2 focus:ring-red-500"
+                                                    onClick={closeModalEncryption}
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 24 24"
+                                                        width="18"
+                                                        height="18"
+                                                        className="mr-2 transform transition-transform duration-200 hover:scale-110"
+                                                    >
+                                                        <path d="M6 6L18 18M18 6L6 18" stroke="red" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                    Close
                                                 </button>
                                             </div>
                                         </div>
@@ -773,27 +803,47 @@ export default function Page() {
                                 {
                                     isModalNewFolderOpen && (
                                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                            <div className="w-full max-w-md bg-gray-800 text-white rounded-lg shadow-lg p-6">
-                                                <h4 className="text-lg font-bold mb-4">New folder name</h4>
+                                            <div className="w-full max-w-md bg-black text-green-700 rounded-lg shadow-lg p-6">
+                                                <h4 className="text-lg mb-4">New folder name</h4>
                                                 <input
                                                     type="text"
                                                     value={folderName}
+                                                    onKeyDown={(e) => e.key === "Enter" && createNewFolder()}
                                                     onChange={(e) => setFolderName(e.target.value)}
-                                                    className="w-full px-4 py-2 text-lg bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                    className="w-full px-4 py-2 text-lg border border-green-900 focus:ring-2 focus:ring-green-700 focus:outline-none"
                                                     placeholder="Enter folder name"
+                                                    autoFocus
                                                 />
                                                 <div className="flex justify-end gap-4 mt-4">
                                                     <button
-                                                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500"
-                                                        onClick={closeModalNewFolder}
-                                                    >
-                                                        Close
-                                                    </button>
-                                                    <button
-                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500"
+                                                        className="flex items-center px-4 py-1 border border-green-900 text-green-700 rounded-lg hover:border-green-500 hover:text-green-500 focus:ring-2 focus:ring-green-500"
                                                         onClick={createNewFolder}
                                                     >
-                                                        Create Folder
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            viewBox="0 0 22 22"
+                                                            width="18"
+                                                            height="18"
+                                                            className="mr-2 transform transition-transform duration-200 hover:scale-110"
+                                                        >
+                                                            <path d="M9 19l-7-7 1.41-1.41L9 16.17l11.59-11.59L22 6l-13 13z" fill="green" />
+                                                        </svg>
+                                                        Create folder
+                                                    </button>
+                                                    <button
+                                                        className="flex items-center px-4 py-1 border border-red-900 text-red-700 rounded-lg hover:border-red-500 hover:text-red-500 focus:ring-2 focus:ring-red-500"
+                                                        onClick={closeModalNewFolder}
+                                                    >
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            viewBox="0 0 24 24"
+                                                            width="18"
+                                                            height="18"
+                                                            className="mr-2 transform transition-transform duration-200 hover:scale-110"
+                                                        >
+                                                            <path d="M6 6L18 18M18 6L6 18" stroke="red" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                        </svg>
+                                                        Close
                                                     </button>
                                                 </div>
                                             </div>
