@@ -126,10 +126,13 @@ export default function Page() {
     const saveFile = async () => {
         setSavingfile(true);
         const password = getEncryptionPassword();
+        var EncFilename;
         if (!fileName.endsWith(".txt")) {
-            setFileName(fileName + ".txt");
+            EncFilename = await Encrypt(fileName + ".txt", password);
         }
-        const EncFilename = await Encrypt(fileName, password);
+        else {
+            EncFilename = await Encrypt(fileName, password);
+        }
         const EncContent = await Encrypt(fileContent, password);
         const FileSHA1 = crypto.createHash('sha1').update(fileContent).digest('hex');
         const fileData = {
@@ -156,7 +159,7 @@ export default function Page() {
 
     const handleOpenTXTFile = async (fileid: number) => {
         setIsModalOpen(true);
-        axios.get(APIURL + "/supradrive/file/" + fileid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+        axios.get(APIURL + "/supradrive/encrypted/file/" + fileid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
                 setDecrypting(true);
                 setFileid(response.data[0].fileinfo[0]?.fileid || 0);
@@ -249,7 +252,7 @@ export default function Page() {
 
     const getFilesAndFolders = async (folderiduse: number | undefined) => {
         const folderidext = folderiduse ?? folderid;
-        axios.get(APIURL + "/supradrive/folder/" + folderidext, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+        axios.get(APIURL + "/supradrive/encrypted/folder/" + folderidext, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
                 setDecryptedFolders([]);
                 setDecryptedFiles([]);
@@ -272,7 +275,7 @@ export default function Page() {
 
         const folderjson = JSON.stringify(json);
 
-        await axios.post(APIURL + "/supradrive/folder", folderjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+        await axios.post(APIURL + "/supradrive/encrypted/folder", folderjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(() => {
             })
             .catch((error) => {
@@ -649,28 +652,40 @@ export default function Page() {
                                                         <div className="flex items-center gap-2">
                                                         </div>
 
-                                                        <div className="flex justify-end">
+                                                        <div className="flex justify-end gap-2">
                                                             <button
-                                                                className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 mr-2 inline-flex items-center gap-2"
-                                                                onClick={closeModal}
-                                                            >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                                </svg>
-                                                                Close
-                                                            </button>
-                                                            <button
-                                                                className={`px-4 py-2 ${filecurrentrevision ? "bg-green-600 hover:bg-green-700" : "bg-gray-600"} text-white rounded-lg inline-flex items-center gap-2 focus:ring-2 focus:ring-green-500`}
+                                                                className="flex items-center px-4 py-1 border border-green-900 text-green-700 rounded-lg hover:border-green-500 hover:text-green-500 focus:ring-2 focus:ring-green-500"
                                                                 onClick={() => {
                                                                     saveFile();
                                                                     closeModal();
                                                                 }}
                                                                 disabled={!filecurrentrevision}
                                                             >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    viewBox="0 0 22 22"
+                                                                    width="18"
+                                                                    height="18"
+                                                                    className="mr-2 transform transition-transform duration-200 hover:scale-110"
+                                                                >
+                                                                    <path d="M9 19l-7-7 1.41-1.41L9 16.17l11.59-11.59L22 6l-13 13z" fill="green" />
                                                                 </svg>
                                                                 Save
+                                                            </button>
+                                                            <button
+                                                                className="flex items-center px-4 py-1 border border-red-900 text-red-700 rounded-lg hover:border-red-500 hover:text-red-500 focus:ring-2 focus:ring-red-500"
+                                                                onClick={closeModal}
+                                                            >
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    viewBox="0 0 24 24"
+                                                                    width="18"
+                                                                    height="18"
+                                                                    className="mr-2 transform transition-transform duration-200 hover:scale-110"
+                                                                >
+                                                                    <path d="M6 6L18 18M18 6L6 18" stroke="red" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                </svg>
+                                                                Close
                                                             </button>
                                                         </div>
                                                     </div>
@@ -810,7 +825,7 @@ export default function Page() {
                                                     value={folderName}
                                                     onKeyDown={(e) => e.key === "Enter" && createNewFolder()}
                                                     onChange={(e) => setFolderName(e.target.value)}
-                                                    className="w-full px-4 py-2 text-lg border border-green-900 focus:ring-2 focus:ring-green-700 focus:outline-none"
+                                                    className="w-full px-4 py-2 text-lg border border-green-900 focus:ring-green-700 focus:outline-none"
                                                     placeholder="Enter folder name"
                                                     autoFocus
                                                 />
