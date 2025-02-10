@@ -90,6 +90,7 @@ export default function Page() {
         if (!uploading) {
             handleUploadNextFile(0, [...acceptedFiles]); // Start uploading the first file
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [uploading, folderid, encryptionKey]);
 
     const handleUploadNextFile = async (index: number, fileQueue: File[]) => {
@@ -102,15 +103,15 @@ export default function Page() {
 
         const file = fileQueue[index];
         setUploading(true);
-        let startTime = Date.now();
-        let lastLoaded = 0;
-        let lastTime = startTime;
+        const startTime = Date.now();
+        const lastLoaded = 0;
+        const lastTime = startTime;
         const password = getEncryptionPassword();
 
         const EncFilename = await Encrypt(file.name, password);
-        let filename = typeof EncFilename === 'string' ? EncFilename : EncFilename.encryptedText;
-        let filenameiv = typeof EncFilename === 'string' ? '' : EncFilename.iv;
-        let filenamesalt = typeof EncFilename === 'string' ? '' : EncFilename.salt;
+        const filename = typeof EncFilename === 'string' ? EncFilename : EncFilename.encryptedText;
+        const filenameiv = typeof EncFilename === 'string' ? '' : EncFilename.iv;
+        const filenamesalt = typeof EncFilename === 'string' ? '' : EncFilename.salt;
 
         // const FileSHA1 = crypto.createHash('sha1').update(fileContent).digest('hex');
         // const fileData = {
@@ -136,7 +137,7 @@ export default function Page() {
             // Encrypt the file text
             const encryptedData = await Encrypt(fileText, password);
 
-            var encryptedBlob;
+            let encryptedBlob;
             // Convert encrypted data to a Blob
             if (typeof encryptedData === "object" && "encryptedText" in encryptedData) {
                 encryptedBlob = new Blob([encryptedData.encryptedText], { type: "text/plain" });
@@ -159,8 +160,8 @@ export default function Page() {
             const formData = new FormData();
             formData.append('token', token);
             formData.append('folderid', folderid.toString());
-            let iv = typeof encryptedData === 'object' ? encryptedData.iv : '';
-            let salt = typeof encryptedData === 'object' ? encryptedData.salt : '';
+            const iv = typeof encryptedData === 'object' ? encryptedData.iv : '';
+            const salt = typeof encryptedData === 'object' ? encryptedData.salt : '';
             formData.append('iv', JSON.stringify(iv));
             formData.append('salt', JSON.stringify(salt));
 
@@ -182,7 +183,7 @@ export default function Page() {
                         const deltaTime = (currentTime - lastTime) / 1000; // konverter til sekunder
                         const deltaLoaded = loaded - lastLoaded;
 
-                        // Beregn hastighet i MB/s
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         const speed = Number(((deltaLoaded / (1024 * 1024)) / deltaTime).toFixed(2));
 
                         const remainingBytes = event.total - event.loaded;
@@ -196,9 +197,10 @@ export default function Page() {
                         } else {
                             const hours = Math.floor(remainingSeconds / 3600);
                             const minutes = Math.round((remainingSeconds % 3600) / 60);
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             timeRemaining = `${hours}h ${minutes}m`;
                         }
-
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         const progress = Math.round((event.loaded * 100) / event.total);
                         // setProgress(prevProgress => ({
                         //     ...prevProgress,
