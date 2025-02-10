@@ -41,8 +41,25 @@ export default function Page() {
     const [uploading, setUploading] = useState<boolean>(false);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [progress, setProgress] = useState(0);
+    const [thumbSize, setThumbSize] = useState(100);
 
 
+    const handleChangeThumbSize = (size: number | null) => {
+        if (size) {
+            setThumbSize(size);
+        }
+        else {
+            if (thumbSize === 100) {
+                setThumbSize(200);
+            }
+            else if (thumbSize === 200) {
+                setThumbSize(300);
+            }
+            else {
+                setThumbSize(100);
+            }
+        }
+    }
 
     const onDropImages = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
         event.stopPropagation();
@@ -81,7 +98,6 @@ export default function Page() {
         //     salt: typeof EncContent === 'string' ? '' : EncContent.salt,
         //     content: typeof EncContent === 'string' ? EncContent : EncContent.encryptedText,
         // };
-
 
 
 
@@ -294,6 +310,9 @@ export default function Page() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+    }, [thumbSize]);
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-screen bg-black">
@@ -319,8 +338,6 @@ export default function Page() {
                         <div className="text-xl text-green-500 flex items-center gap-2">
                             Images
                         </div>
-
-
                         <div className="flex gap-4 pt-4">
                             <button className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500" onClick={openModalNewFolder}>
                                 <svg
@@ -344,6 +361,90 @@ export default function Page() {
                                 <>
                                     <button
                                         className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500"
+                                        onClick={() => handleSelectFolder(0)}
+                                    >
+                                        <div className="flex flex-col items-center group">
+                                            <svg
+                                                width="28"
+                                                height="28"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <path
+                                                    d="M14 5L8 12L14 19"
+                                                    stroke="#E0A800"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                />
+                                                <path
+                                                    d="M20 5L14 12L20 19"
+                                                    stroke="#E0A800"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                />
+                                            </svg>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500"
+                                        onClick={() => handleSelectFolder(upFolderId)}
+                                    >
+                                        <div className="flex flex-col items-center group">
+                                            <svg
+                                                width="28"
+                                                height="28"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <path
+                                                    d="M15 6L9 12L15 18"
+                                                    stroke="#E0A800"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                />
+                                            </svg>
+                                        </div>
+                                    </button>
+
+
+                                    <button
+                                        className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500"
+                                        onClick={() => handleChangeThumbSize(null)}
+                                    >
+                                        <div className="flex flex-col items-center group">
+                                            <svg
+                                                width="28"
+                                                height="28"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <path
+                                                    d="M12 4L6 10H18L12 4Z"
+                                                    stroke="#E0A800"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                />
+                                                <path
+                                                    d="M12 20L6 14H18L12 20Z"
+                                                    stroke="#E0A800"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                />
+                                            </svg>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500"
                                         onClick={openModalUploadImages}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -364,44 +465,6 @@ export default function Page() {
                         <div className="rounded-lg bg-black p-3.5 lg:p-6 w-full">
                             <div className="prose prose-sm prose-invert max-w-none">
                                 <div className="flex flex-wrap items-center justify-start gap-10">
-                                    {folderid !== 0 && (
-                                        <>
-                                            <div key="back0" onClick={() => handleSelectFolder(0)}>
-                                                <div className="flex flex-col items-center group">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="yellow"
-                                                        width="60"
-                                                        height="60"
-                                                        viewBox="0 0 24 24"
-                                                        className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
-                                                    >
-                                                        <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
-                                                    </svg>
-                                                    <span className="text-white group-hover:text-gray-300 transition duration-300 text-center max-w-[12.5rem] break-words">
-                                                        .
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div key="back1" onClick={() => handleSelectFolder(upFolderId)}>
-                                                <div className="flex flex-col items-center group">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="yellow"
-                                                        width="60"
-                                                        height="60"
-                                                        viewBox="0 0 24 24"
-                                                        className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
-                                                    >
-                                                        <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
-                                                    </svg>
-                                                    <span className="text-white group-hover:text-gray-300 transition duration-300 text-center max-w-[12.5rem] break-words">
-                                                        ..
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
                                     {imagesFolders?.map((folder) => {
                                         if (folder.foldername) {
                                             return (
@@ -434,16 +497,14 @@ export default function Page() {
                                                             {file.base64Thumbnail ? (
                                                                 <Image
                                                                     src={file.base64Thumbnail}
-                                                                    alt="Base64 Image"
-                                                                    width={100} 
-                                                                    height={100}
+                                                                    alt={file.imagefilename}
+                                                                    width={thumbSize}
+                                                                    height={thumbSize}
                                                                 />
                                                             ) : (
-                                                                <p>Loading image...</p>
-                                                            )}                                                        </div>
-                                                        <span className="text-white group-hover:text-gray-300 transition duration-300 text-center max-w-[12.5rem] break-words">
-                                                            {file.imagefilename}
-                                                        </span>
+                                                                <p>[N/A]</p>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     {menuPosition && (
                                                         <ul
