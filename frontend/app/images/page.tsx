@@ -43,6 +43,7 @@ export default function Page() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [progress, setProgress] = useState<UploadProgressType>({});
     const [thumbSize, setThumbSize] = useState(100);
+    const [image, setImage] = useState<any>(null);
 
 
     const handleChangeThumbSize = (size: number | null) => {
@@ -292,6 +293,18 @@ export default function Page() {
             });
     };
 
+
+    const handleViewImage = (imageid: number) => {
+        axios.get(APIURL + "/supradrive/image/" + imageid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+            .then(async (response) => {
+                setImage(response.data);
+                console.log(response.data);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+
     const createNewFolder = async () => {
         const json = {
             foldersysid: 1,
@@ -321,6 +334,29 @@ export default function Page() {
 
     useEffect(() => {
     }, [thumbSize]);
+
+
+    if (image) {
+        return (
+            <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90">
+                <button
+                    className="absolute top-4 right-4 text-red-500 text-3xl font-bold"
+                    onClick={() => setImage(null)}
+                >
+                    &times;
+                </button>
+
+                <Image
+                    src={image.base64Image}
+                    alt={image.imagefilename}
+                    width={1000}
+                    height={1000}
+                    layout="responsive"
+                    style={{ maxWidth: image.imagewidth || 1024, height: 'auto' }}
+                />
+            </div>
+        );
+    }
 
     if (loading) {
         return (
@@ -506,6 +542,7 @@ export default function Page() {
                                                                     alt={file.imagefilename}
                                                                     width={thumbSize}
                                                                     height={thumbSize}
+                                                                    onClick={() => handleViewImage(file.imageid)}
                                                                 />
                                                             ) : (
                                                                 <p>[N/A]</p>
