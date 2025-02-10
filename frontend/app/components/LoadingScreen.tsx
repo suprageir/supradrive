@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 export default function LoadingScreen({ text = "Loading" }) {
   return (
-    <div className="flex justify-center items-center h-screen bg-black">
+    <div className="flex justify-center items-center bg-black">
       <motion.div
         className="relative flex flex-col items-center"
       >

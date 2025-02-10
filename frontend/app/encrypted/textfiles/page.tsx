@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from 'axios';
 import Link from "next/link";
 import { Encrypt } from "@/app/components/Encrypt";
@@ -8,8 +8,19 @@ import crypto from 'crypto';
 import moment from 'moment';
 import { motion } from "framer-motion";
 import LoadingScreen from "@/app/components/LoadingScreen";
+import { DropEvent, FileRejection, useDropzone } from 'react-dropzone';
+import ProgressBar from "@/app/components/ProgressBar";
+
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
+
+interface UploadProgressType {
+    [key: string]: {
+        progress: number;
+        speed: number;
+        timeRemaining: string;
+    };
+}
 
 export default function Page() {
     const [loading, setLoading] = useState(true);
@@ -50,6 +61,215 @@ export default function Page() {
     const [filesalt, setFileSalt] = useState("");
     const [filecontentencrypted, setFileContentEncrypted] = useState("");
     const [filecurrentrevision, setFileCurrentRevision] = useState(true);
+    const [isModalUploadTXTFilesOpen, setIsModalUploadTXTFilesOpen] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState<UploadProgressType>({});
+    const [decryptedtotalnum, setDecryptedtotalnum] = useState(0);
+    const [decryptednum, setDecryptednum] = useState(0);
+
+
+    const [files, setFiles] = useState<File[]>([]);
+    const [uploading, setUploading] = useState<boolean>(false);
+    const [progress, setProgress] = useState(0);
+
+
+
+    const readFileAsText = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsText(file);
+        });
+    };
+
+    const onDropTXTFiles = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
+        event.stopPropagation();
+        setFiles(prevFiles => [...prevFiles, ...acceptedFiles]); // Add files to queue
+
+        if (!uploading) {
+            handleUploadNextFile(0, [...acceptedFiles]); // Start uploading the first file
+        }
+    }, [uploading, folderid, encryptionKey]);
+
+    const handleUploadNextFile = async (index: number, fileQueue: File[]) => {
+        if (index >= fileQueue.length) {
+            // If all files are uploaded, reset the state and finish
+            setUploading(false);
+            handleAllFilesUploaded();
+            return;
+        }
+
+        const file = fileQueue[index];
+        setUploading(true);
+        let startTime = Date.now();
+        let lastLoaded = 0;
+        let lastTime = startTime;
+        const password = getEncryptionPassword();
+
+        const EncFilename = await Encrypt(file.name, password);
+        let filename = typeof EncFilename === 'string' ? EncFilename : EncFilename.encryptedText;
+        let filenameiv = typeof EncFilename === 'string' ? '' : EncFilename.iv;
+        let filenamesalt = typeof EncFilename === 'string' ? '' : EncFilename.salt;
+
+        // const FileSHA1 = crypto.createHash('sha1').update(fileContent).digest('hex');
+        // const fileData = {
+        //     folderid: folderid,
+        //     filename: typeof EncFilename === 'string' ? EncFilename : EncFilename.encryptedText,
+        //     filenameiv: typeof EncFilename === 'string' ? '' : EncFilename.iv,
+        //     filenamesalt: typeof EncFilename === 'string' ? '' : EncFilename.salt,
+        //     filesha1: FileSHA1,
+        //     fileid: fileid,
+        //     iv: typeof EncContent === 'string' ? '' : EncContent.iv,
+        //     salt: typeof EncContent === 'string' ? '' : EncContent.salt,
+        //     content: typeof EncContent === 'string' ? EncContent : EncContent.encryptedText,
+        // };
+
+
+
+
+        try {
+            // Read file as text (string)
+            const fileText = await readFileAsText(file);
+            const FileSHA1 = crypto.createHash('sha1').update(fileText).digest('hex');
+
+            // Encrypt the file text
+            const encryptedData = await Encrypt(fileText, password);
+
+            var encryptedBlob;
+            // Convert encrypted data to a Blob
+            if (typeof encryptedData === "object" && "encryptedText" in encryptedData) {
+                encryptedBlob = new Blob([encryptedData.encryptedText], { type: "text/plain" });
+            } else {
+                console.error("Invalid encryptedData format");
+            }
+
+            // Create a new File object from the encrypted Blob
+            const encryptedFile = new File([encryptedBlob ?? new Blob()], file.name, { type: "application/octet-stream" });
+
+            const encryptedFileWithNewName = new File([encryptedFile], filename, {
+                type: encryptedFile.type,
+                lastModified: encryptedFile.lastModified,
+            });
+
+
+
+
+
+            const formData = new FormData();
+            formData.append('token', token);
+            formData.append('folderid', folderid.toString());
+            let iv = typeof encryptedData === 'object' ? encryptedData.iv : '';
+            let salt = typeof encryptedData === 'object' ? encryptedData.salt : '';
+            formData.append('iv', JSON.stringify(iv));
+            formData.append('salt', JSON.stringify(salt));
+
+            formData.append('file', encryptedFileWithNewName);
+
+            formData.append('filename', filename);
+            formData.append('filenameiv', JSON.stringify(filenameiv));
+            formData.append('filenamesalt', JSON.stringify(filenamesalt));
+            formData.append('filesha1', FileSHA1);
+
+
+            await axios.post(APIURL + "/supradrive/encrypted/uploadtxtfiles", formData, {
+                withCredentials: true,
+                headers: { 'Content-Type': 'multipart/form-data', 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), },
+                onUploadProgress: (event) => {
+                    if (event.total) {
+                        const currentTime = Date.now();
+                        const loaded = event.loaded;
+                        const deltaTime = (currentTime - lastTime) / 1000; // konverter til sekunder
+                        const deltaLoaded = loaded - lastLoaded;
+
+                        // Beregn hastighet i MB/s
+                        const speed = Number(((deltaLoaded / (1024 * 1024)) / deltaTime).toFixed(2));
+
+                        const remainingBytes = event.total - event.loaded;
+                        const remainingSeconds = remainingBytes / (deltaLoaded / deltaTime);
+
+                        let timeRemaining = '';
+                        if (remainingSeconds < 60) {
+                            timeRemaining = `${Math.round(remainingSeconds)}s`;
+                        } else if (remainingSeconds < 3600) {
+                            timeRemaining = `${Math.round(remainingSeconds / 60)}m ${Math.round(remainingSeconds % 60)}s`;
+                        } else {
+                            const hours = Math.floor(remainingSeconds / 3600);
+                            const minutes = Math.round((remainingSeconds % 3600) / 60);
+                            timeRemaining = `${hours}h ${minutes}m`;
+                        }
+
+                        const progress = Math.round((event.loaded * 100) / event.total);
+                        // setProgress(prevProgress => ({
+                        //     ...prevProgress,
+                        //     [file.name]: { progress, speed, timeRemaining }
+                        // }));
+                    }
+                },
+            });
+
+            // setProgress(prevProgress => ({
+            //     ...prevProgress,
+            //     [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
+            // }));
+
+            // Move to the next file
+            handleUploadNextFile(index + 1, fileQueue); // Recursively call the next file upload
+
+        } catch (error) {
+            console.error('Upload failed:', error);
+        }
+    };
+
+    const { getRootProps: getRootPropsTXTFiles, getInputProps: getInputPropsTXTFiles, isDragActive } = useDropzone({
+        onDrop: onDropTXTFiles,
+        multiple: true,
+        accept: {
+            'text/*': []
+        },
+        maxFiles: 100,
+    });
+
+
+    const handleAllFilesUploaded = () => {
+        setUploading(false);
+        setFiles([]);
+        setProgress(100);
+        setIsModalUploadTXTFilesOpen(false);
+        getFilesAndFolders(folderid);
+    }
+
+    // const handleUploadTXTFiles = async () => {
+    //     setUploading(true);
+    //     setProgress(0);
+
+    //     const formData = new FormData();
+    //     files.forEach(file => {
+    //         formData.append('files', file);
+    //     });
+
+    //     try {
+    //         await axios.post(APIURL + "/supradrive/encrypted/uploadtxtfiles", formData, {
+    //             headers: {
+    //                 'Content-Type': 'multipart/form-data',
+    //                 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"),
+    //             },
+    //             onUploadProgress: (event) => {
+    //                 if (event.total) {
+    //                     setProgress(Math.round((event.loaded * 100) / event.total));
+    //                 }
+    //             },
+    //         });
+    //         setFiles([]);
+    //         setProgress(100);
+    //     } catch (error) {
+    //         console.error('Upload failed:', error);
+    //     } finally {
+    //         setUploading(false);
+    //     }
+    // };
+
+
+
 
     type MenuItem = {
         label: string;
@@ -94,25 +314,31 @@ export default function Page() {
     }, []);
 
     const decryptFilesAndFolders = async () => {
+        setDecryptednum(0);
         setDecrypting(true);
         setDecryptedFolders([]);
         setDecryptedFiles([]);
         if (encryptionKey) {
-            const decryptedFolders = await Promise.all(
-                filesAndFolders[0].folders.map(async (folder: any) => {
-                    const decryptedName = await handleDecrypt(folder.foldername, folder.folderiv, folder.foldersalt, encryptionKey);
-                    return { ...folder, decryptedName };
-                })
-            );
-            setDecryptedFolders(decryptedFolders);
-            const decryptedFiles = await Promise.all(
-                filesAndFolders[0].files.map(async (file: any) => {
-                    const decryptedName = await handleDecrypt(file.filename, file.filenameiv, file.filenamesalt, encryptionKey);
-                    return { ...file, decryptedName };
-                })
-            );
-            setDecryptedFiles(decryptedFiles);
+            const decryptedFoldersArray: any[] = [];
+            for (const folder of filesAndFolders[0].folders) {
+                const decryptedName = await handleDecrypt(folder.foldername, folder.folderiv, folder.foldersalt, encryptionKey);
+                setDecryptednum((prev) => prev + 1);
+                folder.decryptedName = decryptedName;
+                decryptedFoldersArray.push({ ...folder, decryptedName });
+
+            }
+            setDecryptedFolders(decryptedFoldersArray);
+
+            const decryptedFilesArray: any[] = [];
+            for (const file of filesAndFolders[0].files) {
+                const decryptedName = await handleDecrypt(file.filename, file.filenameiv, file.filenamesalt, encryptionKey);
+                setDecryptednum((prev) => prev + 1);
+                file.decryptedName = decryptedName;
+                decryptedFilesArray.push({ ...file, decryptedName });
+            }
+            setDecryptedFiles(decryptedFilesArray);
         }
+
         setDecrypting(false);
     };
 
@@ -226,6 +452,13 @@ export default function Page() {
         setFolderName("");
     }
 
+    const openModalUploadTXTFiles = () => {
+        setIsModalUploadTXTFilesOpen(true);
+    }
+    const closeModalUploadTXTFiles = () => {
+        setIsModalUploadTXTFilesOpen(false);
+    }
+
     const handleDecrypt = async (encryptedText: any, iv: any, salt: any, key: any) => {
         try {
             const jsonInput = JSON.stringify({
@@ -254,9 +487,11 @@ export default function Page() {
         const folderidext = folderiduse ?? folderid;
         axios.get(APIURL + "/supradrive/encrypted/folder/" + folderidext, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
+                console.log(response.data);
                 setDecryptedFolders([]);
                 setDecryptedFiles([]);
                 setFilesAndFolders(response.data);
+                setDecryptedtotalnum(response.data[0]?.files.length + response.data[0]?.folders.length);
             })
             .catch((error) => {
                 console.log(error);
@@ -296,11 +531,17 @@ export default function Page() {
     }, []);
 
     useEffect(() => {
-        if (encryptionKey && ((filesAndFolders[0].folders.length > 0) || (filesAndFolders[0].files.length > 0))) {
+        if (encryptionKey && ((filesAndFolders[0]?.folders?.length > 0) || (filesAndFolders[0]?.files?.length > 0))) {
             decryptFilesAndFolders();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filesAndFolders, encryptionKey]);
+
+    useEffect(() => {
+        if (decryptedtotalnum > 0) {
+            setProgress(Math.round((decryptednum / decryptedtotalnum) * 100));
+        }
+    }, [decryptednum, decryptedtotalnum]);
 
     if (loading) {
         return (
@@ -309,8 +550,16 @@ export default function Page() {
     }
 
     if (decrypting) {
+        const progress = (decryptednum / decryptedtotalnum) * 100;
         return (
-            <LoadingScreen text="Decrypting" />
+            <div className="flex flex-col items-center justify-center h-screen bg-black">
+                <div className="flex flex-col items-center gap-y-4">
+                    <LoadingScreen text={`Decrypting ${progress.toFixed(0)}% (${decryptednum} / ${decryptedtotalnum})`} />
+                    <div className="w-64">
+                        <ProgressBar progress={Number(progress.toFixed(0))} />
+                    </div>
+                </div>
+            </div>
         );
     }
 
@@ -400,7 +649,10 @@ export default function Page() {
                                                     <line x1="15.5" y1="15" x2="18.5" y2="15" stroke="#BDBDBD" />
                                                 </svg>
                                             </button>
-                                            <button className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500">
+                                            <button
+                                                className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500"
+                                                onClick={openModalUploadTXTFiles}
+                                            >
                                                 <svg
                                                     width="28"
                                                     height="28"
@@ -421,7 +673,6 @@ export default function Page() {
                                                         d="M9 12L12 9L15 12"
                                                         stroke="#1976D2"
                                                     />
-
                                                     <line
                                                         x1="8" y1="18" x2="16" y2="18"
                                                         stroke="#1976D2"
@@ -813,6 +1064,60 @@ export default function Page() {
                                 }
 
 
+                                {isModalUploadTXTFilesOpen && (
+                                    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-50">
+                                        {!uploading && ( // Hide the upload box when uploading
+                                            <div
+                                                style={{ width: 500, height: 70 }}
+                                                {...getRootPropsTXTFiles()}
+                                                className={`border-2 ${isDragActive ? 'border-green-500' : 'border-green-900'} rounded-md p-5 text-center cursor-pointer transition-colors duration-200`}
+                                            >
+                                                <input {...getInputPropsTXTFiles()} />
+                                                <div className="text-green-700">
+                                                    {isDragActive ?
+                                                        "Drop the files here ..." :
+                                                        "Drag & drop some files here, or click to select files"}
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="mt-4">
+                                            {files.map((file) => (
+                                                <div key={file.name} className="mb-2 mr-5 ml-5">
+                                                    <div className="flex flex-col items-center justify-center bg-black">
+                                                        <ProgressBar progress={uploadProgress[file.name]?.progress || 0} />
+                                                    </div>
+                                                    <div className="text-green-700 text-xs">
+                                                        {file.name} ({uploadProgress[file.name]?.progress || 0}%)
+                                                        {uploadProgress[file.name]?.speed > 0 &&
+                                                            ` - ${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`
+                                                        }
+                                                    </div>
+                                                    <div className="w-full h-2 bg-gray-700 rounded-full">
+                                                        <div className="h-full bg-green-500 rounded-full" style={{ width: `${uploadProgress[file.name]?.progress || 0}%` }}></div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="flex flex items-center justify-center gap-4 mt-4">
+                                            <button
+                                                className="mt-4 px-4 py-1 border border-red-900 text-red-700 rounded-lg hover:border-red-500 hover:text-red-500 focus:ring-2 focus:ring-red-500 flex items-center"
+                                                onClick={closeModalUploadTXTFiles}
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 24 24"
+                                                    width="18"
+                                                    height="18"
+                                                    className="mr-2 transform transition-transform duration-200 hover:scale-110"
+                                                >
+                                                    <path d="M6 6L18 18M18 6L6 18" stroke="red" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                )
+                                }
 
 
                                 {
@@ -872,7 +1177,7 @@ export default function Page() {
                     </div>
 
                 </div>
-            </div>
+            </div >
 
         </>
     );
