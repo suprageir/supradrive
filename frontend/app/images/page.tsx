@@ -2,11 +2,6 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from 'axios';
 import Link from "next/link";
-import { Encrypt } from "@/app/components/Encrypt";
-import { Decrypt } from "@/app/components/Decrypt";
-import crypto from 'crypto';
-import moment from 'moment';
-import { motion } from "framer-motion";
 import LoadingScreen from "@/app/components/LoadingScreen";
 import { DropEvent, FileRejection, useDropzone } from 'react-dropzone';
 import ProgressBar from "@/app/components/ProgressBar";
@@ -31,29 +26,11 @@ export default function Page() {
     const [imagesFiles, setImagesFiles] = useState<any[]>([]);
     const [isModalNewFolderOpen, setIsModalNewFolderOpen] = useState(false);
     const [folderName, setFolderName] = useState("");
-    const [fileName, setFileName] = useState("Untitled");
-    const [fileRevisions, setFileRevisions] = useState<any[]>([]);
     const [folderid, setFolderid] = useState(0);
     const [foldername, setFoldername] = useState("");
     const [upFolderId, setUpFolderId] = useState(0);
-    const [fileid, setFileid] = useState(0);
-    const [activeTab, setActiveTab] = useState(0);
-    const [fileidref, setFileidRef] = useState(0);
-    const [filenameencrypted, setFilenameEncrypted] = useState("");
-    const [filenamedisk, setFilenameDisk] = useState("");
-    const [filenameiv, setFilenameIV] = useState("");
-    const [filenamesalt, setFilenameSalt] = useState("");
-    const [filesha1, setFileSHA1] = useState("");
-    const [filefolderid, setFileFolderid] = useState(0);
-    const [fileiv, setFileIV] = useState("");
-    const [filesalt, setFileSalt] = useState("");
-    const [filecontentencrypted, setFileContentEncrypted] = useState("");
-    const [filecurrentrevision, setFileCurrentRevision] = useState(true);
-    const [isModalUploadTXTFilesOpen, setIsModalUploadTXTFilesOpen] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [uploadProgress, setUploadProgress] = useState<UploadProgressType>({});
-    const [decryptedtotalnum, setDecryptedtotalnum] = useState(0);
-    const [decryptednum, setDecryptednum] = useState(0);
     const [isModalUploadImagesOpen, setIsModalUploadImagesOpen] = useState(false);
 
     const [files, setFiles] = useState<File[]>([]);
@@ -511,7 +488,8 @@ export default function Page() {
                                                         }
                                                     </div>
                                                     <div className="w-full h-2 bg-gray-700 rounded-full">
-                                                        <div className="h-full bg-green-500 rounded-full" style={{ width: `${uploadProgress[file.name]?.progress || 0}%` }}></div>
+                                                        <ProgressBar progress={uploadProgress[file.name]?.progress || 0} />
+                                                        {/* <div className="h-full bg-green-500 rounded-full" style={{ width: `${uploadProgress[file.name]?.progress || 0}%` }}></div> */}
                                                     </div>
                                                 </div>
                                             ))}
