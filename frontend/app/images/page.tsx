@@ -27,7 +27,9 @@ export default function Page() {
     const [isModalNewFolderOpen, setIsModalNewFolderOpen] = useState(false);
     const [folderName, setFolderName] = useState("");
     const [folderid, setFolderid] = useState(0);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [foldername, setFoldername] = useState("");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [upFolderId, setUpFolderId] = useState(0);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [uploadProgress, setUploadProgress] = useState<UploadProgressType>({});
