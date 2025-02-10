@@ -24,7 +24,6 @@ interface UploadProgressType {
 
 export default function Page() {
     const [loading, setLoading] = useState(true);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [token, setToken] = useState("");
     const [username, setUsername] = useState("");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -62,6 +61,7 @@ export default function Page() {
     const [filecontentencrypted, setFileContentEncrypted] = useState("");
     const [filecurrentrevision, setFileCurrentRevision] = useState(true);
     const [isModalUploadTXTFilesOpen, setIsModalUploadTXTFilesOpen] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [uploadProgress, setUploadProgress] = useState<UploadProgressType>({});
     const [decryptedtotalnum, setDecryptedtotalnum] = useState(0);
     const [decryptednum, setDecryptednum] = useState(0);
@@ -69,6 +69,7 @@ export default function Page() {
 
     const [files, setFiles] = useState<File[]>([]);
     const [uploading, setUploading] = useState<boolean>(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [progress, setProgress] = useState(0);
 
 
