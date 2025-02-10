@@ -5,6 +5,8 @@ import Link from "next/link";
 import LoadingScreen from "@/app/components/LoadingScreen";
 import { DropEvent, FileRejection, useDropzone } from 'react-dropzone';
 import ProgressBar from "@/app/components/ProgressBar";
+import Image from "next/image";
+
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
@@ -430,11 +432,15 @@ export default function Page() {
                                                     <div className="FileMenu flex flex-col items-center group" onContextMenu={handleContextMenu}>
                                                         <div>
                                                             {file.base64Thumbnail ? (
-                                                                <img src={file.base64Thumbnail} alt="Base64 Image" />
+                                                                <Image
+                                                                    src={file.base64Thumbnail}
+                                                                    alt="Base64 Image"
+                                                                    width={100} 
+                                                                    height={100}
+                                                                />
                                                             ) : (
                                                                 <p>Loading image...</p>
-                                                            )}
-                                                        </div>
+                                                            )}                                                        </div>
                                                         <span className="text-white group-hover:text-gray-300 transition duration-300 text-center max-w-[12.5rem] break-words">
                                                             {file.imagefilename}
                                                         </span>
