@@ -374,16 +374,16 @@ export default function Page() {
                                                 <path
                                                     d="M14 5L8 12L14 19"
                                                     stroke="#E0A800"
-                                                    stroke-width="2"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
                                                 />
                                                 <path
                                                     d="M20 5L14 12L20 19"
                                                     stroke="#E0A800"
-                                                    stroke-width="2"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
                                                 />
                                             </svg>
                                         </div>
@@ -404,9 +404,9 @@ export default function Page() {
                                                 <path
                                                     d="M15 6L9 12L15 18"
                                                     stroke="#E0A800"
-                                                    stroke-width="2"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
                                                 />
                                             </svg>
                                         </div>
@@ -428,16 +428,16 @@ export default function Page() {
                                                 <path
                                                     d="M12 4L6 10H18L12 4Z"
                                                     stroke="#E0A800"
-                                                    stroke-width="2"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
                                                 />
                                                 <path
                                                     d="M12 20L6 14H18L12 20Z"
                                                     stroke="#E0A800"
-                                                    stroke-width="2"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
                                                 />
                                             </svg>
                                         </div>
@@ -464,7 +464,7 @@ export default function Page() {
                     <div className="rounded-lg bg-vc-border-gradient p-px shadow-lg shadow-black/20">
                         <div className="rounded-lg bg-black p-3.5 lg:p-6 w-full">
                             <div className="prose prose-sm prose-invert max-w-none">
-                                <div className="flex flex-wrap items-center justify-start gap-10">
+                                <div className="flex flex-wrap items-center justify-start gap-2">
                                     {imagesFolders?.map((folder) => {
                                         if (folder.foldername) {
                                             return (
@@ -473,8 +473,8 @@ export default function Page() {
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
                                                             fill="yellow"
-                                                            width="60"
-                                                            height="60"
+                                                            width={thumbSize}
+                                                            height={thumbSize - 20}
                                                             viewBox="0 0 24 24"
                                                             className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
                                                         >
