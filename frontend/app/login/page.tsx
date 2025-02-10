@@ -86,7 +86,9 @@ const Login = () => {
 
     if (checking) {
         return (
-            <LoadingScreen text="Checking credentials" />
+            <div className="flex flex-col items-center justify-center h-screen bg-black">
+                <LoadingScreen text="Checking credentials" />
+            </div>
         );
     }
     if (loginfail) {

@@ -548,7 +548,9 @@ export default function Page() {
 
     if (loading) {
         return (
-            <LoadingScreen text="Checking authentication" />
+            <div className="flex flex-col items-center justify-center h-screen bg-black">
+                <LoadingScreen text="Checking authentication" />
+            </div>
         );
     }
 
@@ -568,7 +570,9 @@ export default function Page() {
 
     if (savingfile) {
         return (
-            <LoadingScreen text="Encrypting and saving file" />
+            <div className="flex flex-col items-center justify-center h-screen bg-black">
+                <LoadingScreen text="Encrypting and saving file" />
+            </div>
         );
     }
     return (
