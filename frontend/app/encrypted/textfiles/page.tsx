@@ -355,7 +355,7 @@ export default function Page() {
     const saveFile = async () => {
         setSavingfile(true);
         const password = getEncryptionPassword();
-        var EncFilename;
+        let EncFilename;
         if (!fileName.endsWith(".txt")) {
             EncFilename = await Encrypt(fileName + ".txt", password);
         }
