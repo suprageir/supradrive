@@ -18,6 +18,7 @@ interface UploadProgressType {
     };
 }
 
+
 export default function Page() {
     const [loading, setLoading] = useState(true);
     const [token, setToken] = useState("");
@@ -40,7 +41,7 @@ export default function Page() {
     const [files, setFiles] = useState<File[]>([]);
     const [uploading, setUploading] = useState<boolean>(false);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [progress, setProgress] = useState(0);
+    const [progress, setProgress] = useState<UploadProgressType>({});
     const [thumbSize, setThumbSize] = useState(100);
 
 
@@ -136,18 +137,19 @@ export default function Page() {
                         }
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         const progress = Math.round((event.loaded * 100) / event.total);
-                        // setProgress(prevProgress => ({
-                        //     ...prevProgress,
-                        //     [file.name]: { progress, speed, timeRemaining }
-                        // }));
+
+                        setProgress(prevProgress => ({
+                            ...prevProgress,
+                            [file.name]: { progress, speed, timeRemaining }
+                        }));
                     }
                 },
             });
 
-            // setProgress(prevProgress => ({
-            //     ...prevProgress,
-            //     [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
-            // }));
+            setProgress(prevProgress => ({
+                ...prevProgress,
+                [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
+            }));
 
             // Move to the next file
             handleUploadNextFile(index + 1, fileQueue); // Recursively call the next file upload
@@ -170,8 +172,8 @@ export default function Page() {
     const handleAllFilesUploaded = () => {
         setUploading(false);
         setFiles([]);
-        setProgress(100);
         setIsModalUploadImagesOpen(false);
+        setProgress({});
         getFilesAndFolders(folderid);
     }
 
@@ -250,8 +252,15 @@ export default function Page() {
         return () => document.removeEventListener("click", handleClickOutside);
     }, []);
 
-    const handleSelectFolder = (newfolderid: number) => {
+    const handleSelectFolder = (newfolderid: number, newfoldername: string | null = null) => {
+        setUpFolderId(folderid);
         setFolderid(newfolderid);
+        if (newfoldername) {
+            setFoldername(newfoldername);
+        }
+        else {
+            setFoldername("");
+        }
         getFilesAndFolders(newfolderid);
     }
 
@@ -334,9 +343,9 @@ export default function Page() {
                 </nav>
 
                 <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-12 md:col-span-8 p-2">
-                        <div className="text-xl text-green-500 flex items-center gap-2">
-                            Images
+                    <div className="col-span-12 md:col-span-8 pl-2">
+                        <div className="text-xl text-green-700 flex items-center gap-2">
+                            {foldername} ({imagesFolders.length} folders, {imagesFiles.length} images)
                         </div>
                         <div className="flex gap-4 pt-4">
                             <button className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500" onClick={openModalNewFolder}>
@@ -356,6 +365,35 @@ export default function Page() {
                                     <line x1="17" y1="13.5" x2="17" y2="16.5" stroke="#E0A800" />
                                     <line x1="15.5" y1="15" x2="18.5" y2="15" stroke="#E0A800" />
                                 </svg>
+                            </button>
+                            <button
+                                className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500"
+                                onClick={() => handleChangeThumbSize(null)}
+                            >
+                                <div className="flex flex-col items-center group">
+                                    <svg
+                                        width="28"
+                                        height="28"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            d="M12 4L6 10H18L12 4Z"
+                                            stroke="#E0A800"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                        <path
+                                            d="M12 20L6 14H18L12 20Z"
+                                            stroke="#E0A800"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                    </svg>
+                                </div>
                             </button>
                             {(folderid !== 0) && (
                                 <>
@@ -411,38 +449,6 @@ export default function Page() {
                                             </svg>
                                         </div>
                                     </button>
-
-
-                                    <button
-                                        className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500"
-                                        onClick={() => handleChangeThumbSize(null)}
-                                    >
-                                        <div className="flex flex-col items-center group">
-                                            <svg
-                                                width="28"
-                                                height="28"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                                <path
-                                                    d="M12 4L6 10H18L12 4Z"
-                                                    stroke="#E0A800"
-                                                    strokeWidth="2"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                />
-                                                <path
-                                                    d="M12 20L6 14H18L12 20Z"
-                                                    stroke="#E0A800"
-                                                    strokeWidth="2"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                />
-                                            </svg>
-                                        </div>
-                                    </button>
-
                                     <button
                                         className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500"
                                         onClick={openModalUploadImages}
@@ -468,7 +474,7 @@ export default function Page() {
                                     {imagesFolders?.map((folder) => {
                                         if (folder.foldername) {
                                             return (
-                                                <div key={folder.folderid} onClick={() => handleSelectFolder(folder.folderid)}>
+                                                <div key={folder.folderid} onClick={() => handleSelectFolder(folder.folderid, folder.foldername)}>
                                                     <div className="flex flex-col items-center group">
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
