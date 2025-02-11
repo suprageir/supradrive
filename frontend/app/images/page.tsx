@@ -6,6 +6,7 @@ import LoadingScreen from "@/app/components/LoadingScreen";
 import { DropEvent, FileRejection, useDropzone } from 'react-dropzone';
 import ProgressBar from "@/app/components/ProgressBar";
 import Image from "next/image";
+import moment from "moment";
 
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
@@ -108,6 +109,8 @@ export default function Page() {
             formData.append('token', token);
             formData.append('folderid', folderid.toString());
             formData.append('file', file);
+            const creationDate = moment(file.lastModified).format('YYYY-MM-DD HH:mm:ss');
+            formData.append('created', creationDate);
 
             await axios.post(APIURL + "/supradrive/images/upload", formData, {
                 withCredentials: true,
@@ -173,7 +176,7 @@ export default function Page() {
     const handleAllFilesUploaded = () => {
         setUploading(false);
         setFiles([]);
-        setIsModalUploadImagesOpen(false);
+        // setIsModalUploadImagesOpen(false);
         setProgress({});
         getFilesAndFolders(folderid);
     }
@@ -338,9 +341,11 @@ export default function Page() {
 
     if (image) {
         return (
-            <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90">
+            <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90"
+                onClick={() => setImage(null)}
+            >
                 <button
-                    className="absolute top-4 right-4 text-red-500 text-3xl font-bold"
+                    className="absolute top-4 right-4 text-red-500 text-5xl font-bold"
                     onClick={() => setImage(null)}
                 >
                     &times;
@@ -348,7 +353,7 @@ export default function Page() {
 
                 <Image
                     src={image.base64Image}
-                    alt={image.imagefilename}
+                    alt={image.imagefilename || "n/a"}
                     width={1000}
                     height={1000}
                     layout="responsive"

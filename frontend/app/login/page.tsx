@@ -115,9 +115,9 @@ const Login = () => {
     }
     return (
         <div className="text-green-500 font-mono flex justify-center sm:items-start sm:px-4">
-            <div className="w-[600px] p-6 shadow-lg sm:w-full sm:max-w-lg sm:mt-50 xs:mt-0">
+            <div className="w-[600px] p-6 sm:w-full sm:max-w-lg sm:mt-50 xs:mt-0">
                 <h1 className="text-3xl text-green-500 text-center mb-6">SupraDrive Login</h1>
-                <div ref={outputRef} className="h-72 overflow-y-auto bg-black p-4 border border-green-900">
+                <div ref={outputRef} className="h-72 overflow-y-auto bg-black p-4">
 
                     {/* Display Entered Username */}
                     {username && (
