@@ -27,8 +27,7 @@ export default function Page() {
     const [notificationMessage, setNotificationMessage] = useState("");
     const [notificationType, setNotificationType] = useState<"success" | "error" | "warning" | "info">("success");
     const [username, setUsername] = useState("");
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [userid, setUserid] = useState("");
+    // const [userid, setUserid] = useState("");
     const [imagesFolders, setImagesFolders] = useState<any[]>([]);
     const [imagesFiles, setImagesFiles] = useState<any[]>([]);
     const [isModalNewFolderOpen, setIsModalNewFolderOpen] = useState(false);
@@ -140,6 +139,10 @@ export default function Page() {
                         }
                         const progress = Math.round((event.loaded * 100) / event.total);
 
+                        setUploadProgress(prevProgress => ({
+                            ...prevProgress,
+                            [file.name]: { progress, speed, timeRemaining }
+                        }));
                         setProgress(prevProgress => ({
                             ...prevProgress,
                             [file.name]: { progress, speed, timeRemaining }
@@ -147,7 +150,10 @@ export default function Page() {
                     }
                 },
             });
-
+            setUploadProgress(prevProgress => ({
+                ...prevProgress,
+                [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
+            }));
             setProgress(prevProgress => ({
                 ...prevProgress,
                 [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
@@ -337,7 +343,7 @@ export default function Page() {
 
     useEffect(() => {
         setUsername(sessionStorage.getItem("supradriveuser") || "");
-        setUserid(sessionStorage.getItem("supradriveuserid") || "");
+        // setUserid(sessionStorage.getItem("supradriveuserid") || "");
         setToken(sessionStorage.getItem("supradrivetoken") || "");
         setLoading(false);
         getFilesAndFolders(folderid);
