@@ -34,11 +34,9 @@ export default function Page() {
     const [isModalNewFolderOpen, setIsModalNewFolderOpen] = useState(false);
     const [folderName, setFolderName] = useState("");
     const [folderid, setFolderid] = useState(0);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [foldername, setFoldername] = useState("");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [upFolderId, setUpFolderId] = useState(0);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [uploadProgress, setUploadProgress] = useState<UploadProgressType>({});
     const [isModalUploadImagesOpen, setIsModalUploadImagesOpen] = useState(false);
 
@@ -122,10 +120,9 @@ export default function Page() {
                     if (event.total) {
                         const currentTime = Date.now();
                         const loaded = event.loaded;
-                        const deltaTime = (currentTime - lastTime) / 1000; // konverter til sekunder
+                        const deltaTime = (currentTime - lastTime) / 1000;
                         const deltaLoaded = loaded - lastLoaded;
 
-                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         const speed = Number(((deltaLoaded / (1024 * 1024)) / deltaTime).toFixed(2));
 
                         const remainingBytes = event.total - event.loaded;
@@ -139,10 +136,8 @@ export default function Page() {
                         } else {
                             const hours = Math.floor(remainingSeconds / 3600);
                             const minutes = Math.round((remainingSeconds % 3600) / 60);
-                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             timeRemaining = `${hours}h ${minutes}m`;
                         }
-                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         const progress = Math.round((event.loaded * 100) / event.total);
 
                         setProgress(prevProgress => ({
