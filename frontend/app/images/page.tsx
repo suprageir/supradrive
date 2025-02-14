@@ -7,7 +7,7 @@ import { DropEvent, FileRejection, useDropzone } from 'react-dropzone';
 import ProgressBar from "@/app/components/ProgressBar";
 import Image from "next/image";
 import moment from "moment";
-
+import Notification from "@/app/components/Notification";
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
@@ -23,6 +23,9 @@ interface UploadProgressType {
 export default function Page() {
     const [loading, setLoading] = useState(true);
     const [token, setToken] = useState("");
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState("");
+    const [notificationType, setNotificationType] = useState<"success" | "error" | "warning" | "info">("success");
     const [username, setUsername] = useState("");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [userid, setUserid] = useState("");
@@ -316,7 +319,18 @@ export default function Page() {
         }
         const folderjson = JSON.stringify(json);
         await axios.post(APIURL + "/supradrive/images/folder", folderjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
-            .then(() => {
+            .then((response) => {
+                const data = JSON.parse(response.data);
+                if (data.status == "success") {
+                    setNotificationMessage(data.message);
+                    setNotificationType("success");
+                    setShowNotification(true);
+                }
+                else {
+                    setNotificationMessage(response.data.message);
+                    setNotificationType("error");
+                    setShowNotification(true);
+                }
             })
             .catch((error) => {
                 console.log(error);
@@ -373,6 +387,14 @@ export default function Page() {
 
     return (
         <>
+            {showNotification && (
+                <Notification
+                    type={notificationType}
+                    message={notificationMessage}
+                    duration={3000}
+                    onClose={() => setShowNotification(false)}
+                />
+            )}
             <div className="min-h-screen bg-black text-gray-900 dark:text-gray-100">
                 <nav className="p-4 bg-black">
                     <ol className="flex space-x-2">

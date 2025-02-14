@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 const sharp = require('sharp');
 import ExifParser from 'exif-parser';
+import { APIResponse } from "@shared/APIResponse";
 
 async function createThumbnail(fileBuffer) {
     try {
@@ -26,47 +27,7 @@ const SUPRADRIVE_PATH = process.env.SUPRADRIVE_PATH || '';
 
 export abstract class sqlSupraDrive {
 
-    // public static async SupraDriveAuthToken(username: string, password: string): Promise<SupraDrive[]> {
-
-    //     // check if user exist
-    //     const SQL = "SELECT userid FROM users WHERE username=?";
-    //     try {
-    //         var [row] = await tvdb.query(SQL, username);
-    //         if (row.length > 0) {
-    //             return [];
-    //         }
-    //     } catch (e: any) {
-    //         console.log(e);
-    //         return [];
-    //     }
-
-    //     // encrypt password
-    //     let cryptedpassword = await bcrypt.hash(password, 16);
-
-    //     try {
-    //         let newuser = await tvdb.query(`INSERT INTO \`users\` (username,userpassword,userwiped) VALUES (?,?,'1')`, [username, cryptedpassword]);
-    //         var newuserid = newuser[0].insertId;
-    //     } catch (e) {
-    //         console.log(e);
-    //     }
-    //     try {
-    //         var [user] = await tvdb.query(`
-    //                 SELECT * FROM \`users\`
-    //                 WHERE userid=?
-    //                 `, [newuserid]);
-    //     } catch (e) {
-    //         console.log(e);
-    //     }
-    //     let UserRes = user.map((r: any) => {
-    //         return <SupraDrive>r;
-    //     })
-    //     return UserRes;
-    // }
-
-
-
-
-    public static async SupraDriveFolderNew(userid: number, username: string, body: any): Promise<SupraDrive[]> {
+    public static async SupraDriveFolderNew(userid: number, username: string, body: any): Promise<any> {
         let foldersysid = body.foldersysid;
         let foldername = body.foldername;
         let foldersubid = body.foldersubid || null;
@@ -77,23 +38,14 @@ export abstract class sqlSupraDrive {
             const query = `INSERT INTO foldersencrypted (foldersysid, folderuserid, foldername, foldersubid, foldersalt, folderiv) VALUES (?, ?, ?, ?, ?, ?)`;
             const values = [foldersysid, userid, foldername, foldersubid, foldersalt, folderiv];
             await supradrive.query(query, values);
-        } catch (e) {
+            return APIResponse("success", 200, "Folder " + foldername + " created successfully", "", null);
+        } catch (e: any) {
             console.log(e);
+            return APIResponse("error", 500, "Folder creation failed", e.message, null);
         }
-
-        try {
-            var [folders] = await supradrive.query(`SELECT * FROM \`foldersencrypted\` WHERE foldersysid=? AND folderuserid=? AND folderwiped='0'`, [foldersysid, userid]);
-        } catch (e) {
-            console.log(e);
-        }
-
-        let FoldersRes = folders.map((r: any) => {
-            return <SupraDrive>r;
-        })
-        return FoldersRes;
     }
 
-    public static async SupraDriveNewImagesFolder(userid: number, username: string, body: any): Promise<SupraDrive[]> {
+    public static async SupraDriveNewImagesFolder(userid: number, username: string, body: any): Promise<any> {
         let foldersysid = body.foldersysid;
         let foldersubid = body.foldersubid || null;
         let foldername = body.foldername;
@@ -102,20 +54,11 @@ export abstract class sqlSupraDrive {
             const query = `INSERT INTO foldersimages (foldersubid, folderuserid, foldername) VALUES (?, ?, ?)`;
             const values = [foldersubid, userid, foldername];
             await supradrive.query(query, values);
-        } catch (e) {
+            return APIResponse("success", 200, "Folder " + foldername + " created successfully", "", null);
+        } catch (e: any) {
             console.log(e);
+            return APIResponse("error", 500, "Folder creation failed", e.message, null);
         }
-
-        try {
-            var [folders] = await supradrive.query(`SELECT * FROM \`foldersimages\` WHERE folderuserid=? AND folderwiped='0'`, [userid]);
-        } catch (e) {
-            console.log(e);
-        }
-
-        let FoldersRes = folders.map((r: any) => {
-            return <SupraDrive>r;
-        })
-        return FoldersRes;
     }
 
 
@@ -135,11 +78,11 @@ export abstract class sqlSupraDrive {
 
         const userDir = path.join(SUPRADRIVE_PATH, 'userdata', username);
 
-        if (!fs.existsSync(userDir)) {
-            fs.mkdirSync(userDir, { recursive: true });
+        if (!fs.existsSync(path.join(userDir, 'encrypted', 'text'))) {
+            fs.mkdirSync(path.join(userDir, 'encrypted', 'text'), { recursive: true });
         }
 
-        const folderDir = path.join(userDir, `${folderid}`);
+        const folderDir = path.join(userDir, 'encrypted', 'text', `${folderid}`);
 
         if (!fs.existsSync(folderDir)) {
             fs.mkdirSync(folderDir, { recursive: true });
@@ -243,16 +186,19 @@ export abstract class sqlSupraDrive {
         var fileidref = body.fileid || null;
 
         const userDir = path.join(SUPRADRIVE_PATH, 'userdata', username);
-        if (!fs.existsSync(userDir)) {
-            fs.mkdirSync(userDir, { recursive: true });
+
+        if (!fs.existsSync(path.join(userDir, 'encrypted', 'text'))) {
+            fs.mkdirSync(path.join(userDir, 'encrypted', 'text'), { recursive: true });
         }
-        const folderDir = path.join(userDir, `${folderid}`);
+
+        const folderDir = path.join(userDir, 'encrypted', 'text', `${folderid}`);
+
         if (!fs.existsSync(folderDir)) {
             fs.mkdirSync(folderDir, { recursive: true });
         }
+
         const filePath = path.join(folderDir, `${filenamedisk}.txt`);
         const metaPath = path.join(folderDir, `${filenamedisk}.json`);
-
 
         // check if file already is saved
         if (fs.existsSync(filePath)) {
@@ -530,13 +476,13 @@ export abstract class sqlSupraDrive {
 
             if (currentfile) {
                 fileinfo[0].currentfile = true;
-                const folderDir = path.join(SUPRADRIVE_PATH, 'userdata', username, `${fileinfo[0].folderid}`);
+                const folderDir = path.join(SUPRADRIVE_PATH, 'userdata', username, 'encrypted', 'text', `${fileinfo[0].folderid}`);
                 const filePath = path.join(folderDir, `${fileinfo[0].filenamedisk}.txt`);
                 fileContent = fs.readFileSync(filePath, 'utf8');
             }
             else {
                 fileinfo[0].currentfile = false;
-                const folderDir = path.join(SUPRADRIVE_PATH, 'userdata', username, `${fileinfo[0].folderid}`);
+                const folderDir = path.join(SUPRADRIVE_PATH, 'userdata', username, 'encrypted', 'text', `${fileinfo[0].folderid}`);
                 const folderOldDir = path.join(folderDir, '_old');
                 const filePath = path.join(folderOldDir, `${fileinfo[0].filenamedisk}.txt`);
                 fileContent = fs.readFileSync(filePath, 'utf8');

@@ -15,7 +15,7 @@ apiRouter.post('/supradrive/encrypted/folder', supradriveauth, SupraDriveNewFold
 apiRouter.post('/supradrive/encryptedtextfile', supradriveauth, SupraDriveEncryptedTextSave);
 apiRouter.post('/supradrive/encrypted/uploadtxtfiles', supradriveauth, upload.single('file'), SupraDriveEncryptedTextUpload);
 apiRouter.get('/supradrive/encrypted/folder/:foldersysid', supradriveauth, SupraDriveGetFolders);
-apiRouter.get('/supradrive/encrypted/file/:fileid', supradriveauth, SupraDriveGetFile);
+apiRouter.get('/supradrive/encrypted/textfile/:fileid', supradriveauth, SupraDriveGetFile);
 apiRouter.post('/supradrive/images/folder', supradriveauth, SupraDriveNewImagesFolder);
 apiRouter.post('/supradrive/images/upload', supradriveauth, upload.single('file'), SupraDriveNewImagesUpload);
 apiRouter.get('/supradrive/image/:fileid', supradriveauth, SupraDriveGetImage);

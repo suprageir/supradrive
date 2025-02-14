@@ -34,7 +34,7 @@ const Login = () => {
             setInput("");
         } else {
             setPassword(input);
-            setStep(3); // Move to next phase (login verification)
+            setStep(3);
             setInput("");
         }
     };
@@ -117,16 +117,12 @@ const Login = () => {
         <div className="text-green-500 font-mono flex justify-center sm:items-start sm:px-4">
             <div className="w-[600px] p-6 sm:w-full sm:max-w-lg sm:mt-50 xs:mt-0">
                 <h1 className="text-3xl text-green-500 text-center mb-6">SupraDrive Login</h1>
-                <div ref={outputRef} className="h-72 overflow-y-auto bg-black p-4">
-
-                    {/* Display Entered Username */}
+                <div ref={outputRef} className="h-72 overflow-y-auto p-4 border-2 border-green-900 rounded-md">
                     {username && (
                         <p className="text-green-500">
                             <span>Username:</span> {username}
                         </p>
                     )}
-
-                    {/* Username Input */}
                     {step === 1 && (
                         <div className="flex items-center">
                             <span className="text-green-500 mr-2">Username:</span>
@@ -142,15 +138,11 @@ const Login = () => {
                             </form>
                         </div>
                     )}
-
-                    {/* Display Entered Password */}
                     {password && (
                         <p className="text-green-500">
                             <span>Password:</span> {"•".repeat(password.length)}
                         </p>
                     )}
-
-                    {/* Password Input */}
                     {step === 2 && (
                         <div className="mt-2 flex items-center">
                             <span className="text-green-500 mr-2">Password:</span>
@@ -166,8 +158,6 @@ const Login = () => {
                             </form>
                         </div>
                     )}
-
-                    {/* Login Verification */}
                     {checking && <p className="text-green-500 mt-2">{checking}</p>}
                     {error && <p className="text-red-500 mt-2">{error}</p>}
                 </div>

@@ -388,7 +388,7 @@ export default function Page() {
 
     const handleOpenTXTFile = async (fileid: number) => {
         setIsModalOpen(true);
-        axios.get(APIURL + "/supradrive/encrypted/file/" + fileid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+        axios.get(APIURL + "/supradrive/encrypted/textfile/" + fileid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
                 setDecrypting(true);
                 setFileid(response.data[0].fileinfo[0]?.fileid || 0);
