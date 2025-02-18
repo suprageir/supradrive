@@ -16,6 +16,7 @@ interface UploadProgressType {
         progress: number;
         speed: number;
         timeRemaining: string;
+        error?: string;
     };
 }
 
@@ -40,10 +41,11 @@ export default function Page() {
 
     const [files, setFiles] = useState<File[]>([]);
     const [uploading, setUploading] = useState<boolean>(false);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [progress, setProgress] = useState<UploadProgressType>({});
     const [thumbSize, setThumbSize] = useState(100);
     const [image, setImage] = useState<any>(null);
+    const [uploadedImages, setUploadedImages] = useState(0);
+    const [totalImages, setTotalImages] = useState(0);
+    const [failedImages, setFailedImages] = useState(0);
 
 
     const handleChangeThumbSize = (size: number | null) => {
@@ -65,18 +67,17 @@ export default function Page() {
 
     const onDropImages = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
         event.stopPropagation();
-        setFiles(prevFiles => [...prevFiles, ...acceptedFiles]); // Add files to queue
+        setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
 
         if (!uploading) {
-            handleUploadNextFile(0, [...acceptedFiles]); // Start uploading the first file
+            handleUploadNextFile(0, [...acceptedFiles]);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [uploading, folderid]);
 
     const handleUploadNextFile = async (index: number, fileQueue: File[]) => {
         if (index >= fileQueue.length) {
-            // If all files are uploaded, reset the state and finish
-            setUploading(false);
+            // setUploading(false);
             handleAllFilesUploaded();
             return;
         }
@@ -88,21 +89,6 @@ export default function Page() {
         const lastTime = startTime;
 
 
-        // const FileSHA1 = crypto.createHash('sha1').update(fileContent).digest('hex');
-        // const fileData = {
-        //     folderid: folderid,
-        //     filename: typeof EncFilename === 'string' ? EncFilename : EncFilename.encryptedText,
-        //     filenameiv: typeof EncFilename === 'string' ? '' : EncFilename.iv,
-        //     filenamesalt: typeof EncFilename === 'string' ? '' : EncFilename.salt,
-        //     filesha1: FileSHA1,
-        //     fileid: fileid,
-        //     iv: typeof EncContent === 'string' ? '' : EncContent.iv,
-        //     salt: typeof EncContent === 'string' ? '' : EncContent.salt,
-        //     content: typeof EncContent === 'string' ? EncContent : EncContent.encryptedText,
-        // };
-
-
-
         try {
             const formData = new FormData();
             formData.append('token', token);
@@ -111,7 +97,7 @@ export default function Page() {
             const creationDate = moment(file.lastModified).format('YYYY-MM-DD HH:mm:ss');
             formData.append('created', creationDate);
 
-            await axios.post(APIURL + "/supradrive/images/upload", formData, {
+            const response = await axios.post(APIURL + "/supradrive/images/upload", formData, {
                 withCredentials: true,
                 headers: { 'Content-Type': 'multipart/form-data', 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), },
                 onUploadProgress: (event) => {
@@ -142,27 +128,29 @@ export default function Page() {
                             ...prevProgress,
                             [file.name]: { progress, speed, timeRemaining }
                         }));
-                        setProgress(prevProgress => ({
-                            ...prevProgress,
-                            [file.name]: { progress, speed, timeRemaining }
-                        }));
                     }
                 },
             });
+            if (response.status === 200 && response.data.status === "success") {
+                setUploadProgress(prevProgress => ({
+                    ...prevProgress,
+                    [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
+                }));
+                handleUploadNextFile(index + 1, fileQueue);
+            } else {
+                setUploadProgress(prevProgress => ({
+                    ...prevProgress,
+                    [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: response.data.message }
+                }));
+            }
+            handleUploadNextFile(index + 1, fileQueue);
+        } catch (error: any) {
+            let errorMessage = JSON.parse(error.response.data);
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
-                [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
+                [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
             }));
-            setProgress(prevProgress => ({
-                ...prevProgress,
-                [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
-            }));
-
-            // Move to the next file
-            handleUploadNextFile(index + 1, fileQueue); // Recursively call the next file upload
-
-        } catch (error) {
-            console.error('Upload failed:', error);
+            handleUploadNextFile(index + 1, fileQueue);
         }
     };
 
@@ -177,45 +165,12 @@ export default function Page() {
 
 
     const handleAllFilesUploaded = () => {
-        setUploading(false);
-        setFiles([]);
+        // setUploading(false);
+        // setFiles([]);
         // setIsModalUploadImagesOpen(false);
-        setProgress({});
-        getFilesAndFolders(folderid);
+        // setUploadProgress({});
+        // getFilesAndFolders(folderid);
     }
-
-    // const handleUploadTXTFiles = async () => {
-    //     setUploading(true);
-    //     setProgress(0);
-
-    //     const formData = new FormData();
-    //     files.forEach(file => {
-    //         formData.append('files', file);
-    //     });
-
-    //     try {
-    //         await axios.post(APIURL + "/supradrive/encrypted/uploadtxtfiles", formData, {
-    //             headers: {
-    //                 'Content-Type': 'multipart/form-data',
-    //                 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"),
-    //             },
-    //             onUploadProgress: (event) => {
-    //                 if (event.total) {
-    //                     setProgress(Math.round((event.loaded * 100) / event.total));
-    //                 }
-    //             },
-    //         });
-    //         setFiles([]);
-    //         setProgress(100);
-    //     } catch (error) {
-    //         console.error('Upload failed:', error);
-    //     } finally {
-    //         setUploading(false);
-    //     }
-    // };
-
-
-
 
     type MenuItem = {
         label: string;
@@ -283,6 +238,10 @@ export default function Page() {
         setIsModalUploadImagesOpen(true);
     }
     const closeModalUploadImages = () => {
+        setUploading(false);
+        setFiles([]);
+        setUploadProgress({});
+        getFilesAndFolders(folderid);
         setIsModalUploadImagesOpen(false);
     }
 
@@ -411,53 +370,6 @@ export default function Page() {
                             {foldername} ({imagesFolders.length} folders, {imagesFiles.length} images)
                         </div>
                         <div className="flex gap-4 pt-4">
-                            <button className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500" onClick={openModalNewFolder}>
-                                <svg
-                                    width="28"
-                                    height="28"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="M3 5C3 4.44772 3.44772 4 4 4H10L12 6H20C20.5523 6 21 6.44772 21 7V19C21 19.5523 20.5523 20 20 20H4C3.44772 20 3 19.5523 3 19V5Z"
-                                        fill="#FFC107"
-                                        stroke="#E0A800"
-                                    />
-                                    <circle cx="17" cy="15" r="4" fill="white" stroke="#E0A800" />
-                                    <line x1="17" y1="13.5" x2="17" y2="16.5" stroke="#E0A800" />
-                                    <line x1="15.5" y1="15" x2="18.5" y2="15" stroke="#E0A800" />
-                                </svg>
-                            </button>
-                            <button
-                                className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500"
-                                onClick={() => handleChangeThumbSize(null)}
-                            >
-                                <div className="flex flex-col items-center group">
-                                    <svg
-                                        width="28"
-                                        height="28"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            d="M12 4L6 10H18L12 4Z"
-                                            stroke="#E0A800"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                        <path
-                                            d="M12 20L6 14H18L12 20Z"
-                                            stroke="#E0A800"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                    </svg>
-                                </div>
-                            </button>
                             {(folderid !== 0) && (
                                 <>
                                     <button
@@ -524,6 +436,53 @@ export default function Page() {
                                     </button>
                                 </>
                             )}
+                            <button className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500" onClick={openModalNewFolder}>
+                                <svg
+                                    width="28"
+                                    height="28"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="M3 5C3 4.44772 3.44772 4 4 4H10L12 6H20C20.5523 6 21 6.44772 21 7V19C21 19.5523 20.5523 20 20 20H4C3.44772 20 3 19.5523 3 19V5Z"
+                                        fill="#FFC107"
+                                        stroke="#E0A800"
+                                    />
+                                    <circle cx="17" cy="15" r="4" fill="white" stroke="#E0A800" />
+                                    <line x1="17" y1="13.5" x2="17" y2="16.5" stroke="#E0A800" />
+                                    <line x1="15.5" y1="15" x2="18.5" y2="15" stroke="#E0A800" />
+                                </svg>
+                            </button>
+                            <button
+                                className="flex item-center gap-1 px-2 py-1 text-sm text-green-500 border border-2 border-green-900 rounded-lg bg-transparent hover:border-green-500"
+                                onClick={() => handleChangeThumbSize(null)}
+                            >
+                                <div className="flex flex-col items-center group">
+                                    <svg
+                                        width="28"
+                                        height="28"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            d="M12 4L6 10H18L12 4Z"
+                                            stroke="#E0A800"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                        <path
+                                            d="M12 20L6 14H18L12 20Z"
+                                            stroke="#E0A800"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                    </svg>
+                                </div>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -603,7 +562,7 @@ export default function Page() {
 
                                 {isModalUploadImagesOpen && (
                                     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-50">
-                                        {!uploading && ( // Hide the upload box when uploading
+                                        {!uploading && (
                                             <div
                                                 style={{ width: 500, height: 70 }}
                                                 {...getRootPropsImages()}
@@ -620,16 +579,19 @@ export default function Page() {
                                         <div className="mt-4">
                                             {files.map((file) => (
                                                 <div key={file.name} className="mb-2 mr-5 ml-5">
-                                                    <div className="text-green-700 text-xs">
+                                                    <div className={`text-green-700 text-sm ${uploadProgress[file.name]?.error ? 'text-red-700' : 'text-green-700'}`}>
                                                         {file.name} ({uploadProgress[file.name]?.progress || 0}%)
                                                         {uploadProgress[file.name]?.speed > 0 &&
                                                             ` - ${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`
                                                         }
                                                     </div>
-                                                    <div className="w-full h-2 bg-gray-700 rounded-full">
-                                                        <ProgressBar progress={uploadProgress[file.name]?.progress || 0} />
-                                                        {/* <div className="h-full bg-green-500 rounded-full" style={{ width: `${uploadProgress[file.name]?.progress || 0}%` }}></div> */}
-                                                    </div>
+                                                    {uploadProgress[file.name]?.error ?
+                                                        <span className="text-red-700 text-xs">- {uploadProgress[file.name]?.error}</span>
+                                                        :
+                                                        <div className="w-full h-2 bg-gray-700 rounded-full">
+                                                            <div className="h-full bg-green-500 rounded-full" style={{ width: `${uploadProgress[file.name]?.progress || 0}%` }}></div>
+                                                        </div>
+                                                    }
                                                 </div>
                                             ))}
                                         </div>
@@ -647,7 +609,7 @@ export default function Page() {
                                                 >
                                                     <path d="M6 6L18 18M18 6L6 18" stroke="red" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                                 </svg>
-                                                Cancel
+                                                Close
                                             </button>
                                         </div>
                                     </div>

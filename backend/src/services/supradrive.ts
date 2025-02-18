@@ -23,6 +23,51 @@ async function createThumbnail(fileBuffer) {
     }
 }
 
+async function fnFilenameDisk(filename, sha) {
+    // Replace specific characters
+    let name = filename
+        .replace(/ø/g, 'o')
+        .replace(/Ø/g, 'O')
+        .replace(/æ/g, 'ae')
+        .replace(/Æ/g, 'Ae')
+        .replace(/å/g, 'aa')
+        .replace(/Å/g, 'Aa');
+
+    // Remove illegal characters (except space), then replace spaces with underscores
+    name = name.replace(/[^a-zA-Z0-9-_ .]/g, '').replace(/\s+/g, '_');
+
+    // Extract name and extension
+    let parts = name.split('.');
+    let extension = parts.length > 1 ? parts.pop() : ''; // Get the extension if it exists
+    let baseName = parts.join('.'); // Rejoin in case there were multiple dots
+
+    // Append extra text
+    let newFilename = `${baseName}_${sha}`;
+
+    // Reattach extension if it exists
+    if (extension) {
+        newFilename += `.${extension}`;
+    }
+
+    return newFilename;
+}
+
+async function fnFolderNameDB(foldername) {
+    // Replace specific characters
+    let name = foldername
+        .replace(/ø/g, 'o')
+        .replace(/Ø/g, 'O')
+        .replace(/æ/g, 'ae')
+        .replace(/Æ/g, 'Ae')
+        .replace(/å/g, 'aa')
+        .replace(/Å/g, 'Aa');
+
+    // Remove illegal characters (except space), then replace spaces with underscores
+    name = name.replace(/[^a-zA-Z0-9-_ .]/g, '').replace(/\s+/g, '_');
+
+    return name;
+}
+
 const SUPRADRIVE_PATH = process.env.SUPRADRIVE_PATH || '';
 
 export abstract class sqlSupraDrive {
@@ -46,15 +91,26 @@ export abstract class sqlSupraDrive {
     }
 
     public static async SupraDriveNewImagesFolder(userid: number, username: string, body: any): Promise<any> {
-        let foldersysid = body.foldersysid;
         let foldersubid = body.foldersubid || null;
         let foldername = body.foldername;
-
+        let foldernamedisk = await fnFolderNameDB(foldername);
         try {
-            const query = `INSERT INTO foldersimages (foldersubid, folderuserid, foldername) VALUES (?, ?, ?)`;
-            const values = [foldersubid, userid, foldername];
-            await supradrive.query(query, values);
-            return APIResponse("success", 200, "Folder " + foldername + " created successfully", "", null);
+            // Insert folder and get the new folderid
+            const query = `INSERT INTO foldersimages (foldersubid, folderuserid, foldername, foldernamedisk) VALUES (?, ?, ?, ?)`;
+            const values = [foldersubid, userid, foldername, foldernamedisk];
+            const [result] = await supradrive.query(query, values);
+
+            // Get the newly inserted folderid
+            const folderid = result.insertId;
+
+            // Create the new foldername with the folderid appended
+            const updatedFolderName = `${foldernamedisk}_${folderid}`;
+
+            // Update the foldername in the database
+            const updateQuery = `UPDATE foldersimages SET foldernamedisk = ? WHERE folderid = ?`;
+            await supradrive.query(updateQuery, [updatedFolderName, folderid]);
+
+            return APIResponse("success", 200, `Folder ${foldername} created successfully`, "", folderid);
         } catch (e: any) {
             console.log(e);
             return APIResponse("error", 500, "Folder creation failed", e.message, null);
@@ -224,14 +280,37 @@ export abstract class sqlSupraDrive {
 
     }
 
-    public static async SupraDriveNewImagesUpload(userid: number, username: string, body: any, file: any): Promise<SupraDrive[]> {
+    public static async SupraDriveNewImagesUpload(userid: number, username: string, body: any, file: any): Promise<any> {
         const timestamp = moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
         const ts = Math.floor(Date.now() / 1000);
         const folderid = body.folderid;
-        const filename = file.originalname;
+        const filename = Buffer.from(file.originalname, 'latin1').toString('utf-8');
         let filecontent = file.buffer;
         let filesha1 = crypto.createHash('sha1').update(file.buffer).digest('hex');
         let created = body.created || null;
+        const filenamedisk = await fnFilenameDisk(filename, filesha1);
+
+        try {
+            const query = `SELECT imageid FROM filesimages WHERE imagesha1 = ?`;
+            const values = [filesha1];
+            var [sqlimageid] = await supradrive.query(query, values);
+            if (sqlimageid.length > 0) {
+                console.log(filename + " is duplicate.");
+                return APIResponse("error", 400, filename + " is duplicate.", "", sqlimageid[0].imageid);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+
+        let foldernamedisk = "";
+        try {
+            const foldername = `SELECT foldernamedisk FROM foldersimages WHERE folderid = ?`;
+            const values = [folderid];
+            const [result] = await supradrive.query(foldername, values);
+            foldernamedisk = result[0].foldernamedisk;
+        } catch (e) {
+            console.log(e);
+        }
 
         const userDir = path.join(SUPRADRIVE_PATH, 'userdata', username);
         if (!fs.existsSync(userDir)) {
@@ -241,23 +320,18 @@ export abstract class sqlSupraDrive {
         if (!fs.existsSync(imagesDir)) {
             fs.mkdirSync(imagesDir, { recursive: true });
         }
-        const folderDir = path.join(imagesDir, `${folderid}`);
+        const folderDir = path.join(imagesDir, `${foldernamedisk}`);
         if (!fs.existsSync(folderDir)) {
             fs.mkdirSync(folderDir, { recursive: true });
         }
-        const filePath = path.join(folderDir, `${filename}.jpg`);
-        const metaPath = path.join(folderDir, `${filename}.json`);
-
-        // check if file already is saved
-        // if (fs.existsSync(filePath)) {
-        //     return [];
-        // }
+        const filePath = path.join(folderDir, `${filenamedisk}`);
+        const metaPath = path.join(folderDir, `${filenamedisk}.json`);
 
         // save new file
         fs.writeFileSync(filePath, filecontent);
 
         const thumbnailBuffer = await createThumbnail(filecontent);
-        const thumbnailPath = path.join(folderDir, `${filename}.thumb`);
+        const thumbnailPath = path.join(folderDir, `${filenamedisk}.thumb`);
         fs.writeFileSync(thumbnailPath, thumbnailBuffer);
 
 
@@ -265,6 +339,8 @@ export abstract class sqlSupraDrive {
         let imageMetadata: any = {};
         try {
             imageMetadata = await sharp(filecontent).metadata();
+            delete imageMetadata.icc;
+            delete imageMetadata.exif;
         } catch (err) {
             console.error("Error extracting metadata with sharp:", err);
         }
@@ -312,15 +388,16 @@ export abstract class sqlSupraDrive {
 
 
         try {
-            const query = `INSERT INTO filesimages (imagefolderid, imageuserid, imagesha1, imagefilename, imageformat, imagedatetime, imagefiledatetime, imageheight, imagewidth, imagemetamake, imagemetamodel, imagemetasoftware, imagemetadatetime, imagemetafnumber, imagemetadatetimeoriginal, imagemetajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-            const values = [folderid, userid, filesha1, filename, imageMetadata.format, imagedatetime, created, imageMetadata.height, imageMetadata.width, metamake, metamodel, imagemetasoftware, metacreatedate, metafnumber, metacreatedate, JSON.stringify(exifData, null, 4)];
+            const query = `INSERT INTO filesimages (imagefolderid, imageuserid, imagesha1, imagefilename, imagefilenamedisk, imageformat, imagedatetime, imagefiledatetime, imageheight, imagewidth, imagemetamake, imagemetamodel, imagemetasoftware, imagemetadatetime, imagemetafnumber, imagemetadatetimeoriginal, imagemetajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const values = [folderid, userid, filesha1, filename, filenamedisk, imageMetadata.format, imagedatetime, created, imageMetadata.height, imageMetadata.width, metamake, metamodel, imagemetasoftware, metacreatedate, metafnumber, metacreatedate, JSON.stringify(exifData, null, 4)];
             await supradrive.query(query, values);
 
         } catch (e) {
             console.log(e);
         }
 
-        return [];
+
+        return APIResponse("success", 200, "Image " + filename + " uploaded successfully", "", null);
 
     }
 
@@ -366,18 +443,17 @@ export abstract class sqlSupraDrive {
     public static async SupraDriveGetImagesFolder(userid: number, username: string, foldersubid: number): Promise<SupraDrive[]> {
         if (foldersubid === 0) {
             try {
-                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername FROM \`foldersimages\` WHERE foldersubid IS NULL AND folderuserid=? AND folderwiped='0'`, [userid]);
+                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername,foldernamedisk FROM \`foldersimages\` WHERE foldersubid IS NULL AND folderuserid=? AND folderwiped='0' ORDER BY foldername ASC`, [userid]);
             } catch (e) {
                 console.log(e);
             }
 
             try {
-                var [files] = await supradrive.query(`SELECT * FROM filesimages i WHERE i.imagefolderid = ? AND i.imageuserid = ? AND i.imagewiped = '0'`, [foldersubid, userid]);
-
+                var [files] = await supradrive.query(`SELECT i.*, f.foldernamedisk FROM filesimages i LEFT JOIN foldersimages f ON i.imagefolderid = f.folderid WHERE i.imagefolderid = ? AND i.imageuserid = ? AND i.imagewiped = '0'`, [foldersubid, userid]);
                 files = files.map(file => {
 
                     // const imagepath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'images', file.imagefolderid, `${file.imagefilename}.jpg`);
-                    const thumbnailpath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'images', file.imagefolderid.toString(), `${file.imagefilename}.thumb`);
+                    const thumbnailpath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'images', files[0].foldernamedisk, `${file.imagefilenamedisk}.thumb`);
 
                     let base64Thumbnail = "";
                     try {
@@ -400,19 +476,19 @@ export abstract class sqlSupraDrive {
         }
         else {
             try {
-                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername FROM \`foldersimages\` WHERE foldersubid=? AND folderuserid=? AND folderwiped='0'`, [foldersubid, userid]);
+                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername,foldernamedisk FROM \`foldersimages\` WHERE foldersubid=? AND folderuserid=? AND folderwiped='0' ORDER BY foldername ASC`, [foldersubid, userid]);
             } catch (e) {
                 console.log(e);
             }
 
             try {
-                var [files] = await supradrive.query(`SELECT * FROM filesimages i WHERE i.imagefolderid = ? AND i.imageuserid = ? AND i.imagewiped = '0'`, [foldersubid, userid]);
+                var [files] = await supradrive.query(`SELECT i.*, f.foldernamedisk FROM filesimages i LEFT JOIN foldersimages f ON i.imagefolderid = f.folderid WHERE i.imagefolderid = ? AND i.imageuserid = ? AND i.imagewiped = '0'`, [foldersubid, userid]);
 
 
                 files = files.map(file => {
 
                     // const imagepath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'images', file.imagefolderid, `${file.imagefilename}.jpg`);
-                    const thumbnailpath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'images', file.imagefolderid.toString(), `${file.imagefilename}.thumb`);
+                    const thumbnailpath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'images', files[0].foldernamedisk, `${file.imagefilenamedisk}.thumb`);
 
                     let base64Thumbnail = "";
                     try {
@@ -521,14 +597,14 @@ export abstract class sqlSupraDrive {
     public static async SupraDriveGetImage(userid: number, username: string, fileid: number): Promise<SupraDrive[]> {
         var fileContent = "";
         try {
-            var [fileinfo] = await supradrive.query(`SELECT * FROM \`filesimages\` WHERE imageid=? AND imageuserid=? AND imagewiped='0'`, [fileid, userid]);
+            var [fileinfo] = await supradrive.query(`SELECT i.*, f.foldernamedisk FROM \`filesimages\` i LEFT JOIN \`foldersimages\` f ON i.imagefolderid = f.folderid WHERE i.imageid=? AND i.imageuserid=? AND i.imagewiped='0'`, [fileid, userid]);
         } catch (e) {
             console.log(e);
         }
 
         if (fileinfo.length > 0) {
 
-            const imagepath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'images', fileinfo[0].imagefolderid.toString(), `${fileinfo[0].imagefilename}.jpg`);
+            const imagepath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'images', fileinfo[0].foldernamedisk, `${fileinfo[0].imagefilenamedisk}`);
 
             let base64Image = "";
             try {

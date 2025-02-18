@@ -119,8 +119,14 @@ export async function SupraDriveNewImagesUpload(req: MulterRequest, res: Respons
     const username = supradriveuser.username;
     if (req.body) {
         console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl + " \x1b[30m(" + ip + ")\x1b[0m");
-        let posts: SupraDrive[] = await sqlSupraDrive.SupraDriveNewImagesUpload(userid, username, req.body, req.file);
-        return res.status(OK).json(posts);
+        let posts: any = await sqlSupraDrive.SupraDriveNewImagesUpload(userid, username, req.body, req.file);
+        let json = JSON.parse(posts);
+        if (json.status === "success") {
+            return res.status(OK).json(posts);
+        }
+        else {
+            return res.status(BAD_REQUEST).json(posts);
+        }
     }
     else {
         console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl + " \x1b[30m(" + ip + ")\x1b[0m");
