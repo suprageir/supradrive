@@ -4,7 +4,6 @@ import axios from 'axios';
 import Link from "next/link";
 import LoadingScreen from "@/app/components/LoadingScreen";
 import { DropEvent, FileRejection, useDropzone } from 'react-dropzone';
-import ProgressBar from "@/app/components/ProgressBar";
 import Image from "next/image";
 import moment from "moment";
 import Notification from "@/app/components/Notification";
@@ -43,10 +42,6 @@ export default function Page() {
     const [uploading, setUploading] = useState<boolean>(false);
     const [thumbSize, setThumbSize] = useState(100);
     const [image, setImage] = useState<any>(null);
-    const [uploadedImages, setUploadedImages] = useState(0);
-    const [totalImages, setTotalImages] = useState(0);
-    const [failedImages, setFailedImages] = useState(0);
-
 
     const handleChangeThumbSize = (size: number | null) => {
         if (size) {
@@ -145,7 +140,7 @@ export default function Page() {
             }
             handleUploadNextFile(index + 1, fileQueue);
         } catch (error: any) {
-            let errorMessage = JSON.parse(error.response.data);
+            const errorMessage = JSON.parse(error.response.data);
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
                 [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
