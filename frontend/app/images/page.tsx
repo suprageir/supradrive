@@ -140,7 +140,7 @@ export default function Page() {
             }
             handleUploadNextFile(index + 1, fileQueue);
         } catch (error: any) {
-            const errorMessage = JSON.parse(error.response.data);
+            const errorMessage = JSON.parse(JSON.stringify(error.response.data));
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
                 [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
