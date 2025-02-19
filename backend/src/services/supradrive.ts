@@ -300,7 +300,7 @@ export abstract class sqlSupraDrive {
         } catch (e) {
             console.log(e);
         }
-        console.log(folderid);
+
         let foldernamedisk = "";
         try {
             const foldername = `SELECT foldernamedisk FROM foldersimages WHERE folderid = ?`;
@@ -310,17 +310,20 @@ export abstract class sqlSupraDrive {
         } catch (e) {
             console.log(e);
         }
-        console.log(foldernamedisk);
+
 
         const userDir = path.join(SUPRADRIVE_PATH, 'userdata', username);
+        console.log(userDir);
         if (!fs.existsSync(userDir)) {
             fs.mkdirSync(userDir, { recursive: true });
         }
         const imagesDir = path.join(userDir, 'images');
+        console.log(imagesDir);
         if (!fs.existsSync(imagesDir)) {
             fs.mkdirSync(imagesDir, { recursive: true });
         }
         const folderDir = path.join(imagesDir, `${foldernamedisk}`);
+        console.log(folderDir);
         if (!fs.existsSync(folderDir)) {
             fs.mkdirSync(folderDir, { recursive: true });
         }
