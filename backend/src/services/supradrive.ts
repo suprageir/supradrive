@@ -313,23 +313,19 @@ export abstract class sqlSupraDrive {
 
 
         const userDir = path.join(SUPRADRIVE_PATH, 'userdata', username);
-        console.log(userDir);
         if (!fs.existsSync(userDir)) {
             fs.mkdirSync(userDir, { recursive: true });
         }
         const imagesDir = path.join(userDir, 'images');
-        console.log(imagesDir);
         if (!fs.existsSync(imagesDir)) {
             fs.mkdirSync(imagesDir, { recursive: true });
         }
         const folderDir = path.join(imagesDir, `${foldernamedisk}`);
-        console.log(folderDir);
         if (!fs.existsSync(folderDir)) {
             fs.mkdirSync(folderDir, { recursive: true });
         }
         const filePath = path.join(folderDir, `${filenamedisk}`);
         const metaPath = path.join(folderDir, `${filenamedisk}.json`);
-        console.log(filePath);
         // save new file
         fs.writeFileSync(filePath, filecontent);
 
