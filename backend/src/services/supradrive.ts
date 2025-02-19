@@ -295,7 +295,6 @@ export abstract class sqlSupraDrive {
             const values = [filesha1];
             var [sqlimageid] = await supradrive.query(query, values);
             if (sqlimageid.length > 0) {
-                console.log(filename + " is duplicate.");
                 return APIResponse("error", 400, filename + " is duplicate.", "", sqlimageid[0].imageid);
             }
         } catch (e) {

@@ -126,6 +126,7 @@ export default function Page() {
                     }
                 },
             });
+            console.log(response.data);
             if (response.status === 200 && response.data.status === "success") {
                 setUploadProgress(prevProgress => ({
                     ...prevProgress,
