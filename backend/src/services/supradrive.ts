@@ -290,6 +290,9 @@ export abstract class sqlSupraDrive {
         let created = body.created || null;
         const filenamedisk = await fnFilenameDisk(filename, filesha1);
 
+        console.log(filename);
+        console.log(filesha1);
+        console.log(filenamedisk);
         try {
             const query = `SELECT imageid FROM filesimages WHERE imagesha1 = ?`;
             const values = [filesha1];

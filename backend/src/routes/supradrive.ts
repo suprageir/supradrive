@@ -112,9 +112,11 @@ export async function SupraDriveNewImagesUpload(req: MulterRequest, res: Respons
         let posts: any = await sqlSupraDrive.SupraDriveNewImagesUpload(userid, username, req.body, req.file);
         let json = JSON.parse(posts);
         if (json.status === "success") {
+            console.log(posts);
             return res.status(OK).json(posts);
         }
         else {
+            console.log(posts);
             return res.status(BAD_REQUEST).json(posts);
         }
     }
