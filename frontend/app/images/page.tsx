@@ -318,6 +318,19 @@ export default function Page() {
         };
     }, [setImage]);
 
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsModalUploadImagesOpen(false);
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [setIsModalUploadImagesOpen]);
+
+
     if (image) {
         return (
             <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90"
