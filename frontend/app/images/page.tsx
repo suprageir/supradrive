@@ -126,7 +126,6 @@ export default function Page() {
                     }
                 },
             });
-            console.log(response.data);
             if (response.status === 200 && response.data.status === "success") {
                 setUploadProgress(prevProgress => ({
                     ...prevProgress,
@@ -326,7 +325,7 @@ export default function Page() {
                     width={1000}
                     height={1000}
                     layout="responsive"
-                    style={{ maxWidth: image.imagewidth || 1024, height: 'auto' }}
+                    style={{ maxWidth: image.imagewidth || 1024, maxHeight: image.imageheight || 1024 }}
                 />
             </div>
         );
