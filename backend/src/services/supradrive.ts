@@ -290,9 +290,6 @@ export abstract class sqlSupraDrive {
         let created = body.created || null;
         const filenamedisk = await fnFilenameDisk(filename, filesha1);
 
-        console.log(filename);
-        console.log(filesha1);
-        console.log(filenamedisk);
         try {
             const query = `SELECT imageid FROM filesimages WHERE imagesha1 = ?`;
             const values = [filesha1];
@@ -303,7 +300,7 @@ export abstract class sqlSupraDrive {
         } catch (e) {
             console.log(e);
         }
-
+        console.log(folderid);
         let foldernamedisk = "";
         try {
             const foldername = `SELECT foldernamedisk FROM foldersimages WHERE folderid = ?`;
@@ -313,6 +310,7 @@ export abstract class sqlSupraDrive {
         } catch (e) {
             console.log(e);
         }
+        console.log(foldernamedisk);
 
         const userDir = path.join(SUPRADRIVE_PATH, 'userdata', username);
         if (!fs.existsSync(userDir)) {
@@ -328,7 +326,7 @@ export abstract class sqlSupraDrive {
         }
         const filePath = path.join(folderDir, `${filenamedisk}`);
         const metaPath = path.join(folderDir, `${filenamedisk}.json`);
-
+        console.log(filePath);
         // save new file
         fs.writeFileSync(filePath, filecontent);
 
