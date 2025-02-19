@@ -244,7 +244,6 @@ export default function Page() {
         const folderidext = folderiduse ?? folderid;
         axios.get(APIURL + "/supradrive/images/folder/" + folderidext, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
-                console.log(response.data);
                 setImagesFolders(response.data[0]?.folders);
                 setImagesFiles(response.data[0]?.files);
             })
@@ -258,7 +257,6 @@ export default function Page() {
         axios.get(APIURL + "/supradrive/image/" + imageid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
                 setImage(response.data);
-                console.log(response.data);
             })
             .catch((error) => {
                 console.log(error);
@@ -329,6 +327,18 @@ export default function Page() {
             document.removeEventListener("keydown", handleKeyDown);
         };
     }, [setIsModalUploadImagesOpen]);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsModalNewFolderOpen(false);
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [setIsModalNewFolderOpen]);
 
 
     if (image) {
