@@ -306,32 +306,35 @@ export default function Page() {
     useEffect(() => {
     }, [thumbSize]);
 
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setImage(null);
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [setImage]);
 
     if (image) {
         return (
             <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90"
                 onClick={() => setImage(null)}
             >
-                <button
-                    className="absolute top-4 right-4 text-red-500 text-5xl font-bold"
-                    onClick={() => setImage(null)}
-                >
-                    &times;
-                </button>
-
                 <Image
                     src={image.base64Image}
                     alt={image.imagefilename || "n/a"}
-                    layout="intrinsic" // Ensures aspect ratio is maintained
-                    width={1000} // Set your desired width
-                    height={1000} // Set your desired height
+                    layout="intrinsic"
+                    width={image.imagewidth || 1024}
+                    height={image.imageheight || 1024}
                     style={{
-                        maxWidth: "100vw",  // Ensures it does not exceed viewport width
-                        maxHeight: "100vh", // Ensures it does not exceed viewport height
-                        objectFit: "contain" // Prevents stretching
+                        maxWidth: "100vw",
+                        maxHeight: "100vh",
+                        objectFit: "contain"
                     }}
                 />
-
             </div>
         );
     }
