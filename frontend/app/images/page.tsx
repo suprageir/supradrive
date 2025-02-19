@@ -322,11 +322,16 @@ export default function Page() {
                 <Image
                     src={image.base64Image}
                     alt={image.imagefilename || "n/a"}
-                    width={1000}
-                    height={1000}
-                    layout="responsive"
-                    style={{ maxWidth: image.imagewidth || 1024, maxHeight: image.imageheight || 1024 }}
+                    layout="intrinsic" // Ensures aspect ratio is maintained
+                    width={1000} // Set your desired width
+                    height={1000} // Set your desired height
+                    style={{
+                        maxWidth: "100vw",  // Ensures it does not exceed viewport width
+                        maxHeight: "100vh", // Ensures it does not exceed viewport height
+                        objectFit: "contain" // Prevents stretching
+                    }}
                 />
+
             </div>
         );
     }
