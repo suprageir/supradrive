@@ -108,7 +108,9 @@ export abstract class sqlSupraDrive {
             const query = `SELECT tiid FROM tagsimages WHERE tiname = ? AND tiuserid = ?`;
             const values = [body.tiname, userid];
             var [result] = await supradrive.query(query, values);
-            tiid = result[0].tiid;
+            if (result.length === 0) {
+                tiid = result[0].tiid;
+            }
         } catch (e: any) {
             console.log(e);
             return [];
