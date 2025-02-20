@@ -302,6 +302,7 @@ export default function Page() {
     }
     const handleCloseTags = () => {
         setTags(false);
+        setImageTag(null);
     }
 
     const openModalNewFolder = () => {
@@ -443,7 +444,7 @@ export default function Page() {
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
-                setTags(false);
+                handleCloseTags();
             }
         };
         document.addEventListener("keydown", handleKeyDown);
@@ -510,9 +511,9 @@ export default function Page() {
 
                 <div className="w-full max-w-lg p-3 rounded-lg">
                     <div className="flex flex-wrap gap-2">
-                        {hashtags.map((tag: string) => (
-                            <span className="bg-blue-500 text-white px-2 py-1 rounded-full cursor-pointer">
-                                {tag} ✕
+                        {imageTag.map((tag: any, index: number) => (
+                            <span className="bg-blue-500 text-white px-2 py-1 rounded-full cursor-pointer" key={"newtag" + index}>
+                                {tag.tiname} ✕
                             </span>
                         ))}
                     </div>
