@@ -19,13 +19,6 @@ interface UploadProgressType {
     };
 }
 
-
-const suggestions: string[] = ['#nextjs', '#react', '#javascript', '#webdev', '#tailwind', '#css', '#frontend', '#backend'];
-
-type HashtagInputProps = {};
-
-
-
 export default function Page() {
     const [loading, setLoading] = useState(true);
     const [token, setToken] = useState("");
@@ -49,6 +42,7 @@ export default function Page() {
     const [thumbSize, setThumbSize] = useState(100);
     const [image, setImage] = useState<any>(null);
     const [tags, setTags] = useState<any>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [imageTag, setImageTag] = useState<any>(0);
     const [imageTagIndex, setImageTagIndex] = useState<any>(0);
     const [myHashtags, setMyHashtags] = useState<any[]>([]);
@@ -298,7 +292,7 @@ export default function Page() {
 
     const handleOpenTags = (imageid: any) => {
         setTags(true);
-        setImageTag(imagesFiles[imageid].imageid);
+        setImageTag(imagesFiles[imageid].imagehashtags);
         setImageTagIndex(imageid);
 
         // axios.get(APIURL + "/supradrive/image/tags/" + imageid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
