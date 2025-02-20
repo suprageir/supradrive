@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import axios from 'axios';
 import Link from "next/link";
 import LoadingScreen from "@/app/components/LoadingScreen";
@@ -18,6 +18,12 @@ interface UploadProgressType {
         error?: string;
     };
 }
+
+
+const suggestions: string[] = ['#nextjs', '#react', '#javascript', '#webdev', '#tailwind', '#css', '#frontend', '#backend'];
+
+type HashtagInputProps = {};
+
 
 
 export default function Page() {
@@ -42,6 +48,73 @@ export default function Page() {
     const [uploading, setUploading] = useState<boolean>(false);
     const [thumbSize, setThumbSize] = useState(100);
     const [image, setImage] = useState<any>(null);
+    const [tags, setTags] = useState<any>(null);
+    const [imageTag, setImageTag] = useState<any>(0);
+    const [imageTagIndex, setImageTagIndex] = useState<any>(0);
+    const [myHashtags, setMyHashtags] = useState<any[]>([]);
+
+    const [hashtags, setHashtags] = useState<string[]>([]);
+    const [inputValue, setInputValue] = useState<string>('');
+    const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+
+    const handleChangeHashtags = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setInputValue(value);
+        setFilteredSuggestions(
+            myHashtags
+                .filter(tag => tag.tiname.toLowerCase().startsWith(value.toLowerCase()) && !hashtags.includes(tag.tiname))
+                .map(tag => tag.tiname)
+        );
+    };
+
+    const handleKeyDownHashtags = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Tab' && filteredSuggestions.length > 0) {
+            e.preventDefault();
+            addTag(filteredSuggestions[0]);
+        } else if (e.key === 'Enter' && inputValue.trim()) {
+            e.preventDefault();
+            addTag(inputValue.trim());
+        } else if (e.key === 'Backspace' && inputValue === '' && hashtags.length > 0) {
+            removeTag(hashtags[hashtags.length - 1]);
+        }
+    };
+
+    const addTag = async (tag: string) => {
+        if (!hashtags.includes(tag)) {
+            const json = {
+                tiname: tag,
+            }
+            const tagjson = JSON.stringify(json);
+            await axios.post(APIURL + "/supradrive/images/tag/" + imagesFiles[imageTagIndex].imageid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+                .then((response) => {
+                    setMyHashtags(response.data);
+                    setHashtags([...hashtags, tag]);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
+        setInputValue('');
+        setFilteredSuggestions([]);
+    };
+
+    const removeTag = async (tag: string) => {
+        const tagid = myHashtags.find((t: any) => t.tiname === tag)?.tiid;
+        await axios.delete(APIURL + "/supradrive/images/tag/" + imagesFiles[imageTagIndex].imageid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+            .then((response) => {
+                setMyHashtags(response.data);
+                setHashtags(hashtags.filter((t: string) => t !== tag));
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    };
+
+
+
+
 
     const handleChangeThumbSize = (size: number | null) => {
         if (size) {
@@ -185,7 +258,9 @@ export default function Page() {
         if (target.closest(".FileMenu")) {
             setContext("box");
             setMenuItems([
+                { label: "Tags", action: () => handleOpenTags(target.id) },
                 { label: "View", action: () => alert("Open") },
+                { label: "Download", action: () => alert("Download") },
                 { label: "Delete", action: () => alert("Deleted") },
             ]);
         } else if (target.closest(".text-item")) {
@@ -221,6 +296,20 @@ export default function Page() {
         getFilesAndFolders(newfolderid);
     }
 
+    const handleOpenTags = (imageid: any) => {
+        setTags(true);
+        setImageTag(imagesFiles[imageid].imageid);
+        setImageTagIndex(imageid);
+
+        // axios.get(APIURL + "/supradrive/image/tags/" + imageid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+        //     .then(async (response) => {
+        //         // setTags(response.data);
+        //     })
+    }
+    const handleCloseTags = () => {
+        setTags(false);
+    }
+
     const openModalNewFolder = () => {
         setIsModalNewFolderOpen(true);
     }
@@ -244,8 +333,19 @@ export default function Page() {
         const folderidext = folderiduse ?? folderid;
         axios.get(APIURL + "/supradrive/images/folder/" + folderidext, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
+                console.log(response.data);
                 setImagesFolders(response.data[0]?.folders);
                 setImagesFiles(response.data[0]?.files);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    };
+
+    const getImageTags = async () => {
+        axios.get(APIURL + "/supradrive/images/tags", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+            .then(async (response) => {
+                setMyHashtags(response.data);
             })
             .catch((error) => {
                 console.log(error);
@@ -261,6 +361,11 @@ export default function Page() {
             .catch((error) => {
                 console.log(error);
             });
+    }
+
+    const setNewFolderName = (foldername: string) => {
+        foldername = foldername.replace(/[^a-zA-ZæøåÆØÅ0-9-_ .]/g, '');
+        setFolderName(foldername);
     }
 
     const createNewFolder = async () => {
@@ -298,6 +403,7 @@ export default function Page() {
         setToken(sessionStorage.getItem("supradrivetoken") || "");
         setLoading(false);
         getFilesAndFolders(folderid);
+        getImageTags();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -340,6 +446,35 @@ export default function Page() {
         };
     }, [setIsModalNewFolderOpen]);
 
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setTags(false);
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [setTags]);
+
+    useEffect(() => {
+        const handleKeyPress = (event: KeyboardEvent) => {
+            if (event.key === "+") {
+                setIsModalNewFolderOpen(true);
+            }
+        };
+        window.addEventListener("keydown", handleKeyPress);
+    }, []);
+
+    useEffect(() => {
+        const handleKeyPress = (event: KeyboardEvent) => {
+            if (event.key === "Insert") {
+                setIsModalUploadImagesOpen(true);
+            }
+        };
+        window.addEventListener("keydown", handleKeyPress);
+    }, []);
 
     if (image) {
         return (
@@ -358,6 +493,60 @@ export default function Page() {
                         objectFit: "contain"
                     }}
                 />
+            </div>
+        );
+    }
+
+    if (tags) {
+        return (
+            <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90"
+            >
+                <Image
+                    src={imagesFiles[imageTagIndex].base64Thumbnail}
+                    alt={"n/a"}
+                    layout="intrinsic"
+                    width={320}
+                    height={320}
+                    style={{
+                        maxWidth: "100vw",
+                        maxHeight: "100vh",
+                        objectFit: "contain"
+                    }}
+                />
+
+                <div className="w-full max-w-lg p-3 rounded-lg">
+                    <div className="flex flex-wrap gap-2">
+                        {hashtags.map((tag: string) => (
+                            <span className="bg-blue-500 text-white px-2 py-1 rounded-full cursor-pointer">
+                                {tag} ✕
+                            </span>
+                        ))}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            placeholder="Add hashtags..."
+                            value={inputValue}
+                            onChange={handleChangeHashtags}
+                            onKeyDown={handleKeyDownHashtags}
+                            className="w-full mt-2 p-2 border border-green-900 rounded-md focus:outline-none"
+                        />
+                        {filteredSuggestions.length > 0 && (
+                            <ul className="mt-2 rounded-lg shadow-md">
+                                {filteredSuggestions.map((suggestion, index) => (
+                                    <li
+                                        key={"tag" + suggestion}
+                                        className={`p-2 cursor-pointer ${index === 0 ? 'text-green-500' : 'text-green-700'}`}
+                                        onClick={() => addTag(suggestion)}
+                                    >
+                                        {suggestion}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
             </div>
         );
     }
@@ -393,7 +582,7 @@ export default function Page() {
                 <div className="grid grid-cols-12 gap-4">
                     <div className="col-span-12 md:col-span-8 pl-2">
                         <div className="text-xl text-green-700 flex items-center gap-2">
-                            {foldername} ({imagesFolders.length} folders, {imagesFiles.length} images)
+                            {foldername} ({imagesFolders?.length} folders, {imagesFiles?.length} images)
                         </div>
                         <div className="flex gap-4 pt-4">
                             {(folderid !== 0) && (
@@ -542,48 +731,66 @@ export default function Page() {
                                             );
                                         }
                                     })}
-                                    {imagesFiles?.map((file) => {
+                                    {imagesFiles?.map((file, index) => {
                                         if (file.imagefilename) {
                                             return (
-                                                <div key={file.imageid} onClick={() => (file.imageid)}>
-                                                    <div className="FileMenu flex flex-col items-center group" onContextMenu={handleContextMenu}>
-                                                        <div>
+                                                <div key={index} onClick={() => file.imageid}>
+                                                    <div className="FileMenu flex flex-col items-center relative" onContextMenu={handleContextMenu}>
+                                                        <div className="relative">
                                                             {file.base64Thumbnail ? (
                                                                 <Image
+                                                                    id={index.toString()}
                                                                     src={file.base64Thumbnail}
                                                                     alt={file.imagefilename}
                                                                     width={thumbSize}
                                                                     height={thumbSize}
                                                                     onClick={() => handleViewImage(file.imageid)}
+                                                                    className="relative"
                                                                 />
                                                             ) : (
                                                                 <p>[N/A]</p>
                                                             )}
+
+                                                            {file.imagehashtags?.length > 0 && (
+                                                                <div className="relative">
+                                                                    <div className="absolute bottom-1 right-1 bg-gray-700/40 text-white text-xs px-2 py-1 rounded group">
+                                                                        <a href="#" className="text-white" onClick={() => handleOpenTags(file.imageid)}>
+                                                                            #
+                                                                        </a>
+                                                                        <div className="absolute bottom-8 right-1 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-opacity transition-transform duration-200 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                                                                            {file.imagehashtags.map((hashtag: any) => `#${hashtag.tiname}`).join(' ')}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                    {menuPosition && (
-                                                        <ul
-                                                            className="absolute bg-black text-green-700 shadow-lg border rounded-lg w-40 p-2 space-y-2"
-                                                            style={{ top: menuPosition.y, left: menuPosition.x }}
-                                                        >
-                                                            {menuItems.map((item, index) => (
-                                                                <li
-                                                                    key={index}
-                                                                    className="p-2 hover:text-green-500 cursor-pointer"
-                                                                    onClick={() => {
-                                                                        item.action();
-                                                                        setMenuPosition(null);
-                                                                    }}
-                                                                >
-                                                                    {item.label}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    )}
+                                                    {
+                                                        menuPosition && (
+                                                            <ul
+                                                                className="absolute bg-black text-green-700 shadow-lg border rounded-lg w-40 p-2 space-y-2"
+                                                                style={{ top: menuPosition.y, left: menuPosition.x }}
+                                                            >
+                                                                {menuItems.map((item, index) => (
+                                                                    <li
+                                                                        key={index}
+                                                                        className="p-2 hover:text-green-500 cursor-pointer"
+                                                                        onClick={() => {
+                                                                            item.action();
+                                                                            setMenuPosition(null);
+                                                                        }}
+                                                                    >
+                                                                        {item.label}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        )
+                                                    }
                                                 </div>
                                             );
                                         }
                                     })}
+
                                 </div>
 
                                 {isModalUploadImagesOpen && (
@@ -605,7 +812,7 @@ export default function Page() {
                                         <div className="mt-4">
                                             {files.map((file) => (
                                                 <div key={file.name} className="mb-2 mr-5 ml-5">
-                                                    <div className={`text-green-700 text-sm ${uploadProgress[file.name]?.error ? 'text-red-700' : 'text-green-700'}`}>
+                                                    <div className={`text-green-700 text-sm ${uploadProgress[file.name]?.error ? 'text-red-700' : 'text-green-700'}`} style={{ minWidth: '480px' }}>
                                                         {file.name} ({uploadProgress[file.name]?.progress || 0}%)
                                                         {uploadProgress[file.name]?.speed > 0 &&
                                                             ` - ${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`
@@ -652,7 +859,7 @@ export default function Page() {
                                                     type="text"
                                                     value={folderName}
                                                     onKeyDown={(e) => e.key === "Enter" && createNewFolder()}
-                                                    onChange={(e) => setFolderName(e.target.value)}
+                                                    onChange={(e) => setNewFolderName(e.target.value)}
                                                     className="w-full px-4 py-2 text-lg border border-green-900 focus:ring-green-700 focus:outline-none"
                                                     placeholder="Enter folder name"
                                                     autoFocus

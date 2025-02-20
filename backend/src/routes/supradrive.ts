@@ -129,7 +129,7 @@ export async function SupraDriveNewImagesUpload(req: MulterRequest, res: Respons
 
 export async function SupraDriveGetFolders(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
-        const ip = req.headers['x-forwarded-for']
+    const ip = req.headers['x-forwarded-for']
         ? (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for'].split(',')[0])
         : req.socket.remoteAddress;
     const clientIp = ip ? ip.trim() : null;
@@ -211,6 +211,35 @@ export async function SupraDriveGetImage(req: Request, res: Response) {
     }
 }
 
+export async function SupraDriveGetImageTags(req: Request, res: Response) {
+    const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
+    const supradriveuser = (req as any).user;
+    const userid = supradriveuser.userid;
+    const username = supradriveuser.username;
+    console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
+    let posts: SupraDrive[] = await sqlSupraDrive.SupraDriveGetImageTags(userid, username);
+    return res.status(OK).json(posts);
+}
+
+export async function SupraDriveAddImageTag(req: Request, res: Response) {
+    const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
+    const supradriveuser = (req as any).user;
+    const userid = supradriveuser.userid;
+    const username = supradriveuser.username;
+    console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
+    let posts: SupraDrive[] = await sqlSupraDrive.SupraDriveAddImageTag(userid, username, parseInt(req.params.imageid), req.body);
+    return res.status(OK).json(posts);
+}
+
+export async function SupraDriveRemoveImageTag(req: Request, res: Response) {
+    const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
+    const supradriveuser = (req as any).user;
+    const userid = supradriveuser.userid;
+    const username = supradriveuser.username;
+    console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
+    let posts: SupraDrive[] = await sqlSupraDrive.SupraDriveRemoveImageTag(userid, username, parseInt(req.params.imageid), parseInt(req.params.tagid));
+    return res.status(OK).json(posts);
+}
 
 export async function SupraDriveAuthLogin(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
