@@ -85,6 +85,11 @@ export default function Page() {
                 .then((response) => {
                     setMyHashtags(response.data);
                     setHashtags([...hashtags, tag]);
+                    setFilteredSuggestions(
+                        myHashtags
+                            .filter(tag => tag.tiname.toLowerCase().startsWith(inputValue.toLowerCase()) && !hashtags.includes(tag.tiname))
+                            .map(tag => tag.tiname)
+                    );
                 })
                 .catch((error) => {
                     console.log(error);
@@ -292,7 +297,7 @@ export default function Page() {
 
     const handleOpenTags = (imageid: any) => {
         setTags(true);
-        setImageTag(imagesFiles[imageid].imagehashtags);
+        setImageTag(imagesFiles[imageid]?.imagehashtags);
         setImageTagIndex(imageid);
 
         // axios.get(APIURL + "/supradrive/image/tags/" + imageid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
@@ -497,7 +502,7 @@ export default function Page() {
             <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90"
             >
                 <Image
-                    src={imagesFiles[imageTagIndex].base64Thumbnail}
+                    src={imagesFiles[imageTagIndex]?.base64Thumbnail}
                     alt={"n/a"}
                     layout="intrinsic"
                     width={320}
@@ -511,9 +516,9 @@ export default function Page() {
 
                 <div className="w-full max-w-lg p-3 rounded-lg">
                     <div className="flex flex-wrap gap-2">
-                        {imageTag.map((tag: any, index: number) => (
-                            <span className="bg-blue-500 text-white px-2 py-1 rounded-full cursor-pointer" key={"newtag" + index}>
-                                {tag.tiname} ✕
+                        {imageTag?.map((tag: any, index: number) => (
+                            <span className="text-xs text-green-700 px-2 py-1 border border-green-900 rounded-full cursor-pointer" key={"newtag" + index}>
+                                {tag.tiname} <span className="text-red-900" onClick={() => removeTag(tag.tiname)}>✕</span>
                             </span>
                         ))}
                     </div>
@@ -749,7 +754,7 @@ export default function Page() {
                                                             {file.imagehashtags?.length > 0 && (
                                                                 <div className="relative">
                                                                     <div className="absolute bottom-1 right-1 bg-gray-700/40 text-white text-xs px-2 py-1 rounded group">
-                                                                        <a href="#" className="text-white" onClick={() => handleOpenTags(file.imageid)}>
+                                                                        <a href="#" className="text-white" onClick={() => handleOpenTags(index)}>
                                                                             #
                                                                         </a>
                                                                         <div className="absolute bottom-8 right-1 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-opacity transition-transform duration-200 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
