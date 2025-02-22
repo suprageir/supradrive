@@ -26,7 +26,6 @@ export default function Page() {
     const [notificationMessage, setNotificationMessage] = useState("");
     const [notificationType, setNotificationType] = useState<"success" | "error" | "warning" | "info">("success");
     const [username, setUsername] = useState("");
-    // const [userid, setUserid] = useState("");
     const [imagesFolders, setImagesFolders] = useState<any[]>([]);
     const [imagesFiles, setImagesFiles] = useState<any[]>([]);
     const [isModalNewFolderOpen, setIsModalNewFolderOpen] = useState(false);
@@ -36,21 +35,17 @@ export default function Page() {
     const [upFolderId, setUpFolderId] = useState(0);
     const [uploadProgress, setUploadProgress] = useState<UploadProgressType>({});
     const [isModalUploadImagesOpen, setIsModalUploadImagesOpen] = useState(false);
-
     const [files, setFiles] = useState<File[]>([]);
     const [uploading, setUploading] = useState<boolean>(false);
     const [thumbSize, setThumbSize] = useState(100);
     const [image, setImage] = useState<any>(null);
     const [tags, setTags] = useState<any>(null);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [imageTag, setImageTag] = useState<any>(0);
     const [imageTagIndex, setImageTagIndex] = useState<any>(0);
     const [myHashtags, setMyHashtags] = useState<any[]>([]);
-
-    const [hashtags, setHashtags] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState<string>('');
     const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [currentImageTags, setCurrentImageTags] = useState<string[]>([]);
 
 
     const handleChangeHashtags = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,7 +53,7 @@ export default function Page() {
         setInputValue(value);
         setFilteredSuggestions(
             myHashtags
-                .filter(tag => tag.tiname.toLowerCase().startsWith(value.toLowerCase()) && !hashtags.includes(tag.tiname))
+                .filter(tag => tag.tiname.toLowerCase().startsWith(value.toLowerCase()) && !currentImageTags.includes(tag.tiname))
                 .map(tag => tag.tiname)
         );
     };
@@ -70,13 +65,13 @@ export default function Page() {
         } else if (e.key === 'Enter' && inputValue.trim()) {
             e.preventDefault();
             addTag(inputValue.trim());
-        } else if (e.key === 'Backspace' && inputValue === '' && hashtags.length > 0) {
-            removeTag(hashtags[hashtags.length - 1]);
+        } else if (e.key === 'Backspace' && inputValue === '' && currentImageTags.length > 0) {
+            removeTag(currentImageTags[currentImageTags.length - 1]);
         }
     };
 
     const addTag = async (tag: string) => {
-        if (!hashtags.includes(tag)) {
+        if (!currentImageTags.includes(tag)) {
             const json = {
                 tiname: tag,
             }
@@ -84,12 +79,8 @@ export default function Page() {
             await axios.post(APIURL + "/supradrive/images/tag/" + imagesFiles[imageTagIndex].imageid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
                 .then((response) => {
                     setMyHashtags(response.data);
-                    setHashtags([...hashtags, tag]);
-                    setFilteredSuggestions(
-                        myHashtags
-                            .filter(tag => tag.tiname.toLowerCase().startsWith(inputValue.toLowerCase()) && !hashtags.includes(tag.tiname))
-                            .map(tag => tag.tiname)
-                    );
+                    setCurrentImageTags([...currentImageTags, tag]);
+                    setFilteredSuggestions(myHashtags.filter(tag => tag.tiname.toLowerCase().startsWith(inputValue.toLowerCase()) && !currentImageTags.includes(tag.tiname)).map(tag => tag.tiname));
                 })
                 .catch((error) => {
                     console.log(error);
@@ -104,7 +95,7 @@ export default function Page() {
         await axios.delete(APIURL + "/supradrive/images/tag/" + imagesFiles[imageTagIndex].imageid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then((response) => {
                 setMyHashtags(response.data);
-                setHashtags(hashtags.filter((t: string) => t !== tag));
+                setCurrentImageTags(currentImageTags.filter((t: string) => t !== tag));
             })
             .catch((error) => {
                 console.log(error);
@@ -246,8 +237,6 @@ export default function Page() {
 
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [context, setContext] = useState<string | null>(null);
 
     const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
@@ -255,7 +244,6 @@ export default function Page() {
         const target = event.target as HTMLElement;
 
         if (target.closest(".FileMenu")) {
-            setContext("box");
             setMenuItems([
                 { label: "Tags", action: () => handleOpenTags(target.id) },
                 { label: "View", action: () => alert("Open") },
@@ -263,13 +251,11 @@ export default function Page() {
                 { label: "Delete", action: () => alert("Deleted") },
             ]);
         } else if (target.closest(".text-item")) {
-            setContext("text");
             setMenuItems([
                 { label: "Copy Text", action: () => alert("Text Copied") },
                 { label: "Change Text", action: () => alert("Changing Text") },
             ]);
         } else {
-            setContext("default");
             setMenuItems([{ label: "Refresh", action: () => window.location.reload() }]);
         }
 
@@ -297,17 +283,12 @@ export default function Page() {
 
     const handleOpenTags = (imageid: any) => {
         setTags(true);
-        setImageTag(imagesFiles[imageid]?.imagehashtags);
         setImageTagIndex(imageid);
-
-        // axios.get(APIURL + "/supradrive/image/tags/" + imageid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
-        //     .then(async (response) => {
-        //         // setTags(response.data);
-        //     })
+        setCurrentImageTags(imagesFiles[imageid]?.imagehashtags.map((tag: any) => tag.tiname));
     }
     const handleCloseTags = () => {
         setTags(false);
-        setImageTag(null);
+        setCurrentImageTags([]);
     }
 
     const openModalNewFolder = () => {
@@ -507,6 +488,7 @@ export default function Page() {
                     layout="intrinsic"
                     width={320}
                     height={320}
+                    onClick={() => setTags(false)}
                     style={{
                         maxWidth: "100vw",
                         maxHeight: "100vh",
@@ -516,9 +498,9 @@ export default function Page() {
 
                 <div className="w-full max-w-lg p-3 rounded-lg">
                     <div className="flex flex-wrap gap-2">
-                        {imageTag?.map((tag: any, index: number) => (
+                        {currentImageTags?.map((tag: any, index: number) => (
                             <span className="text-xs text-green-700 px-2 py-1 border border-green-900 rounded-full cursor-pointer" key={"newtag" + index}>
-                                {tag.tiname} <span className="text-red-900" onClick={() => removeTag(tag.tiname)}>✕</span>
+                                {tag} <span className="text-red-900" onClick={() => removeTag(tag)}>✕</span>
                             </span>
                         ))}
                     </div>

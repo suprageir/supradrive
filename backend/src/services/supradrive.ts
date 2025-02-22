@@ -156,8 +156,24 @@ export abstract class sqlSupraDrive {
     }
 
     public static async SupraDriveRemoveImageTag(userid: number, username: string, imageid: number, tagid: number): Promise<any> {
+        try {
+            const query = `DELETE FROM imagestags WHERE userid = ? AND imageid = ? AND tagid = ?`;
+            const values = [userid, imageid, tagid];
+            await supradrive.query(query, values);
+        } catch (e: any) {
+            console.log(e);
+            return [];
+        }
 
-
+        try {
+            const query = `SELECT * FROM tagsimages WHERE tiuserid = ?`;
+            const values = [userid];
+            const [result] = await supradrive.query(query, values);
+            return result;
+        } catch (e: any) {
+            console.log(e);
+            return [];
+        }
 
         // try {
         //     const query = `DELETE FROM tagsimages WHERE tiid = ? AND tiuserid = ?`;
