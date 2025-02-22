@@ -166,6 +166,20 @@ export abstract class sqlSupraDrive {
         }
 
         try {
+            const query = `SELECT COUNT(itid) AS count FROM imagestags WHERE tagid = ?`;
+            const values = [tagid];
+            const [result] = await supradrive.query(query, values);
+            if (result[0].count === 0) {
+                const query = `DELETE FROM tagsimages WHERE tiuserid = ? AND tiid = ?`;
+                const values = [userid, tagid];
+                await supradrive.query(query, values);
+            }
+        } catch (e: any) {
+            console.log(e);
+            return [];
+        }
+
+        try {
             const query = `SELECT * FROM tagsimages WHERE tiuserid = ?`;
             const values = [userid];
             const [result] = await supradrive.query(query, values);
@@ -174,34 +188,6 @@ export abstract class sqlSupraDrive {
             console.log(e);
             return [];
         }
-
-        // try {
-        //     const query = `DELETE FROM tagsimages WHERE tiid = ? AND tiuserid = ?`;
-        //     const values = [tagid, userid];
-        //     var [result] = await supradrive.query(query, values);
-        // } catch (e: any) {
-        //     console.log(e);
-        //     return [];
-        // }
-        // if (result.length === 0) {
-        //     try {
-        //         const query = `INSERT INTO tagsimages (tiuserid, tiname) VALUES (?, ?)`;
-        //         const values = [userid, body.tiname];
-        //         await supradrive.query(query, values);
-        //     } catch (e: any) {
-        //         console.log(e);
-        //         return [];
-        //     }
-        // }
-        // try {
-        //     const query = `SELECT * FROM tagsimages WHERE tiuserid = ? AND tiwiped = '0'`;
-        //     const values = [userid];
-        //     const [result] = await supradrive.query(query, values);
-        //     return result;
-        // } catch (e: any) {
-        //     console.log(e);
-        //     return [];
-        // }
     }
 
 
