@@ -47,7 +47,6 @@ export default function Page() {
     const inputRef = useRef<HTMLInputElement>(null);
     const [currentImageTags, setCurrentImageTags] = useState<string[]>([]);
 
-
     const handleChangeHashtags = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setInputValue(value);
@@ -102,10 +101,6 @@ export default function Page() {
             });
     };
 
-
-
-
-
     const handleChangeThumbSize = (size: number | null) => {
         if (size) {
             setThumbSize(size);
@@ -145,7 +140,6 @@ export default function Page() {
         const startTime = Date.now();
         const lastLoaded = 0;
         const lastTime = startTime;
-
 
         try {
             const formData = new FormData();
@@ -287,6 +281,7 @@ export default function Page() {
         setCurrentImageTags(imagesFiles[imageid]?.imagehashtags.map((tag: any) => tag.tiname));
     }
     const handleCloseTags = () => {
+        getFilesAndFolders(folderid);
         setTags(false);
         setCurrentImageTags([]);
     }
@@ -380,7 +375,6 @@ export default function Page() {
 
     useEffect(() => {
         setUsername(sessionStorage.getItem("supradriveuser") || "");
-        // setUserid(sessionStorage.getItem("supradriveuserid") || "");
         setToken(sessionStorage.getItem("supradrivetoken") || "");
         setLoading(false);
         getFilesAndFolders(folderid);
@@ -488,7 +482,7 @@ export default function Page() {
                     layout="intrinsic"
                     width={320}
                     height={320}
-                    onClick={() => setTags(false)}
+                    onClick={() => handleCloseTags()}
                     style={{
                         maxWidth: "100vw",
                         maxHeight: "100vh",
