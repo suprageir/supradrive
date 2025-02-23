@@ -49,6 +49,8 @@ export default function Page() {
     const [currentImageUserTags, setCurrentImageUserTags] = useState<string[]>([]);
     const [myUserTags, setMyUserTags] = useState<any[]>([]);
     const inputUserTagsRef = useRef<HTMLInputElement>(null);
+    const [startX, setStartX] = useState<number | null>(null);
+    const [endX, setEndX] = useState<number | null>(null);
 
     const filteredHashtags = myHashtags?.filter(
         (tag) =>
@@ -540,6 +542,31 @@ export default function Page() {
         };
         window.addEventListener("keydown", handleKeyPress);
     }, []);
+
+    useEffect(() => {
+        const handleTouchStart = (e: TouchEvent) => {
+            if (document.activeElement === inputUserTagsRef.current) {
+                setStartX(e.touches[0].clientX);
+            }
+        };
+
+        const handleTouchEnd = (e: TouchEvent) => {
+            if (document.activeElement === inputUserTagsRef.current && startX !== null) {
+                const endX = e.changedTouches[0].clientX;
+                if (endX - startX > 50) {
+                    addTagUser(firstMatchUser?.tuname || "");
+                }
+            }
+        };
+
+        document.addEventListener("touchstart", handleTouchStart);
+        document.addEventListener("touchend", handleTouchEnd);
+
+        return () => {
+            document.removeEventListener("touchstart", handleTouchStart);
+            document.removeEventListener("touchend", handleTouchEnd);
+        };
+    }, [startX]);
 
     if (image) {
         return (
