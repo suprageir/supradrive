@@ -558,6 +558,14 @@ export default function Page() {
                     }
                 }
             }
+            if (document.activeElement === inputHashtagsRef.current && startX !== null) {
+                const endX = e.changedTouches[0].clientX;
+                if (endX - startX > 50) {
+                    if (firstMatch) {
+                        addTag(firstMatch.tiname);
+                    }
+                }
+            }
         };
 
         document.addEventListener("touchstart", handleTouchStart);
@@ -642,8 +650,8 @@ export default function Page() {
                 </div>
 
                 <div className="w-full max-w-lg p-3 rounded-lg relative">
-                    <div className="relative">
-                        <form onSubmit={(e) => e.preventDefault()}>
+                    <form onSubmit={(e) => e.preventDefault()}>
+                        <div className="relative">
                             <input
                                 type="text"
                                 className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
@@ -659,8 +667,8 @@ export default function Page() {
                                 onKeyDown={handleKeyDownUserTags}
                                 placeholder="Add people..."
                             />
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
                 <div className="mt-5">
                     <div className="w-full max-w-lg p-3 rounded-lg">
