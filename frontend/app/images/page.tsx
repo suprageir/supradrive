@@ -50,7 +50,6 @@ export default function Page() {
     const [myUserTags, setMyUserTags] = useState<any[]>([]);
     const inputUserTagsRef = useRef<HTMLInputElement>(null);
     const [startX, setStartX] = useState<number | null>(null);
-    const [endX, setEndX] = useState<number | null>(null);
 
     const filteredHashtags = myHashtags?.filter(
         (tag) =>
@@ -566,6 +565,7 @@ export default function Page() {
             document.removeEventListener("touchstart", handleTouchStart);
             document.removeEventListener("touchend", handleTouchEnd);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [startX]);
 
     if (image) {
