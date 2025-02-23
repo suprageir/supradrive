@@ -520,6 +520,7 @@ export default function Page() {
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setTags]);
 
     useEffect(() => {
