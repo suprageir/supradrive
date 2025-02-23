@@ -87,28 +87,28 @@ export default function Page() {
         } else if (e.key === "Tab" && firstMatchUser) {
             e.preventDefault();
             if (firstMatchUser.tuname) {
-                addTagUser(firstMatchUser.tuname);
+                addTagUser(firstMatchUser.tuname.toLowerCase());
                 setInputValueUserTags("");
             }
         } else if (e.key === "Enter" && inputValueUserTags.trim()) {
             e.preventDefault();
             if (inputValueUserTags.trim()) {
-                addTagUser(inputValueUserTags.trim());
+                addTagUser(inputValueUserTags.trim().toLowerCase());
                 setInputValueUserTags("");
             }
         }
     };
 
     const addTagUser = async (tag: string) => {
-        if (!currentImageUserTags.includes(tag)) {
+        if (!currentImageUserTags.includes(tag.toLowerCase())) {
             const json = {
-                tuname: tag,
+                tuname: tag.toLowerCase(),
             }
             const tagjson = JSON.stringify(json);
             await axios.post(APIURL + "/supradrive/images/usertag/" + imagesFiles[imageTagIndex].imageid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
                 .then((response) => {
                     setMyUserTags(response.data);
-                    setCurrentImageUserTags([...currentImageUserTags, tag]);
+                    setCurrentImageUserTags([...currentImageUserTags, tag.toLowerCase()]);
                 })
                 .catch((error) => {
                     console.log(error);
@@ -118,15 +118,15 @@ export default function Page() {
     };
 
     const addTagLocation = async (tag: string) => {
-        if (!currentImageLocationTags.includes(tag)) {
+        if (!currentImageLocationTags.includes(tag.toLowerCase())) {
             const json = {
-                tlname: tag,
+                tlname: tag.toLowerCase(),
             }
             const tagjson = JSON.stringify(json);
             await axios.post(APIURL + "/supradrive/images/locationtag/" + imagesFiles[imageTagIndex].imageid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
                 .then((response) => {
                     setMyLocationTags(response.data);
-                    setCurrentImageLocationTags([...currentImageLocationTags, tag]);
+                    setCurrentImageLocationTags([...currentImageLocationTags, tag.toLowerCase()]);
                 })
                 .catch((error) => {
                     console.log(error);
@@ -159,7 +159,6 @@ export default function Page() {
             });
     };
 
-
     const handleKeyDownHashtags = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Tab" && !firstMatch) {
             e.preventDefault();
@@ -167,13 +166,13 @@ export default function Page() {
         } else if (e.key === "Tab" && firstMatch) {
             e.preventDefault();
             if (firstMatch.tiname) {
-                addTag(firstMatch.tiname);
+                addTag(firstMatch.tiname.toLowerCase());
                 setInputValueHashtags("");
             }
         } else if (e.key === "Enter" && inputValueHashtags.trim()) {
             e.preventDefault();
             if (inputValueHashtags.trim()) {
-                addTag(inputValueHashtags.trim());
+                addTag(inputValueHashtags.trim().toLowerCase());
                 setInputValueHashtags("");
             }
         }
@@ -186,13 +185,13 @@ export default function Page() {
         } else if (e.key === "Tab" && firstMatch) {
             e.preventDefault();
             if (firstMatchLocation.tlname) {
-                addTagLocation(firstMatchLocation.tlname);
+                addTagLocation(firstMatchLocation.tlname.toLowerCase());
                 setInputValueLocation("");
             }
         } else if (e.key === "Enter" && inputValueLocation.trim()) {
             e.preventDefault();
             if (inputValueLocation.trim()) {
-                addTagLocation(inputValueLocation.trim());
+                addTagLocation(inputValueLocation.trim().toLowerCase());
                 setInputValueLocation("");
             }
         }
@@ -216,11 +215,11 @@ export default function Page() {
     };
 
     const addTag = async (tag: string) => {
-        if (!currentImageTags.includes(tag)) {
+        if (!currentImageTags.includes(tag.toLowerCase())) {
             try {
                 const response = await axios.post(
                     `${APIURL}/supradrive/images/tag/${imagesFiles[imageTagIndex].imageid}`,
-                    JSON.stringify({ tiname: tag }),
+                    JSON.stringify({ tiname: tag.toLowerCase() }),
                     {
                         withCredentials: true,
                         headers: {
@@ -230,7 +229,7 @@ export default function Page() {
                     }
                 );
                 setMyHashtags(response.data);
-                setCurrentImageTags([...currentImageTags, tag]);
+                setCurrentImageTags([...currentImageTags, tag.toLowerCase()]);
                 setInputValueHashtags("");
             } catch (error) {
                 console.log(error);

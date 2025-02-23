@@ -131,7 +131,7 @@ export abstract class sqlSupraDrive {
         var tiid = 0;
         try {
             const query = `SELECT tiid FROM tagsimages WHERE tiname = ? AND tiuserid = ?`;
-            const values = [body.tiname, userid];
+            const values = [body.tiname.toLowerCase(), userid];
             var [result] = await supradrive.query(query, values);
             tiid = result?.[0]?.tiid || 0;
         } catch (e: any) {
@@ -141,7 +141,7 @@ export abstract class sqlSupraDrive {
         if (result.length === 0) {
             try {
                 const query = `INSERT INTO tagsimages (tiuserid, tiname) VALUES (?, ?)`;
-                const values = [userid, body.tiname];
+                const values = [userid, body.tiname.toLowerCase()];
                 let [insertresult] = await supradrive.query(query, values);
                 tiid = insertresult.insertId;
             } catch (e: any) {
@@ -184,7 +184,7 @@ export abstract class sqlSupraDrive {
         var tuid = 0;
         try {
             const query = `SELECT tuid FROM tagsusers WHERE tuname = ? AND tuuserid = ?`;
-            const values = [body.tuname, userid];
+            const values = [body.tuname.toLowerCase(), userid];
             var [result] = await supradrive.query(query, values);
             tuid = result?.[0]?.tuid || 0;
         } catch (e: any) {
@@ -194,7 +194,7 @@ export abstract class sqlSupraDrive {
         if (tuid === 0) {
             try {
                 const query = `INSERT INTO tagsusers (tuuserid, tuname) VALUES (?, ?)`;
-                const values = [userid, body.tuname];
+                const values = [userid, body.tuname.toLowerCase()];
                 let [insertresult] = await supradrive.query(query, values);
                 tuid = insertresult.insertId;
             } catch (e: any) {
@@ -238,7 +238,7 @@ export abstract class sqlSupraDrive {
         var tlid = 0;
         try {
             const query = `SELECT tlid FROM tagslocations WHERE tlname = ? AND tluserid = ?`;
-            const values = [body.tlname, userid];
+            const values = [body.tlname.toLowerCase(), userid];
             var [result] = await supradrive.query(query, values);
             tlid = result?.[0]?.tlid || 0;
         } catch (e: any) {
@@ -248,7 +248,7 @@ export abstract class sqlSupraDrive {
         if (tlid === 0) {
             try {
                 const query = `INSERT INTO tagslocations (tluserid, tlname) VALUES (?, ?)`;
-                const values = [userid, body.tlname];
+                const values = [userid, body.tlname.toLowerCase()];
                 let [insertresult] = await supradrive.query(query, values);
                 tlid = insertresult.insertId;
             } catch (e: any) {

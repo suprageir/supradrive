@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: 12. Feb, 2025 22:13 PM
+-- Generation Time: 23. Feb, 2025 15:26 PM
 -- Tjener-versjon: 10.6.18-MariaDB-0ubuntu0.22.04.1
 -- PHP Version: 8.1.2-1ubuntu2.20
 
@@ -60,6 +60,7 @@ CREATE TABLE `filesimages` (
   `imageuserid` int(11) DEFAULT NULL,
   `imagesha1` varchar(250) DEFAULT NULL,
   `imagefilename` varchar(250) DEFAULT NULL,
+  `imagefilenamedisk` varchar(250) DEFAULT NULL,
   `imageformat` varchar(250) DEFAULT NULL,
   `imagedatetime` datetime DEFAULT NULL,
   `imagefiledatetime` datetime DEFAULT NULL,
@@ -106,7 +107,50 @@ CREATE TABLE `foldersimages` (
   `foldersubid` int(11) DEFAULT NULL,
   `folderuserid` int(11) DEFAULT NULL,
   `foldername` varchar(250) DEFAULT NULL,
+  `foldernamedisk` varchar(250) DEFAULT NULL,
   `folderwiped` int(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur for tabell `imageslocations`
+--
+
+DROP TABLE IF EXISTS `imageslocations`;
+CREATE TABLE `imageslocations` (
+  `ilid` int(11) NOT NULL,
+  `iluserid` int(11) DEFAULT NULL,
+  `ilimageid` int(11) DEFAULT NULL,
+  `iltlid` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur for tabell `imagestags`
+--
+
+DROP TABLE IF EXISTS `imagestags`;
+CREATE TABLE `imagestags` (
+  `itid` int(11) NOT NULL,
+  `userid` int(11) DEFAULT NULL,
+  `imageid` int(11) DEFAULT NULL,
+  `tagid` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur for tabell `imagesusers`
+--
+
+DROP TABLE IF EXISTS `imagesusers`;
+CREATE TABLE `imagesusers` (
+  `iuid` int(11) NOT NULL,
+  `iuserid` int(11) DEFAULT NULL,
+  `tagimageid` int(11) DEFAULT NULL,
+  `taguserid` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -119,6 +163,45 @@ DROP TABLE IF EXISTS `systemfolders`;
 CREATE TABLE `systemfolders` (
   `sysfolderid` int(11) NOT NULL,
   `sysfolderdescription` varchar(250) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur for tabell `tagsimages`
+--
+
+DROP TABLE IF EXISTS `tagsimages`;
+CREATE TABLE `tagsimages` (
+  `tiid` int(11) NOT NULL,
+  `tiuserid` int(11) DEFAULT NULL,
+  `tiname` varchar(250) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur for tabell `tagslocations`
+--
+
+DROP TABLE IF EXISTS `tagslocations`;
+CREATE TABLE `tagslocations` (
+  `tlid` int(11) NOT NULL,
+  `tluserid` int(11) DEFAULT NULL,
+  `tlname` varchar(250) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur for tabell `tagsusers`
+--
+
+DROP TABLE IF EXISTS `tagsusers`;
+CREATE TABLE `tagsusers` (
+  `tuid` int(11) NOT NULL,
+  `tuuserid` int(11) DEFAULT NULL,
+  `tuname` varchar(250) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -145,7 +228,11 @@ CREATE TABLE `users` (
 --
 ALTER TABLE `filesencrypted`
   ADD PRIMARY KEY (`fileid`),
-  ADD KEY `fileidref` (`fileidref`);
+  ADD KEY `fileidref` (`fileidref`),
+  ADD KEY `folderid` (`folderid`),
+  ADD KEY `userid` (`userid`),
+  ADD KEY `wiped` (`wiped`),
+  ADD KEY `filesha1` (`filesha1`);
 
 --
 -- Indexes for table `filesimages`
@@ -171,13 +258,67 @@ ALTER TABLE `foldersencrypted`
 -- Indexes for table `foldersimages`
 --
 ALTER TABLE `foldersimages`
-  ADD PRIMARY KEY (`folderid`);
+  ADD PRIMARY KEY (`folderid`),
+  ADD KEY `folderwiped` (`folderwiped`),
+  ADD KEY `foldersubid` (`foldersubid`),
+  ADD KEY `folderuserid` (`folderuserid`);
+
+--
+-- Indexes for table `imageslocations`
+--
+ALTER TABLE `imageslocations`
+  ADD PRIMARY KEY (`ilid`),
+  ADD KEY `iluserid` (`iluserid`),
+  ADD KEY `ilimageid` (`ilimageid`),
+  ADD KEY `iltlid` (`iltlid`);
+
+--
+-- Indexes for table `imagestags`
+--
+ALTER TABLE `imagestags`
+  ADD PRIMARY KEY (`itid`),
+  ADD KEY `userid` (`userid`),
+  ADD KEY `imageid` (`imageid`),
+  ADD KEY `tagid` (`tagid`);
+
+--
+-- Indexes for table `imagesusers`
+--
+ALTER TABLE `imagesusers`
+  ADD PRIMARY KEY (`iuid`),
+  ADD KEY `iuserid` (`iuserid`),
+  ADD KEY `tagimageid` (`tagimageid`),
+  ADD KEY `taguserid` (`taguserid`);
 
 --
 -- Indexes for table `systemfolders`
 --
 ALTER TABLE `systemfolders`
   ADD PRIMARY KEY (`sysfolderid`);
+
+--
+-- Indexes for table `tagsimages`
+--
+ALTER TABLE `tagsimages`
+  ADD PRIMARY KEY (`tiid`),
+  ADD KEY `tiuserid` (`tiuserid`),
+  ADD KEY `tiname` (`tiname`);
+
+--
+-- Indexes for table `tagslocations`
+--
+ALTER TABLE `tagslocations`
+  ADD PRIMARY KEY (`tlid`),
+  ADD KEY `tluserid` (`tluserid`),
+  ADD KEY `tlname` (`tlname`);
+
+--
+-- Indexes for table `tagsusers`
+--
+ALTER TABLE `tagsusers`
+  ADD PRIMARY KEY (`tuid`),
+  ADD KEY `tuuserid` (`tuuserid`),
+  ADD KEY `tuname` (`tuname`);
 
 --
 -- Indexes for table `users`
@@ -216,10 +357,46 @@ ALTER TABLE `foldersimages`
   MODIFY `folderid` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `imageslocations`
+--
+ALTER TABLE `imageslocations`
+  MODIFY `ilid` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `imagestags`
+--
+ALTER TABLE `imagestags`
+  MODIFY `itid` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `imagesusers`
+--
+ALTER TABLE `imagesusers`
+  MODIFY `iuid` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `systemfolders`
 --
 ALTER TABLE `systemfolders`
   MODIFY `sysfolderid` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `tagsimages`
+--
+ALTER TABLE `tagsimages`
+  MODIFY `tiid` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `tagslocations`
+--
+ALTER TABLE `tagslocations`
+  MODIFY `tlid` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `tagsusers`
+--
+ALTER TABLE `tagsusers`
+  MODIFY `tuid` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`

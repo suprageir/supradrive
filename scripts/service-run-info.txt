@@ -1,2 +1,4 @@
 npm install -g pm2
-pm2 start npm --name "supradrive frontend" -- start --watch
+npm install -g bun
+pm2 start npm --name "supradrive-front" -- start --watch
+pm2 start src/index.ts --name "supradrive-back" --watch
