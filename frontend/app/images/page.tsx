@@ -737,7 +737,7 @@ export default function Page() {
                                 readOnly
                             />
                             <input
-                                ref={inputUserTagsRef}
+                                ref={inputLocationRef}
                                 type="text"
                                 className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
                                 value={inputValueLocation}
