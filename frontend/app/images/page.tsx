@@ -333,7 +333,7 @@ export default function Page() {
             } else {
                 setUploadProgress(prevProgress => ({
                     ...prevProgress,
-                    [file.name]: { progress: 0, speed: 0, timeRemaining: "", error: resdata.message }
+                    [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: resdata.message }
                 }));
             }
             handleUploadNextFile(index + 1, fileQueue);
@@ -341,7 +341,7 @@ export default function Page() {
             const errorMessage = JSON.parse(error.response.data);
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
-                [file.name]: { progress: 0, speed: 0, timeRemaining: "", error: errorMessage.message }
+                [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
             }));
             handleUploadNextFile(index + 1, fileQueue);
         }
@@ -1096,7 +1096,6 @@ export default function Page() {
                                                                 <span className="text-red-700 text-xs">- {uploadProgress[file.name]?.error}</span>
                                                             ) : (
                                                                 <div className="w-full h-2 bg-gray-700 rounded-full">
-                                                                    error: {uploadProgress[file.name]?.error}
                                                                     <div
                                                                         className="h-full bg-green-500 rounded-full"
                                                                         style={{ width: `${uploadProgress[file.name]?.progress || 0}%` }}
@@ -1108,8 +1107,8 @@ export default function Page() {
                                             </div>
                                             <div className="flex flex items-center justify-center gap-4 mt-4">
                                                 Total files: <span className="text-green-700 text-sm">{files.length}</span>
-                                                Success: <span className="text-green-700 text-sm">{Object.values(uploadProgress).filter((file: any) => file.progress === 100).length}</span>
-                                                Error: <span className="text-red-700 text-sm">{Object.values(uploadProgress).filter((file: any) => file.progress === 0).length}</span>
+                                                Success: <span className="text-green-700 text-sm">{Object.values(uploadProgress).filter((file: any) => ((file.progress === 100) && (file.error === undefined))).length}</span>
+                                                Error: <span className="text-red-700 text-sm">{Object.values(uploadProgress).filter((file: any) => ((file.progress === 100) && (file.error !== undefined))).length}</span>
                                             </div>
                                             <div className="flex flex items-center justify-center gap-4 mt-4">
                                                 <button
