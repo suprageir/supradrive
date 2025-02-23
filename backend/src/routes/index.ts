@@ -1,6 +1,6 @@
 const supradriveauth = require("src/middleware/supradriveauth");
 import { Router } from 'express';
-import { SupraDriveAuthLogin, SupraDriveAuthToken, SupraDriveNewFolder, SupraDriveGetFolders, SupraDriveEncryptedTextSave, SupraDriveGetFile, SupraDriveEncryptedTextUpload, SupraDriveNewImagesFolder, SupraDriveGetImagesFolder, SupraDriveNewImagesUpload, SupraDriveGetImage, SupraDriveGetImageTags, SupraDriveAddImageTag, SupraDriveRemoveImageTag } from './supradrive';
+import { SupraDriveAuthLogin, SupraDriveAuthToken, SupraDriveNewFolder, SupraDriveGetFolders, SupraDriveEncryptedTextSave, SupraDriveGetFile, SupraDriveEncryptedTextUpload, SupraDriveNewImagesFolder, SupraDriveGetImagesFolder, SupraDriveNewImagesUpload, SupraDriveGetImage, SupraDriveGetImageTags, SupraDriveGetImageUserTags, SupraDriveAddImageTag, SupraDriveRemoveImageTag, SupraDriveAddImageUserTag, SupraDriveRemoveImageUserTag } from './supradrive';
 
 import multer from 'multer';
 
@@ -24,6 +24,9 @@ apiRouter.get('/supradrive/images/folder/:foldersubid', supradriveauth, SupraDri
 apiRouter.get('/supradrive/images/tags', supradriveauth, SupraDriveGetImageTags);
 apiRouter.post('/supradrive/images/tag/:imageid', supradriveauth, SupraDriveAddImageTag);
 apiRouter.delete('/supradrive/images/tag/:imageid/:tagid', supradriveauth, SupraDriveRemoveImageTag);
+apiRouter.get('/supradrive/images/usertags', supradriveauth, SupraDriveGetImageUserTags);
+apiRouter.post('/supradrive/images/usertag/:imageid', supradriveauth, SupraDriveAddImageUserTag);
+apiRouter.delete('/supradrive/images/usertag/:imageid/:tagid', supradriveauth, SupraDriveRemoveImageUserTag);
 
 // Export the base-router
 const baseRouter = Router();

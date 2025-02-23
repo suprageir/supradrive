@@ -42,63 +42,96 @@ export default function Page() {
     const [tags, setTags] = useState<any>(null);
     const [imageTagIndex, setImageTagIndex] = useState<any>(0);
     const [myHashtags, setMyHashtags] = useState<any[]>([]);
-    const [inputValue, setInputValue] = useState<string>('');
-    const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
-    const inputRef = useRef<HTMLInputElement>(null);
+    const [inputValueHashtags, setInputValueHashtags] = useState<string>('');
+    const inputHashtagsRef = useRef<HTMLInputElement>(null);
     const [currentImageTags, setCurrentImageTags] = useState<string[]>([]);
+    const [inputValueUserTags, setInputValueUserTags] = useState<string>('');
+    const [currentImageUserTags, setCurrentImageUserTags] = useState<string[]>([]);
+    const [myUserTags, setMyUserTags] = useState<any[]>([]);
+    const inputUserTagsRef = useRef<HTMLInputElement>(null);
 
-    const handleChangeHashtags = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setInputValue(value);
-        setFilteredSuggestions(
-            myHashtags
-                .filter(tag => tag.tiname.toLowerCase().startsWith(value.toLowerCase()) && !currentImageTags.includes(tag.tiname))
-                .map(tag => tag.tiname)
-        );
-    };
+    const filteredHashtags = myHashtags?.filter(
+        (tag) =>
+            tag?.tiname?.toLowerCase().startsWith(inputValueHashtags.toLowerCase()) &&
+            !currentImageTags.includes(tag?.tiname)
+    );
 
-    const handleKeyDownHashtags = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Tab' && filteredSuggestions.length > 0) {
+    const firstMatch = filteredHashtags?.length ? filteredHashtags[0] : null;
+
+    const filteredUserTags = myUserTags?.filter(
+        (tag) =>
+            tag?.tuname?.toLowerCase().startsWith(inputValueUserTags.toLowerCase()) &&
+            !currentImageUserTags.includes(tag?.tuname)
+    );
+
+    const firstMatchUser = filteredUserTags?.length ? filteredUserTags[0] : null;
+
+    const handleKeyDownUserTags = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "Tab" && !firstMatchUser) {
             e.preventDefault();
-            addTag(filteredSuggestions[0]);
-        } else if (e.key === 'Enter' && inputValue.trim()) {
+            inputUserTagsRef.current?.focus();
+        } else if (e.key === "Tab" && firstMatchUser) {
             e.preventDefault();
-            addTag(inputValue.trim());
-        } else if (e.key === 'Backspace' && inputValue === '' && currentImageTags.length > 0) {
-            removeTag(currentImageTags[currentImageTags.length - 1]);
+            if (firstMatchUser.tuname) {
+                addTagUser(firstMatchUser.tuname);
+                setInputValueUserTags("");
+            }
+        } else if (e.key === "Enter" && inputValueUserTags.trim()) {
+            e.preventDefault();
+            if (inputValueUserTags.trim()) {
+                addTagUser(inputValueUserTags.trim());
+                setInputValueUserTags("");
+            }
         }
     };
 
-    const addTag = async (tag: string) => {
-        if (!currentImageTags.includes(tag)) {
+    const addTagUser = async (tag: string) => {
+        if (!currentImageUserTags.includes(tag)) {
             const json = {
-                tiname: tag,
+                tuname: tag,
             }
             const tagjson = JSON.stringify(json);
-            await axios.post(APIURL + "/supradrive/images/tag/" + imagesFiles[imageTagIndex].imageid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+            await axios.post(APIURL + "/supradrive/images/usertag/" + imagesFiles[imageTagIndex].imageid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
                 .then((response) => {
-                    setMyHashtags(response.data);
-                    setCurrentImageTags([...currentImageTags, tag]);
-                    setFilteredSuggestions(myHashtags.filter(tag => tag.tiname.toLowerCase().startsWith(inputValue.toLowerCase()) && !currentImageTags.includes(tag.tiname)).map(tag => tag.tiname));
+                    setMyUserTags(response.data);
+                    setCurrentImageUserTags([...currentImageUserTags, tag]);
                 })
                 .catch((error) => {
                     console.log(error);
                 });
         }
-        setInputValue('');
-        setFilteredSuggestions([]);
+        setInputValueUserTags('');
     };
 
-    const removeTag = async (tag: string) => {
-        const tagid = myHashtags.find((t: any) => t.tiname === tag)?.tiid;
-        await axios.delete(APIURL + "/supradrive/images/tag/" + imagesFiles[imageTagIndex].imageid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+    const removeTagUser = async (tag: string) => {
+        const tagid = myUserTags.find((t: any) => t.tuname === tag)?.tuid;
+        await axios.delete(APIURL + "/supradrive/images/usertag/" + imagesFiles[imageTagIndex].imageid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then((response) => {
-                setMyHashtags(response.data);
-                setCurrentImageTags(currentImageTags.filter((t: string) => t !== tag));
+                setMyUserTags(response.data);
+                setCurrentImageUserTags(currentImageUserTags.filter((t: string) => t !== tag));
             })
             .catch((error) => {
                 console.log(error);
             });
+    };
+
+    const handleKeyDownHashtags = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "Tab" && !firstMatch) {
+            e.preventDefault();
+            inputHashtagsRef.current?.focus();
+        } else if (e.key === "Tab" && firstMatch) {
+            e.preventDefault();
+            if (firstMatch.tiname) {
+                addTag(firstMatch.tiname);
+                setInputValueHashtags("");
+            }
+        } else if (e.key === "Enter" && inputValueHashtags.trim()) {
+            e.preventDefault();
+            if (inputValueHashtags.trim()) {
+                addTag(inputValueHashtags.trim());
+                setInputValueHashtags("");
+            }
+        }
     };
 
     const handleChangeThumbSize = (size: number | null) => {
@@ -112,11 +145,56 @@ export default function Page() {
             else if (thumbSize === 200) {
                 setThumbSize(300);
             }
-            else {
+            else if (thumbSize === 300) {
                 setThumbSize(100);
             }
         }
-    }
+    };
+
+    const addTag = async (tag: string) => {
+        if (!currentImageTags.includes(tag)) {
+            try {
+                const response = await axios.post(
+                    `${APIURL}/supradrive/images/tag/${imagesFiles[imageTagIndex].imageid}`,
+                    JSON.stringify({ tiname: tag }),
+                    {
+                        withCredentials: true,
+                        headers: {
+                            Authorization: `Bearer ${sessionStorage.getItem("supradrivetoken")}`,
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
+                setMyHashtags(response.data);
+                setCurrentImageTags([...currentImageTags, tag]);
+                setInputValueHashtags("");
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    };
+
+    const removeTag = async (tag: string) => {
+        const tagid = myHashtags.find((t: any) => t.tiname === tag)?.tiid;
+        if (!tagid) return;
+
+        try {
+            const response = await axios.delete(
+                `${APIURL}/supradrive/images/tag/${imagesFiles[imageTagIndex].imageid}/${tagid}`,
+                {
+                    withCredentials: true,
+                    headers: {
+                        Authorization: `Bearer ${sessionStorage.getItem("supradrivetoken")}`,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+            setMyHashtags(response.data);
+            setCurrentImageTags(currentImageTags.filter((t: string) => t !== tag));
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     const onDropImages = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
         event.stopPropagation();
@@ -130,7 +208,6 @@ export default function Page() {
 
     const handleUploadNextFile = async (index: number, fileQueue: File[]) => {
         if (index >= fileQueue.length) {
-            // setUploading(false);
             handleAllFilesUploaded();
             return;
         }
@@ -279,11 +356,13 @@ export default function Page() {
         setTags(true);
         setImageTagIndex(imageid);
         setCurrentImageTags(imagesFiles[imageid]?.imagehashtags.map((tag: any) => tag.tiname));
+        setCurrentImageUserTags(imagesFiles[imageid]?.imageusertags.map((tag: any) => tag.tuname));
     }
     const handleCloseTags = () => {
         getFilesAndFolders(folderid);
         setTags(false);
         setCurrentImageTags([]);
+        setCurrentImageUserTags([]);
     }
 
     const openModalNewFolder = () => {
@@ -309,7 +388,6 @@ export default function Page() {
         const folderidext = folderiduse ?? folderid;
         axios.get(APIURL + "/supradrive/images/folder/" + folderidext, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
-                console.log(response.data);
                 setImagesFolders(response.data[0]?.folders);
                 setImagesFiles(response.data[0]?.files);
             })
@@ -328,6 +406,16 @@ export default function Page() {
             });
     };
 
+    const getImageUserTags = async () => {
+        axios.get(APIURL + "/supradrive/images/usertags", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+            .then(async (response) => {
+                console.log(response.data);
+                setMyUserTags(response.data);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    };
 
     const handleViewImage = (imageid: number) => {
         axios.get(APIURL + "/supradrive/image/" + imageid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
@@ -379,6 +467,7 @@ export default function Page() {
         setLoading(false);
         getFilesAndFolders(folderid);
         getImageTags();
+        getImageUserTags();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -489,38 +578,65 @@ export default function Page() {
                         objectFit: "contain"
                     }}
                 />
-
-                <div className="w-full max-w-lg p-3 rounded-lg">
-                    <div className="flex flex-wrap gap-2">
-                        {currentImageTags?.map((tag: any, index: number) => (
-                            <span className="text-xs text-green-700 px-2 py-1 border border-green-900 rounded-full cursor-pointer" key={"newtag" + index}>
-                                {tag} <span className="text-red-900" onClick={() => removeTag(tag)}>✕</span>
-                            </span>
-                        ))}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
+                <div className="w-full max-w-lg p-3 rounded-lg relative">
+                    <div className="relative">
                         <input
-                            ref={inputRef}
                             type="text"
-                            placeholder="Add hashtags..."
-                            value={inputValue}
-                            onChange={handleChangeHashtags}
-                            onKeyDown={handleKeyDownHashtags}
-                            className="w-full mt-2 p-2 border border-green-900 rounded-md focus:outline-none"
+                            className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                            value={firstMatch && inputValueHashtags ? firstMatch.tiname : ""}
+                            readOnly
                         />
-                        {filteredSuggestions.length > 0 && (
-                            <ul className="mt-2 rounded-lg shadow-md">
-                                {filteredSuggestions.map((suggestion, index) => (
-                                    <li
-                                        key={"tag" + suggestion}
-                                        className={`p-2 cursor-pointer ${index === 0 ? 'text-green-500' : 'text-green-700'}`}
-                                        onClick={() => addTag(suggestion)}
-                                    >
-                                        {suggestion}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <input
+                            ref={inputHashtagsRef}
+                            type="text"
+                            className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                            value={inputValueHashtags}
+                            onChange={(e) => setInputValueHashtags(e.target.value)}
+                            onKeyDown={handleKeyDownHashtags}
+                            placeholder="Add hashtags..."
+                        />
+                    </div>
+                </div>
+                <div className="mt-5">
+                    <div className="w-full max-w-lg p-3 rounded-lg">
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            {currentImageTags.map((tag, index) => (
+                                <span key={index} className="text-xs text-green-700 px-2 py-1 border border-green-900 rounded-full cursor-pointer">
+                                    #{tag} <span className="text-red-900" onClick={() => removeTag(tag)}>✕</span>
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="w-full max-w-lg p-3 rounded-lg relative">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                            value={firstMatchUser && inputValueUserTags ? firstMatchUser.tuname : ""}
+                            readOnly
+                        />
+                        <input
+                            ref={inputUserTagsRef}
+                            type="text"
+                            className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                            value={inputValueUserTags}
+                            onChange={(e) => setInputValueUserTags(e.target.value)}
+                            onKeyDown={handleKeyDownUserTags}
+                            placeholder="Add people..."
+                        />
+                    </div>
+                </div>
+                <div className="mt-5">
+                    <div className="w-full max-w-lg p-3 rounded-lg">
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            {currentImageUserTags.map((tag, index) => (
+                                <span key={index} className="text-xs text-green-700 px-2 py-1 border border-green-900 rounded-full cursor-pointer">
+                                    @{tag} <span className="text-red-900" onClick={() => removeTagUser(tag)}>✕</span>
+                                </span>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -727,18 +843,30 @@ export default function Page() {
                                                                 <p>[N/A]</p>
                                                             )}
 
-                                                            {file.imagehashtags?.length > 0 && (
-                                                                <div className="relative">
-                                                                    <div className="absolute bottom-1 right-1 bg-gray-700/40 text-white text-xs px-2 py-1 rounded group">
-                                                                        <a href="#" className="text-white" onClick={() => handleOpenTags(index)}>
-                                                                            #
-                                                                        </a>
-                                                                        <div className="absolute bottom-8 right-1 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-opacity transition-transform duration-200 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
-                                                                            {file.imagehashtags.map((hashtag: any) => `#${hashtag.tiname}`).join(' ')}
-                                                                        </div>
-                                                                    </div>
+                                                            <div className="relative">
+                                                                <div className="absolute bottom-1 right-1 bg-gray-700/40 text-white text-xs px-2 py-1 rounded group">
+                                                                    {file.imageusertags?.length > 0 && (
+                                                                        <>
+                                                                            <a href="#" className="text-white" onClick={() => handleOpenTags(index)}>
+                                                                                @
+                                                                            </a>
+                                                                            <div className="absolute bottom-8 right-1 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-opacity transition-transform duration-200 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                                                                                {file.imageusertags.map((usertag: any) => `@${usertag.tuname}`).join(' ')}
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                    {file.imagehashtags?.length > 0 && (
+                                                                        <>
+                                                                            <a href="#" className="text-white" onClick={() => handleOpenTags(index)}>
+                                                                                #
+                                                                            </a>
+                                                                            <div className="absolute bottom-8 right-1 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-opacity transition-transform duration-200 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                                                                                {file.imagehashtags.map((hashtag: any) => `#${hashtag.tiname}`).join(' ')}
+                                                                            </div>
+                                                                        </>
+                                                                    )}
                                                                 </div>
-                                                            )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     {
@@ -769,60 +897,61 @@ export default function Page() {
 
                                 </div>
 
-                                {isModalUploadImagesOpen && (
-                                    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-50">
-                                        {!uploading && (
-                                            <div
-                                                style={{ width: 500, height: 70 }}
-                                                {...getRootPropsImages()}
-                                                className={`border-2 ${isDragActive ? 'border-green-500' : 'border-green-900'} rounded-md p-5 text-center cursor-pointer transition-colors duration-200`}
-                                            >
-                                                <input {...getInputPropsImages()} />
-                                                <div className="text-green-700">
-                                                    {isDragActive ?
-                                                        "Drop the files here ..." :
-                                                        "Drag & drop some files here, or click to select files"}
+                                {
+                                    isModalUploadImagesOpen && (
+                                        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-50">
+                                            {!uploading && (
+                                                <div
+                                                    style={{ width: 500, height: 70 }}
+                                                    {...getRootPropsImages()}
+                                                    className={`border-2 ${isDragActive ? 'border-green-500' : 'border-green-900'} rounded-md p-5 text-center cursor-pointer transition-colors duration-200`}
+                                                >
+                                                    <input {...getInputPropsImages()} />
+                                                    <div className="text-green-700">
+                                                        {isDragActive ?
+                                                            "Drop the files here ..." :
+                                                            "Drag & drop some files here, or click to select files"}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
-                                        <div className="mt-4">
-                                            {files.map((file) => (
-                                                <div key={file.name} className="mb-2 mr-5 ml-5">
-                                                    <div className={`text-green-700 text-sm ${uploadProgress[file.name]?.error ? 'text-red-700' : 'text-green-700'}`} style={{ minWidth: '480px' }}>
-                                                        {file.name} ({uploadProgress[file.name]?.progress || 0}%)
-                                                        {uploadProgress[file.name]?.speed > 0 &&
-                                                            ` - ${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`
+                                            )}
+                                            <div className="mt-4">
+                                                {files.map((file) => (
+                                                    <div key={file.name} className="mb-2 mr-5 ml-5">
+                                                        <div className={`text-green-700 text-sm ${uploadProgress[file.name]?.error ? 'text-red-700' : 'text-green-700'}`} style={{ minWidth: '480px' }}>
+                                                            {file.name} ({uploadProgress[file.name]?.progress || 0}%)
+                                                            {uploadProgress[file.name]?.speed > 0 &&
+                                                                ` - ${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`
+                                                            }
+                                                        </div>
+                                                        {uploadProgress[file.name]?.error ?
+                                                            <span className="text-red-700 text-xs">- {uploadProgress[file.name]?.error}</span>
+                                                            :
+                                                            <div className="w-full h-2 bg-gray-700 rounded-full">
+                                                                <div className="h-full bg-green-500 rounded-full" style={{ width: `${uploadProgress[file.name]?.progress || 0}%` }}></div>
+                                                            </div>
                                                         }
                                                     </div>
-                                                    {uploadProgress[file.name]?.error ?
-                                                        <span className="text-red-700 text-xs">- {uploadProgress[file.name]?.error}</span>
-                                                        :
-                                                        <div className="w-full h-2 bg-gray-700 rounded-full">
-                                                            <div className="h-full bg-green-500 rounded-full" style={{ width: `${uploadProgress[file.name]?.progress || 0}%` }}></div>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="flex flex items-center justify-center gap-4 mt-4">
-                                            <button
-                                                className="mt-4 px-4 py-1 border border-red-900 text-red-700 rounded-lg hover:border-red-500 hover:text-red-500 focus:ring-2 focus:ring-red-500 flex items-center"
-                                                onClick={closeModalUploadImages}
-                                            >
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 24 24"
-                                                    width="18"
-                                                    height="18"
-                                                    className="mr-2 transform transition-transform duration-200 hover:scale-110"
+                                                ))}
+                                            </div>
+                                            <div className="flex flex items-center justify-center gap-4 mt-4">
+                                                <button
+                                                    className="mt-4 px-4 py-1 border border-red-900 text-red-700 rounded-lg hover:border-red-500 hover:text-red-500 focus:ring-2 focus:ring-red-500 flex items-center"
+                                                    onClick={closeModalUploadImages}
                                                 >
-                                                    <path d="M6 6L18 18M18 6L6 18" stroke="red" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                </svg>
-                                                Close
-                                            </button>
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 24 24"
+                                                        width="18"
+                                                        height="18"
+                                                        className="mr-2 transform transition-transform duration-200 hover:scale-110"
+                                                    >
+                                                        <path d="M6 6L18 18M18 6L6 18" stroke="red" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                    Close
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                )
+                                    )
                                 }
 
 
