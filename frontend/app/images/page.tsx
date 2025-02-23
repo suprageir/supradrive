@@ -50,6 +50,10 @@ export default function Page() {
     const [myUserTags, setMyUserTags] = useState<any[]>([]);
     const inputUserTagsRef = useRef<HTMLInputElement>(null);
     const [startX, setStartX] = useState<number | null>(null);
+    const [currentImageLocationTags, setCurrentImageLocationTags] = useState<string[]>([]);
+    const [inputValueLocation, setInputValueLocation] = useState<string>('');
+    const [myLocationTags, setMyLocationTags] = useState<any[]>([]);
+    const inputLocationRef = useRef<HTMLInputElement>(null);
 
     const filteredHashtags = myHashtags?.filter(
         (tag: any) =>
@@ -66,6 +70,15 @@ export default function Page() {
     );
 
     const firstMatchUser = filteredUserTags?.length ? filteredUserTags[0] : null;
+
+    const filteredLocationTags = myLocationTags?.filter(
+        (tag: any) =>
+            tag?.tlname?.toLowerCase().startsWith(inputValueLocation.toLowerCase()) &&
+            !currentImageLocationTags?.includes(tag?.tlname.toLowerCase())
+    );
+
+    const firstMatchLocation = filteredLocationTags?.length ? filteredLocationTags[0] : null;
+
 
     const handleKeyDownUserTags = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Tab" && !firstMatchUser) {
@@ -104,6 +117,24 @@ export default function Page() {
         setInputValueUserTags('');
     };
 
+    const addTagLocation = async (tag: string) => {
+        if (!currentImageLocationTags.includes(tag)) {
+            const json = {
+                tlname: tag,
+            }
+            const tagjson = JSON.stringify(json);
+            await axios.post(APIURL + "/supradrive/images/locationtag/" + imagesFiles[imageTagIndex].imageid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+                .then((response) => {
+                    setMyLocationTags(response.data);
+                    setCurrentImageLocationTags([...currentImageLocationTags, tag]);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
+        setInputValueLocation('');
+    };
+
     const removeTagUser = async (tag: string) => {
         const tagid = myUserTags.find((t: any) => t.tuname === tag)?.tuid;
         await axios.delete(APIURL + "/supradrive/images/usertag/" + imagesFiles[imageTagIndex].imageid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
@@ -115,6 +146,19 @@ export default function Page() {
                 console.log(error);
             });
     };
+
+    const removeTagLocation = async (tag: string) => {
+        const tagid = myLocationTags.find((t: any) => t.tlname === tag)?.tlid;
+        await axios.delete(APIURL + "/supradrive/images/locationtag/" + imagesFiles[imageTagIndex].imageid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+            .then((response) => {
+                setMyLocationTags(response.data);
+                setCurrentImageLocationTags(currentImageLocationTags.filter((t: string) => t !== tag));
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    };
+
 
     const handleKeyDownHashtags = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Tab" && !firstMatch) {
@@ -131,6 +175,25 @@ export default function Page() {
             if (inputValueHashtags.trim()) {
                 addTag(inputValueHashtags.trim());
                 setInputValueHashtags("");
+            }
+        }
+    };
+
+    const handleKeyDownLocation = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "Tab" && !firstMatchLocation) {
+            e.preventDefault();
+            inputLocationRef.current?.focus();
+        } else if (e.key === "Tab" && firstMatch) {
+            e.preventDefault();
+            if (firstMatchLocation.tlname) {
+                addTagLocation(firstMatchLocation.tlname);
+                setInputValueLocation("");
+            }
+        } else if (e.key === "Enter" && inputValueLocation.trim()) {
+            e.preventDefault();
+            if (inputValueLocation.trim()) {
+                addTagLocation(inputValueLocation.trim());
+                setInputValueLocation("");
             }
         }
     };
@@ -358,12 +421,14 @@ export default function Page() {
         setImageTagIndex(imageid);
         setCurrentImageTags(imagesFiles[imageid]?.imagehashtags.map((tag: any) => tag.tiname));
         setCurrentImageUserTags(imagesFiles[imageid]?.imageusertags.map((tag: any) => tag.tuname));
+        setCurrentImageLocationTags(imagesFiles[imageid]?.imagelocationtags.map((tag: any) => tag.tlname));
     }
     const handleCloseTags = () => {
         getFilesAndFolders(folderid);
         setTags(false);
         setCurrentImageTags([]);
         setCurrentImageUserTags([]);
+        setCurrentImageLocationTags([]);
     }
 
     const openModalNewFolder = () => {
@@ -550,6 +615,9 @@ export default function Page() {
             if (document.activeElement === inputHashtagsRef.current) {
                 setStartX(e.touches[0].clientX);
             }
+            if (document.activeElement === inputLocationRef.current) {
+                setStartX(e.touches[0].clientX);
+            }
         };
 
         const handleTouchEnd = (e: TouchEvent) => {
@@ -565,6 +633,14 @@ export default function Page() {
                 const endX = e.changedTouches[0].clientX;
                 if (endX - startX > 50) {
                     if (firstMatch) {
+                        addTag(firstMatch.tiname);
+                    }
+                }
+            }
+            if (document.activeElement === inputLocationRef.current && startX !== null) {
+                const endX = e.changedTouches[0].clientX;
+                if (endX - startX > 50) {
+                    if (firstMatchLocation) {
                         addTag(firstMatch.tiname);
                     }
                 }
@@ -625,39 +701,6 @@ export default function Page() {
                             <input
                                 type="text"
                                 className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
-                                value={firstMatch && inputValueHashtags ? firstMatch.tiname : ""}
-                                readOnly
-                            />
-                            <input
-                                ref={inputHashtagsRef}
-                                type="text"
-                                className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
-                                value={inputValueHashtags}
-                                onChange={(e) => setInputValueHashtags(e.target.value)}
-                                onKeyDown={handleKeyDownHashtags}
-                                placeholder="Add hashtags..."
-                            />
-                        </div>
-                    </form>
-                </div>
-                <div className="mt-5">
-                    <div className="w-full max-w-lg p-3 rounded-lg">
-                        <div className="mt-2 flex flex-wrap gap-2">
-                            {currentImageTags?.map((tag, index) => (
-                                <span key={index} className="text-xs text-green-700 px-2 py-1 border border-green-900 rounded-full cursor-pointer">
-                                    #{tag} <span className="text-red-900" onClick={() => removeTag(tag)}>✕</span>
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="w-full max-w-lg p-3 rounded-lg relative">
-                    <form onSubmit={(e) => e.preventDefault()}>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
                                 value={firstMatchUser && inputValueUserTags ? firstMatchUser.tuname : ""}
                                 readOnly
                             />
@@ -684,7 +727,73 @@ export default function Page() {
                         </div>
                     </div>
                 </div>
-            </div >
+                <div className="w-full max-w-lg p-3 rounded-lg relative">
+                    <form onSubmit={(e) => e.preventDefault()}>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                                value={firstMatchLocation && inputValueLocation ? firstMatchLocation.tlname : ""}
+                                readOnly
+                            />
+                            <input
+                                ref={inputUserTagsRef}
+                                type="text"
+                                className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                                value={inputValueLocation}
+                                onChange={(e) => setInputValueLocation(e.target.value)}
+                                onKeyDown={handleKeyDownLocation}
+                                placeholder="Add location..."
+                            />
+                        </div>
+                    </form>
+                </div>
+                <div className="mt-5">
+                    <div className="w-full max-w-lg p-3 rounded-lg">
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            {currentImageLocationTags?.map((tag, index) => (
+                                <span key={index} className="text-xs text-green-700 px-2 py-1 border border-green-900 rounded-full cursor-pointer">
+                                    #{tag} <span className="text-red-900" onClick={() => removeTagLocation(tag)}>✕</span>
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <div className="w-full max-w-lg p-3 rounded-lg relative">
+                    <form onSubmit={(e) => e.preventDefault()}>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                                value={firstMatch && inputValueHashtags ? firstMatch.tiname : ""}
+                                readOnly
+                            />
+                            <input
+                                ref={inputHashtagsRef}
+                                type="text"
+                                className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                                value={inputValueHashtags}
+                                onChange={(e) => setInputValueHashtags(e.target.value)}
+                                onKeyDown={handleKeyDownHashtags}
+                                placeholder="Add hashtags..."
+                            />
+                        </div>
+                    </form>
+                </div>
+                <div className="mt-5">
+                    <div className="w-full max-w-lg p-3 rounded-lg">
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            {currentImageTags?.map((tag, index) => (
+                                <span key={index} className="text-xs text-green-700 px-2 py-1 border border-green-900 rounded-full cursor-pointer">
+                                    #{tag} <span className="text-red-900" onClick={() => removeTag(tag)}>✕</span>
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
         );
     }
 
@@ -907,6 +1016,16 @@ export default function Page() {
                                                                             </a>
                                                                             <div className="absolute bottom-8 right-1 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-opacity transition-transform duration-200 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
                                                                                 {file.imagehashtags.map((hashtag: any) => `#${hashtag.tiname}`).join(' ')}
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                    {file.imagelocationtags?.length > 0 && (
+                                                                        <>
+                                                                            <a href="#" className="text-white" onClick={() => handleOpenTags(index)}>
+                                                                                &
+                                                                            </a>
+                                                                            <div className="absolute bottom-8 right-1 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-opacity transition-transform duration-200 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                                                                                {file.imagelocationtags.map((locationtag: any) => `@${locationtag.tlname}`).join(' ')}
                                                                             </div>
                                                                         </>
                                                                     )}

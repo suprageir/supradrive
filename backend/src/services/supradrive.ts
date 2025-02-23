@@ -102,6 +102,19 @@ export abstract class sqlSupraDrive {
         }
     }
 
+    public static async SupraDriveGetImageLocationTags(userid: number, username: string): Promise<any> {
+        try {
+            const query = `SELECT * FROM tagslocations WHERE tluserid = ?`;
+            const values = [userid];
+            const [result] = await supradrive.query(query, values);
+            return result;
+        } catch (e: any) {
+            console.log(e);
+            return [];
+        }
+    }
+
+
     public static async SupraDriveGetImageUserTags(userid: number, username: string): Promise<any> {
         try {
             const query = `SELECT * FROM tagsusers WHERE tuuserid = ?`;
@@ -171,14 +184,14 @@ export abstract class sqlSupraDrive {
         var tuid = 0;
         try {
             const query = `SELECT tuid FROM tagsusers WHERE tuname = ? AND tuuserid = ?`;
-            const values = [body.tiname, userid];
+            const values = [body.tuname, userid];
             var [result] = await supradrive.query(query, values);
             tuid = result?.[0]?.tuid || 0;
         } catch (e: any) {
             console.log(e);
             return [];
         }
-        if (result.length === 0) {
+        if (tuid === 0) {
             try {
                 const query = `INSERT INTO tagsusers (tuuserid, tuname) VALUES (?, ?)`;
                 const values = [userid, body.tuname];
@@ -219,6 +232,61 @@ export abstract class sqlSupraDrive {
             return [];
         }
     }
+
+
+    public static async SupraDriveAddImageLocationTag(userid: number, username: string, imageid: number, body: any): Promise<any> {
+        var tlid = 0;
+        try {
+            const query = `SELECT tlid FROM tagslocations WHERE tlname = ? AND tluserid = ?`;
+            const values = [body.tlname, userid];
+            var [result] = await supradrive.query(query, values);
+            tlid = result?.[0]?.tlid || 0;
+        } catch (e: any) {
+            console.log(e);
+            return [];
+        }
+        if (tlid === 0) {
+            try {
+                const query = `INSERT INTO tagslocations (tluserid, tlname) VALUES (?, ?)`;
+                const values = [userid, body.tlname];
+                let [insertresult] = await supradrive.query(query, values);
+                tlid = insertresult.insertId;
+            } catch (e: any) {
+                console.log(e);
+                return [];
+            }
+        }
+        if (tlid > 0) {
+            try {
+                const query = `SELECT ilid FROM imageslocations WHERE iluserid = ? AND ilimageid = ? AND iltlid = ?`;
+                const values = [userid, imageid, tlid];
+                var [result] = await supradrive.query(query, values);
+                if (result.length === 0) {
+                    try {
+                        const query = `INSERT INTO imageslocations (iluserid, ilimageid, iltlid) VALUES (?, ?, ?)`;
+                        const values = [userid, imageid, tlid];
+                        await supradrive.query(query, values);
+                    } catch (e: any) {
+                        console.log(e);
+                        return [];
+                    }
+                }
+            } catch (e: any) {
+                console.log(e);
+                return [];
+            }
+        }
+        try {
+            const query = `SELECT * FROM tagslocations WHERE tluserid = ?`;
+            const values = [userid];
+            const [result] = await supradrive.query(query, values);
+            return result;
+        } catch (e: any) {
+            console.log(e);
+            return [];
+        }
+    }
+
 
     public static async SupraDriveRemoveImageTag(userid: number, username: string, imageid: number, tagid: number): Promise<any> {
         try {
@@ -281,6 +349,41 @@ export abstract class sqlSupraDrive {
 
         try {
             const query = `SELECT * FROM tagsusers WHERE tuuserid = ?`;
+            const values = [userid];
+            const [result] = await supradrive.query(query, values);
+            return result;
+        } catch (e: any) {
+            console.log(e);
+            return [];
+        }
+    }
+
+    public static async SupraDriveRemoveImageLocationTag(userid: number, username: string, imageid: number, tagid: number): Promise<any> {
+        try {
+            const query = `DELETE FROM imageslocations WHERE iluserid = ? AND ilimageid = ? AND iltlid = ?`;
+            const values = [userid, imageid, tagid];
+            await supradrive.query(query, values);
+        } catch (e: any) {
+            console.log(e);
+            return [];
+        }
+
+        try {
+            const query = `SELECT COUNT(ilid) AS count FROM imageslocations WHERE iltlid = ?`;
+            const values = [tagid];
+            const [result] = await supradrive.query(query, values);
+            if (result[0].count === 0) {
+                const query = `DELETE FROM tagslocations WHERE tluserid = ? AND tlid = ?`;
+                const values = [userid, tagid];
+                await supradrive.query(query, values);
+            }
+        } catch (e: any) {
+            console.log(e);
+            return [];
+        }
+
+        try {
+            const query = `SELECT * FROM tagslocations WHERE tluserid = ?`;
             const values = [userid];
             const [result] = await supradrive.query(query, values);
             return result;
@@ -692,7 +795,15 @@ export abstract class sqlSupraDrive {
                         console.log(e);
                     }
 
-                    return { ...file, base64Thumbnail, imagehashtags, imageusertags };
+                    let imagelocationtags = [];
+                    try {
+                        const [ltags] = await supradrive.query(`SELECT l.ilid,l.ilimageid,l.iltlid,n.tlname FROM imageslocations l LEFT OUTER JOIN tagslocations n ON n.tlid = l.iltlid WHERE l.ilimageid = ?`, [file.imageid]);
+                        imagelocationtags = ltags;
+                    } catch (e) {
+                        console.log(e);
+                    }
+
+                    return { ...file, base64Thumbnail, imagehashtags, imageusertags, imagelocationtags };
                 }));
 
             } catch (e) {
