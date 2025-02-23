@@ -323,7 +323,8 @@ export default function Page() {
                     }
                 },
             });
-            if (response.status === 200 && response.data.status === "success") {
+            const resdata = JSON.parse(response.data);
+            if (resdata.code === 200 && resdata.status === "success") {
                 setUploadProgress(prevProgress => ({
                     ...prevProgress,
                     [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
@@ -332,15 +333,15 @@ export default function Page() {
             } else {
                 setUploadProgress(prevProgress => ({
                     ...prevProgress,
-                    [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: response.data.message }
+                    [file.name]: { progress: 0, speed: 0, timeRemaining: "", error: resdata.message }
                 }));
             }
             handleUploadNextFile(index + 1, fileQueue);
         } catch (error: any) {
-            const errorMessage = JSON.parse(JSON.stringify(error.response.data));
+            const errorMessage = JSON.parse(error.response.data);
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
-                [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
+                [file.name]: { progress: 0, speed: 0, timeRemaining: "", error: errorMessage.message }
             }));
             handleUploadNextFile(index + 1, fileQueue);
         }
@@ -1078,23 +1079,37 @@ export default function Page() {
                                                 </div>
                                             )}
                                             <div className="mt-4">
-                                                {files.map((file) => (
-                                                    <div key={file.name} className="mb-2 mr-5 ml-5">
-                                                        <div className={`text-green-700 text-sm ${uploadProgress[file.name]?.error ? 'text-red-700' : 'text-green-700'}`} style={{ minWidth: '480px' }}>
-                                                            {file.name} ({uploadProgress[file.name]?.progress || 0}%)
-                                                            {uploadProgress[file.name]?.speed > 0 &&
-                                                                ` - ${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`
-                                                            }
-                                                        </div>
-                                                        {uploadProgress[file.name]?.error ?
-                                                            <span className="text-red-700 text-xs">- {uploadProgress[file.name]?.error}</span>
-                                                            :
-                                                            <div className="w-full h-2 bg-gray-700 rounded-full">
-                                                                <div className="h-full bg-green-500 rounded-full" style={{ width: `${uploadProgress[file.name]?.progress || 0}%` }}></div>
+                                                {files
+                                                    .filter((file) => (uploadProgress[file.name]?.progress !== 100 || uploadProgress[file.name]?.error !== undefined))
+                                                    .map((file) => (
+                                                        <div key={file.name} className="mb-2 mr-5 ml-5">
+                                                            <div
+                                                                className={`text-green-700 text-sm ${uploadProgress[file.name]?.error ? 'text-red-700' : 'text-green-700'
+                                                                    }`}
+                                                                style={{ minWidth: '480px' }}
+                                                            >
+                                                                {file.name} ({uploadProgress[file.name]?.progress || 0}%)
+                                                                {uploadProgress[file.name]?.speed > 0 &&
+                                                                    ` - ${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`}
                                                             </div>
-                                                        }
-                                                    </div>
-                                                ))}
+                                                            {uploadProgress[file.name]?.error ? (
+                                                                <span className="text-red-700 text-xs">- {uploadProgress[file.name]?.error}</span>
+                                                            ) : (
+                                                                <div className="w-full h-2 bg-gray-700 rounded-full">
+                                                                    error: {uploadProgress[file.name]?.error}
+                                                                    <div
+                                                                        className="h-full bg-green-500 rounded-full"
+                                                                        style={{ width: `${uploadProgress[file.name]?.progress || 0}%` }}
+                                                                    ></div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                            <div className="flex flex items-center justify-center gap-4 mt-4">
+                                                Total files: <span className="text-green-700 text-sm">{files.length}</span>
+                                                Success: <span className="text-green-700 text-sm">{Object.values(uploadProgress).filter((file: any) => file.progress === 100).length}</span>
+                                                Error: <span className="text-red-700 text-sm">{Object.values(uploadProgress).filter((file: any) => file.progress === 0).length}</span>
                                             </div>
                                             <div className="flex flex items-center justify-center gap-4 mt-4">
                                                 <button
