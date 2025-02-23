@@ -553,7 +553,9 @@ export default function Page() {
             if (document.activeElement === inputUserTagsRef.current && startX !== null) {
                 const endX = e.changedTouches[0].clientX;
                 if (endX - startX > 50) {
-                    addTagUser(firstMatchUser?.tuname || "");
+                    if (firstMatchUser) {
+                        addTagUser(firstMatchUser.tuname);
+                    }
                 }
             }
         };
@@ -607,23 +609,25 @@ export default function Page() {
                     }}
                 />
                 <div className="w-full max-w-lg p-3 rounded-lg relative">
-                    <div className="relative">
-                        <input
-                            type="text"
-                            className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
-                            value={firstMatch && inputValueHashtags ? firstMatch.tiname : ""}
-                            readOnly
-                        />
-                        <input
-                            ref={inputHashtagsRef}
-                            type="text"
-                            className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
-                            value={inputValueHashtags}
-                            onChange={(e) => setInputValueHashtags(e.target.value)}
-                            onKeyDown={handleKeyDownHashtags}
-                            placeholder="Add hashtags..."
-                        />
-                    </div>
+                    <form onSubmit={(e) => e.preventDefault()}>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                                value={firstMatch && inputValueHashtags ? firstMatch.tiname : ""}
+                                readOnly
+                            />
+                            <input
+                                ref={inputHashtagsRef}
+                                type="text"
+                                className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                                value={inputValueHashtags}
+                                onChange={(e) => setInputValueHashtags(e.target.value)}
+                                onKeyDown={handleKeyDownHashtags}
+                                placeholder="Add hashtags..."
+                            />
+                        </div>
+                    </form>
                 </div>
                 <div className="mt-5">
                     <div className="w-full max-w-lg p-3 rounded-lg">
@@ -639,21 +643,23 @@ export default function Page() {
 
                 <div className="w-full max-w-lg p-3 rounded-lg relative">
                     <div className="relative">
-                        <input
-                            type="text"
-                            className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
-                            value={firstMatchUser && inputValueUserTags ? firstMatchUser.tuname : ""}
-                            readOnly
-                        />
-                        <input
-                            ref={inputUserTagsRef}
-                            type="text"
-                            className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
-                            value={inputValueUserTags}
-                            onChange={(e) => setInputValueUserTags(e.target.value)}
-                            onKeyDown={handleKeyDownUserTags}
-                            placeholder="Add people..."
-                        />
+                        <form onSubmit={(e) => e.preventDefault()}>
+                            <input
+                                type="text"
+                                className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                                value={firstMatchUser && inputValueUserTags ? firstMatchUser.tuname : ""}
+                                readOnly
+                            />
+                            <input
+                                ref={inputUserTagsRef}
+                                type="text"
+                                className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
+                                value={inputValueUserTags}
+                                onChange={(e) => setInputValueUserTags(e.target.value)}
+                                onKeyDown={handleKeyDownUserTags}
+                                placeholder="Add people..."
+                            />
+                        </form>
                     </div>
                 </div>
                 <div className="mt-5">
@@ -667,7 +673,7 @@ export default function Page() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
         );
     }
 
