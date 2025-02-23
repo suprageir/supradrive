@@ -641,7 +641,7 @@ export default function Page() {
                 const endX = e.changedTouches[0].clientX;
                 if (endX - startX > 50) {
                     if (firstMatchLocation) {
-                        addTag(firstMatch.tiname);
+                        addTagLocation(firstMatchLocation.tlname);
                     }
                 }
             }
