@@ -52,17 +52,17 @@ export default function Page() {
     const [startX, setStartX] = useState<number | null>(null);
 
     const filteredHashtags = myHashtags?.filter(
-        (tag) =>
+        (tag: any) =>
             tag?.tiname?.toLowerCase().startsWith(inputValueHashtags.toLowerCase()) &&
-            !currentImageTags.includes(tag?.tiname)
+            !currentImageTags?.includes(tag?.tiname.toLowerCase())
     );
 
     const firstMatch = filteredHashtags?.length ? filteredHashtags[0] : null;
 
     const filteredUserTags = myUserTags?.filter(
-        (tag) =>
+        (tag: any) =>
             tag?.tuname?.toLowerCase().startsWith(inputValueUserTags.toLowerCase()) &&
-            !currentImageUserTags.includes(tag?.tuname)
+            !currentImageUserTags?.includes(tag?.tuname.toLowerCase())
     );
 
     const firstMatchUser = filteredUserTags?.length ? filteredUserTags[0] : null;
@@ -547,6 +547,9 @@ export default function Page() {
             if (document.activeElement === inputUserTagsRef.current) {
                 setStartX(e.touches[0].clientX);
             }
+            if (document.activeElement === inputHashtagsRef.current) {
+                setStartX(e.touches[0].clientX);
+            }
         };
 
         const handleTouchEnd = (e: TouchEvent) => {
@@ -640,7 +643,7 @@ export default function Page() {
                 <div className="mt-5">
                     <div className="w-full max-w-lg p-3 rounded-lg">
                         <div className="mt-2 flex flex-wrap gap-2">
-                            {currentImageTags.map((tag, index) => (
+                            {currentImageTags?.map((tag, index) => (
                                 <span key={index} className="text-xs text-green-700 px-2 py-1 border border-green-900 rounded-full cursor-pointer">
                                     #{tag} <span className="text-red-900" onClick={() => removeTag(tag)}>✕</span>
                                 </span>
@@ -673,7 +676,7 @@ export default function Page() {
                 <div className="mt-5">
                     <div className="w-full max-w-lg p-3 rounded-lg">
                         <div className="mt-2 flex flex-wrap gap-2">
-                            {currentImageUserTags.map((tag, index) => (
+                            {currentImageUserTags?.map((tag, index) => (
                                 <span key={index} className="text-xs text-green-700 px-2 py-1 border border-green-900 rounded-full cursor-pointer">
                                     @{tag} <span className="text-red-900" onClick={() => removeTagUser(tag)}>✕</span>
                                 </span>
