@@ -55,27 +55,32 @@ export default function Page() {
     const [myLocationTags, setMyLocationTags] = useState<any[]>([]);
     const inputLocationRef = useRef<HTMLInputElement>(null);
 
-    const filteredHashtags = myHashtags?.filter(
-        (tag: any) =>
-            tag?.hashtag?.toLowerCase().startsWith(inputValueHashtags.toLowerCase()) &&
-            !currentImageTags?.includes(tag?.hashtag.toLowerCase())
-    );
+    const filteredHashtags = inputValueHashtags
+        ? myHashtags?.filter(
+            (tag: any) =>
+                tag?.hashtag?.toLowerCase().startsWith(inputValueHashtags.toLowerCase()) &&
+                !currentImageTags?.includes(tag?.hashtag.toLowerCase())
+        )
+        : null;
 
     const firstMatch = filteredHashtags?.length ? filteredHashtags[0] : null;
 
-    const filteredUserTags = myUserTags?.filter(
-        (tag: any) =>
-            tag?.user?.toLowerCase().startsWith(inputValueUserTags.toLowerCase()) &&
-            !currentImageUserTags?.includes(tag?.user.toLowerCase())
-    );
-
+    const filteredUserTags = inputValueUserTags
+        ? myUserTags?.filter(
+            (tag: any) =>
+                tag?.user?.toLowerCase().startsWith(inputValueUserTags.toLowerCase()) &&
+                !currentImageUserTags?.includes(tag?.user.toLowerCase())
+        )
+        : null;
     const firstMatchUser = filteredUserTags?.length ? filteredUserTags[0] : null;
 
-    const filteredLocationTags = myLocationTags?.filter(
-        (tag: any) =>
-            tag?.location?.toLowerCase().startsWith(inputValueLocation.toLowerCase()) &&
-            !currentImageLocationTags?.includes(tag?.location.toLowerCase())
-    );
+    const filteredLocationTags = inputValueLocation
+        ? myLocationTags?.filter(
+            (tag: any) =>
+                tag?.location?.toLowerCase().startsWith(inputValueLocation.toLowerCase()) &&
+                !currentImageLocationTags?.includes(tag?.location.toLowerCase())
+        )
+        : null;
 
     const firstMatchLocation = filteredLocationTags?.length ? filteredLocationTags[0] : null;
 
@@ -89,6 +94,7 @@ export default function Page() {
                 addTagUser(firstMatchUser.user.toLowerCase());
                 setInputValueUserTags("");
             }
+            inputUserTagsRef.current?.focus();
         } else if (e.key === "Enter" && inputValueUserTags.trim()) {
             e.preventDefault();
             if (inputValueUserTags.trim()) {
@@ -136,7 +142,7 @@ export default function Page() {
     };
 
     const removeTagUser = async (tag: string) => {
-        const tagid = myUserTags.find((t: any) => t.user === tag)?.uid;
+        const tagid = myUserTags.find((t: any) => t.user === tag)?.id;
         await axios.delete(APIURL + "/supradrive/images/usertag/" + imagesFiles[imageTagIndex].imageid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then((response) => {
                 setMyUserTags(response.data);
@@ -160,7 +166,7 @@ export default function Page() {
     };
 
     const handleKeyDownHashtags = (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === "Tab" && !firstMatch) {
+        if (e.key === "Tab" && !firstMatch && inputValueHashtags.trim() === "") {
             e.preventDefault();
             inputHashtagsRef.current?.focus();
         } else if (e.key === "Tab" && firstMatch) {
@@ -179,7 +185,7 @@ export default function Page() {
     };
 
     const handleKeyDownLocation = (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === "Tab" && !firstMatchLocation) {
+        if (e.key === "Tab" && !firstMatchLocation && inputValueLocation.trim() === "") {
             e.preventDefault();
             inputLocationRef.current?.focus();
         } else if (e.key === "Tab" && firstMatchLocation) {
