@@ -57,28 +57,27 @@ export default function Page() {
 
     const filteredHashtags = myHashtags?.filter(
         (tag: any) =>
-            tag?.tiname?.toLowerCase().startsWith(inputValueHashtags.toLowerCase()) &&
-            !currentImageTags?.includes(tag?.tiname.toLowerCase())
+            tag?.hashtag?.toLowerCase().startsWith(inputValueHashtags.toLowerCase()) &&
+            !currentImageTags?.includes(tag?.hashtag.toLowerCase())
     );
 
     const firstMatch = filteredHashtags?.length ? filteredHashtags[0] : null;
 
     const filteredUserTags = myUserTags?.filter(
         (tag: any) =>
-            tag?.tuname?.toLowerCase().startsWith(inputValueUserTags.toLowerCase()) &&
-            !currentImageUserTags?.includes(tag?.tuname.toLowerCase())
+            tag?.user?.toLowerCase().startsWith(inputValueUserTags.toLowerCase()) &&
+            !currentImageUserTags?.includes(tag?.user.toLowerCase())
     );
 
     const firstMatchUser = filteredUserTags?.length ? filteredUserTags[0] : null;
 
     const filteredLocationTags = myLocationTags?.filter(
         (tag: any) =>
-            tag?.tlname?.toLowerCase().startsWith(inputValueLocation.toLowerCase()) &&
-            !currentImageLocationTags?.includes(tag?.tlname.toLowerCase())
+            tag?.location?.toLowerCase().startsWith(inputValueLocation.toLowerCase()) &&
+            !currentImageLocationTags?.includes(tag?.location.toLowerCase())
     );
 
     const firstMatchLocation = filteredLocationTags?.length ? filteredLocationTags[0] : null;
-
 
     const handleKeyDownUserTags = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Tab" && !firstMatchUser) {
@@ -86,8 +85,8 @@ export default function Page() {
             inputUserTagsRef.current?.focus();
         } else if (e.key === "Tab" && firstMatchUser) {
             e.preventDefault();
-            if (firstMatchUser.tuname) {
-                addTagUser(firstMatchUser.tuname.toLowerCase());
+            if (firstMatchUser.user) {
+                addTagUser(firstMatchUser.user.toLowerCase());
                 setInputValueUserTags("");
             }
         } else if (e.key === "Enter" && inputValueUserTags.trim()) {
@@ -102,11 +101,12 @@ export default function Page() {
     const addTagUser = async (tag: string) => {
         if (!currentImageUserTags.includes(tag.toLowerCase())) {
             const json = {
-                tuname: tag.toLowerCase(),
+                user: tag.toLowerCase(),
             }
             const tagjson = JSON.stringify(json);
             await axios.post(APIURL + "/supradrive/images/usertag/" + imagesFiles[imageTagIndex].imageid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
                 .then((response) => {
+                    console.log(response.data);
                     setMyUserTags(response.data);
                     setCurrentImageUserTags([...currentImageUserTags, tag.toLowerCase()]);
                 })
@@ -120,7 +120,7 @@ export default function Page() {
     const addTagLocation = async (tag: string) => {
         if (!currentImageLocationTags.includes(tag.toLowerCase())) {
             const json = {
-                tlname: tag.toLowerCase(),
+                location: tag.toLowerCase(),
             }
             const tagjson = JSON.stringify(json);
             await axios.post(APIURL + "/supradrive/images/locationtag/" + imagesFiles[imageTagIndex].imageid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
@@ -136,7 +136,7 @@ export default function Page() {
     };
 
     const removeTagUser = async (tag: string) => {
-        const tagid = myUserTags.find((t: any) => t.tuname === tag)?.tuid;
+        const tagid = myUserTags.find((t: any) => t.user === tag)?.uid;
         await axios.delete(APIURL + "/supradrive/images/usertag/" + imagesFiles[imageTagIndex].imageid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then((response) => {
                 setMyUserTags(response.data);
@@ -148,7 +148,7 @@ export default function Page() {
     };
 
     const removeTagLocation = async (tag: string) => {
-        const tagid = myLocationTags.find((t: any) => t.tlname === tag)?.tlid;
+        const tagid = myLocationTags.find((t: any) => t.location === tag)?.id;
         await axios.delete(APIURL + "/supradrive/images/locationtag/" + imagesFiles[imageTagIndex].imageid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then((response) => {
                 setMyLocationTags(response.data);
@@ -165,8 +165,8 @@ export default function Page() {
             inputHashtagsRef.current?.focus();
         } else if (e.key === "Tab" && firstMatch) {
             e.preventDefault();
-            if (firstMatch.tiname) {
-                addTag(firstMatch.tiname.toLowerCase());
+            if (firstMatch.hashtag) {
+                addTag(firstMatch.hashtag.toLowerCase());
                 setInputValueHashtags("");
             }
         } else if (e.key === "Enter" && inputValueHashtags.trim()) {
@@ -182,10 +182,10 @@ export default function Page() {
         if (e.key === "Tab" && !firstMatchLocation) {
             e.preventDefault();
             inputLocationRef.current?.focus();
-        } else if (e.key === "Tab" && firstMatch) {
+        } else if (e.key === "Tab" && firstMatchLocation) {
             e.preventDefault();
-            if (firstMatchLocation.tlname) {
-                addTagLocation(firstMatchLocation.tlname.toLowerCase());
+            if (firstMatchLocation.location) {
+                addTagLocation(firstMatchLocation.location.toLowerCase());
                 setInputValueLocation("");
             }
         } else if (e.key === "Enter" && inputValueLocation.trim()) {
@@ -219,7 +219,7 @@ export default function Page() {
             try {
                 const response = await axios.post(
                     `${APIURL}/supradrive/images/tag/${imagesFiles[imageTagIndex].imageid}`,
-                    JSON.stringify({ tiname: tag.toLowerCase() }),
+                    JSON.stringify({ hashtag: tag.toLowerCase() }),
                     {
                         withCredentials: true,
                         headers: {
@@ -238,7 +238,7 @@ export default function Page() {
     };
 
     const removeTag = async (tag: string) => {
-        const tagid = myHashtags.find((t: any) => t.tiname === tag)?.tiid;
+        const tagid = myHashtags.find((t: any) => t.hashtag === tag)?.id;
         if (!tagid) return;
 
         try {
@@ -329,22 +329,20 @@ export default function Page() {
                     ...prevProgress,
                     [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
                 }));
-                handleUploadNextFile(index + 1, fileQueue);
             } else {
                 setUploadProgress(prevProgress => ({
                     ...prevProgress,
                     [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: resdata.message }
                 }));
             }
-            handleUploadNextFile(index + 1, fileQueue);
         } catch (error: any) {
             const errorMessage = JSON.parse(error.response.data);
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
                 [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
             }));
-            handleUploadNextFile(index + 1, fileQueue);
         }
+        handleUploadNextFile(index + 1, fileQueue);
     };
 
     const { getRootProps: getRootPropsImages, getInputProps: getInputPropsImages, isDragActive } = useDropzone({
@@ -419,9 +417,9 @@ export default function Page() {
     const handleOpenTags = (imageid: any) => {
         setTags(true);
         setImageTagIndex(imageid);
-        setCurrentImageTags(imagesFiles[imageid]?.imagehashtags.map((tag: any) => tag.tiname));
-        setCurrentImageUserTags(imagesFiles[imageid]?.imageusertags.map((tag: any) => tag.tuname));
-        setCurrentImageLocationTags(imagesFiles[imageid]?.imagelocationtags.map((tag: any) => tag.tlname));
+        setCurrentImageTags(imagesFiles[imageid]?.imagehashtags.map((tag: any) => tag.hashtag));
+        setCurrentImageUserTags(imagesFiles[imageid]?.imageusertags.map((tag: any) => tag.user));
+        setCurrentImageLocationTags(imagesFiles[imageid]?.imagelocationtags.map((tag: any) => tag.location));
     }
     const handleCloseTags = () => {
         getFilesAndFolders(folderid);
@@ -454,6 +452,7 @@ export default function Page() {
         const folderidext = folderiduse ?? folderid;
         axios.get(APIURL + "/supradrive/images/folder/" + folderidext, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
+                console.log(response.data);
                 setImagesFolders(response.data[0]?.folders);
                 setImagesFiles(response.data[0]?.files);
             })
@@ -475,13 +474,24 @@ export default function Page() {
     const getImageUserTags = async () => {
         axios.get(APIURL + "/supradrive/images/usertags", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
-                console.log(response.data);
                 setMyUserTags(response.data);
             })
             .catch((error) => {
                 console.log(error);
             });
     };
+
+    const getImageLocationTags = async () => {
+        axios.get(APIURL + "/supradrive/images/locationtags", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+            .then(async (response) => {
+                console.log(response.data);
+                setMyLocationTags(response.data);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    };
+
 
     const handleViewImage = (imageid: number) => {
         axios.get(APIURL + "/supradrive/image/" + imageid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
@@ -534,6 +544,7 @@ export default function Page() {
         getFilesAndFolders(folderid);
         getImageTags();
         getImageUserTags();
+        getImageLocationTags();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -701,7 +712,7 @@ export default function Page() {
                             <input
                                 type="text"
                                 className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
-                                value={firstMatchUser && inputValueUserTags ? firstMatchUser.tuname : ""}
+                                value={firstMatchUser && inputValueUserTags ? firstMatchUser.user : ""}
                                 readOnly
                             />
                             <input
@@ -733,7 +744,7 @@ export default function Page() {
                             <input
                                 type="text"
                                 className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
-                                value={firstMatchLocation && inputValueLocation ? firstMatchLocation.tlname : ""}
+                                value={firstMatchLocation && inputValueLocation ? firstMatchLocation.location : ""}
                                 readOnly
                             />
                             <input
@@ -765,7 +776,7 @@ export default function Page() {
                             <input
                                 type="text"
                                 className="w-full border border-green-900 p-2 rounded-lg absolute top-0 left-0 bg-black/40 focus:outline-none focus:ring-0 focus:border-green-500"
-                                value={firstMatch && inputValueHashtags ? firstMatch.tiname : ""}
+                                value={firstMatch && inputValueHashtags ? firstMatch.hashtag : ""}
                                 readOnly
                             />
                             <input
@@ -1005,7 +1016,7 @@ export default function Page() {
                                                                                 @
                                                                             </a>
                                                                             <div className="absolute bottom-8 right-1 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-opacity transition-transform duration-200 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
-                                                                                {file.imageusertags.map((usertag: any) => `@${usertag.tuname}`).join(' ')}
+                                                                                {file.imageusertags.map((usertag: any) => `@${usertag.user}`).join(' ')}
                                                                             </div>
                                                                         </>
                                                                     )}
@@ -1015,7 +1026,7 @@ export default function Page() {
                                                                                 #
                                                                             </a>
                                                                             <div className="absolute bottom-8 right-1 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-opacity transition-transform duration-200 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
-                                                                                {file.imagehashtags.map((hashtag: any) => `#${hashtag.tiname}`).join(' ')}
+                                                                                {file.imagehashtags.map((hashtag: any) => `#${hashtag.hashtag}`).join(' ')}
                                                                             </div>
                                                                         </>
                                                                     )}
@@ -1025,7 +1036,7 @@ export default function Page() {
                                                                                 &
                                                                             </a>
                                                                             <div className="absolute bottom-8 right-1 scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-opacity transition-transform duration-200 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
-                                                                                {file.imagelocationtags.map((locationtag: any) => `@${locationtag.tlname}`).join(' ')}
+                                                                                {file.imagelocationtags.map((locationtag: any) => `@${locationtag.location}`).join(' ')}
                                                                             </div>
                                                                         </>
                                                                     )}
@@ -1083,15 +1094,17 @@ export default function Page() {
                                                     .filter((file) => (uploadProgress[file.name]?.progress !== 100 || uploadProgress[file.name]?.error !== undefined))
                                                     .map((file) => (
                                                         <div key={file.name} className="mb-2 mr-5 ml-5">
-                                                            <div
-                                                                className={`text-green-700 text-sm ${uploadProgress[file.name]?.error ? 'text-red-700' : 'text-green-700'
-                                                                    }`}
-                                                                style={{ minWidth: '480px' }}
-                                                            >
-                                                                {file.name} ({uploadProgress[file.name]?.progress || 0}%)
-                                                                {uploadProgress[file.name]?.speed > 0 &&
-                                                                    ` - ${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`}
-                                                            </div>
+                                                            {!uploadProgress[file.name]?.error &&
+                                                                <div
+                                                                    className={`text-green-700 text-sm ${uploadProgress[file.name]?.error ? 'text-red-700' : 'text-green-700'
+                                                                        }`}
+                                                                    style={{ minWidth: '480px' }}
+                                                                >
+                                                                    {file.name} ({uploadProgress[file.name]?.progress || 0}%)
+                                                                    {uploadProgress[file.name]?.speed > 0 &&
+                                                                        `${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`}
+                                                                </div>
+                                                            }
                                                             {uploadProgress[file.name]?.error ? (
                                                                 <span className="text-red-700 text-xs">- {uploadProgress[file.name]?.error}</span>
                                                             ) : (

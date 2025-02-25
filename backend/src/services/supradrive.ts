@@ -92,7 +92,7 @@ export abstract class sqlSupraDrive {
 
     public static async SupraDriveGetImageTags(userid: number, username: string): Promise<any> {
         try {
-            const query = `SELECT * FROM tagsimages WHERE tiuserid = ?`;
+            const query = `SELECT * FROM codeimagehashtag WHERE uid = ?`;
             const values = [userid];
             const [result] = await supradrive.query(query, values);
             return result;
@@ -104,7 +104,7 @@ export abstract class sqlSupraDrive {
 
     public static async SupraDriveGetImageLocationTags(userid: number, username: string): Promise<any> {
         try {
-            const query = `SELECT * FROM tagslocations WHERE tluserid = ?`;
+            const query = `SELECT * FROM codeimagelocation WHERE uid = ?`;
             const values = [userid];
             const [result] = await supradrive.query(query, values);
             return result;
@@ -117,7 +117,7 @@ export abstract class sqlSupraDrive {
 
     public static async SupraDriveGetImageUserTags(userid: number, username: string): Promise<any> {
         try {
-            const query = `SELECT * FROM tagsusers WHERE tuuserid = ?`;
+            const query = `SELECT * FROM codeimageuser WHERE uid = ?`;
             const values = [userid];
             const [result] = await supradrive.query(query, values);
             return result;
@@ -130,18 +130,18 @@ export abstract class sqlSupraDrive {
     public static async SupraDriveAddImageTag(userid: number, username: string, imageid: number, body: any): Promise<any> {
         var tiid = 0;
         try {
-            const query = `SELECT tiid FROM tagsimages WHERE tiname = ? AND tiuserid = ?`;
-            const values = [body.tiname.toLowerCase(), userid];
+            const query = `SELECT id FROM codeimagehashtag WHERE hashtag = ? AND uid = ?`;
+            const values = [body.hashtag.toLowerCase(), userid];
             var [result] = await supradrive.query(query, values);
-            tiid = result?.[0]?.tiid || 0;
+            tiid = result?.[0]?.id || 0;
         } catch (e: any) {
             console.log(e);
             return [];
         }
         if (result.length === 0) {
             try {
-                const query = `INSERT INTO tagsimages (tiuserid, tiname) VALUES (?, ?)`;
-                const values = [userid, body.tiname.toLowerCase()];
+                const query = `INSERT INTO codeimagehashtag (uid, hashtag) VALUES (?, ?)`;
+                const values = [userid, body.hashtag.toLowerCase()];
                 let [insertresult] = await supradrive.query(query, values);
                 tiid = insertresult.insertId;
             } catch (e: any) {
@@ -151,12 +151,12 @@ export abstract class sqlSupraDrive {
         }
         if (tiid > 0) {
             try {
-                const query = `SELECT itid FROM imagestags WHERE userid = ? AND imageid = ? AND tagid = ?`;
+                const query = `SELECT id FROM imagehashtag WHERE uid = ? AND imageid = ? AND hashtagid = ?`;
                 const values = [userid, imageid, tiid];
                 var [result] = await supradrive.query(query, values);
                 if (result.length === 0) {
                     try {
-                        const query = `INSERT INTO imagestags (userid, imageid, tagid) VALUES (?, ?, ?)`;
+                        const query = `INSERT INTO imagehashtag (uid, imageid, hashtagid) VALUES (?, ?, ?)`;
                         const values = [userid, imageid, tiid];
                         await supradrive.query(query, values);
                     } catch (e: any) {
@@ -170,7 +170,7 @@ export abstract class sqlSupraDrive {
             }
         }
         try {
-            const query = `SELECT * FROM tagsimages WHERE tiuserid = ?`;
+            const query = `SELECT * FROM codeimagehashtag WHERE uid = ?`;
             const values = [userid];
             const [result] = await supradrive.query(query, values);
             return result;
@@ -183,18 +183,18 @@ export abstract class sqlSupraDrive {
     public static async SupraDriveAddImageUserTag(userid: number, username: string, imageid: number, body: any): Promise<any> {
         var tuid = 0;
         try {
-            const query = `SELECT tuid FROM tagsusers WHERE tuname = ? AND tuuserid = ?`;
-            const values = [body.tuname.toLowerCase(), userid];
+            const query = `SELECT id FROM codeimageuser WHERE user = ? AND uid = ?`;
+            const values = [body.user.toLowerCase(), userid];
             var [result] = await supradrive.query(query, values);
-            tuid = result?.[0]?.tuid || 0;
+            tuid = result?.[0]?.id || 0;
         } catch (e: any) {
             console.log(e);
             return [];
         }
         if (tuid === 0) {
             try {
-                const query = `INSERT INTO tagsusers (tuuserid, tuname) VALUES (?, ?)`;
-                const values = [userid, body.tuname.toLowerCase()];
+                const query = `INSERT INTO codeimageuser (uid, user) VALUES (?, ?)`;
+                const values = [userid, body.user.toLowerCase()];
                 let [insertresult] = await supradrive.query(query, values);
                 tuid = insertresult.insertId;
             } catch (e: any) {
@@ -204,12 +204,12 @@ export abstract class sqlSupraDrive {
         }
         if (tuid > 0) {
             try {
-                const query = `SELECT iuid FROM imagesusers WHERE iuserid = ? AND tagimageid = ? AND taguserid = ?`;
+                const query = `SELECT userid FROM imageuser WHERE userid = ? AND imageid = ? AND id = ?`;
                 const values = [userid, imageid, tuid];
                 var [result] = await supradrive.query(query, values);
                 if (result.length === 0) {
                     try {
-                        const query = `INSERT INTO imagesusers (iuserid, tagimageid, taguserid) VALUES (?, ?, ?)`;
+                        const query = `INSERT INTO imageuser (uid, imageid, userid) VALUES (?, ?, ?)`;
                         const values = [userid, imageid, tuid];
                         await supradrive.query(query, values);
                     } catch (e: any) {
@@ -223,7 +223,7 @@ export abstract class sqlSupraDrive {
             }
         }
         try {
-            const query = `SELECT * FROM tagsusers WHERE tuuserid = ?`;
+            const query = `SELECT * FROM codeimageuser WHERE uid = ?`;
             const values = [userid];
             const [result] = await supradrive.query(query, values);
             return result;
@@ -237,18 +237,18 @@ export abstract class sqlSupraDrive {
     public static async SupraDriveAddImageLocationTag(userid: number, username: string, imageid: number, body: any): Promise<any> {
         var tlid = 0;
         try {
-            const query = `SELECT tlid FROM tagslocations WHERE tlname = ? AND tluserid = ?`;
-            const values = [body.tlname.toLowerCase(), userid];
+            const query = `SELECT id FROM codeimagelocation WHERE location = ? AND uid = ?`;
+            const values = [body.location.toLowerCase(), userid];
             var [result] = await supradrive.query(query, values);
-            tlid = result?.[0]?.tlid || 0;
+            tlid = result?.[0]?.id || 0;
         } catch (e: any) {
             console.log(e);
             return [];
         }
         if (tlid === 0) {
             try {
-                const query = `INSERT INTO tagslocations (tluserid, tlname) VALUES (?, ?)`;
-                const values = [userid, body.tlname.toLowerCase()];
+                const query = `INSERT INTO codeimagelocation (uid, location) VALUES (?, ?)`;
+                const values = [userid, body.location.toLowerCase()];
                 let [insertresult] = await supradrive.query(query, values);
                 tlid = insertresult.insertId;
             } catch (e: any) {
@@ -258,12 +258,12 @@ export abstract class sqlSupraDrive {
         }
         if (tlid > 0) {
             try {
-                const query = `SELECT ilid FROM imageslocations WHERE iluserid = ? AND ilimageid = ? AND iltlid = ?`;
+                const query = `SELECT id FROM imagelocation WHERE uid = ? AND imageid = ? AND locationid = ?`;
                 const values = [userid, imageid, tlid];
                 var [result] = await supradrive.query(query, values);
                 if (result.length === 0) {
                     try {
-                        const query = `INSERT INTO imageslocations (iluserid, ilimageid, iltlid) VALUES (?, ?, ?)`;
+                        const query = `INSERT INTO imagelocation (uid, imageid, locationid) VALUES (?, ?, ?)`;
                         const values = [userid, imageid, tlid];
                         await supradrive.query(query, values);
                     } catch (e: any) {
@@ -277,7 +277,7 @@ export abstract class sqlSupraDrive {
             }
         }
         try {
-            const query = `SELECT * FROM tagslocations WHERE tluserid = ?`;
+            const query = `SELECT * FROM codeimagelocation WHERE uid = ?`;
             const values = [userid];
             const [result] = await supradrive.query(query, values);
             return result;
@@ -290,7 +290,7 @@ export abstract class sqlSupraDrive {
 
     public static async SupraDriveRemoveImageTag(userid: number, username: string, imageid: number, tagid: number): Promise<any> {
         try {
-            const query = `DELETE FROM imagestags WHERE userid = ? AND imageid = ? AND tagid = ?`;
+            const query = `DELETE FROM imagehashtag WHERE uid = ? AND imageid = ? AND hashtagid = ?`;
             const values = [userid, imageid, tagid];
             await supradrive.query(query, values);
         } catch (e: any) {
@@ -299,11 +299,11 @@ export abstract class sqlSupraDrive {
         }
 
         try {
-            const query = `SELECT COUNT(itid) AS count FROM imagestags WHERE tagid = ?`;
+            const query = `SELECT COUNT(id) AS count FROM imagehashtag WHERE hashtagid = ?`;
             const values = [tagid];
             const [result] = await supradrive.query(query, values);
             if (result[0].count === 0) {
-                const query = `DELETE FROM tagsimages WHERE tiuserid = ? AND tiid = ?`;
+                const query = `DELETE FROM codeimagehashtag WHERE uid = ? AND id = ?`;
                 const values = [userid, tagid];
                 await supradrive.query(query, values);
             }
@@ -313,7 +313,7 @@ export abstract class sqlSupraDrive {
         }
 
         try {
-            const query = `SELECT * FROM tagsimages WHERE tiuserid = ?`;
+            const query = `SELECT * FROM codeimagehashtag WHERE uid = ?`;
             const values = [userid];
             const [result] = await supradrive.query(query, values);
             return result;
@@ -325,7 +325,7 @@ export abstract class sqlSupraDrive {
 
     public static async SupraDriveRemoveImageUserTag(userid: number, username: string, imageid: number, tagid: number): Promise<any> {
         try {
-            const query = `DELETE FROM imagesusers WHERE iuserid = ? AND tagimageid = ? AND taguserid = ?`;
+            const query = `DELETE FROM imageuser WHERE uid = ? AND imageid = ? AND userid = ?`;
             const values = [userid, imageid, tagid];
             await supradrive.query(query, values);
         } catch (e: any) {
@@ -334,11 +334,11 @@ export abstract class sqlSupraDrive {
         }
 
         try {
-            const query = `SELECT COUNT(iuid) AS count FROM imagesusers WHERE taguserid = ?`;
+            const query = `SELECT COUNT(uid) AS count FROM imageuser WHERE userid = ?`;
             const values = [tagid];
             const [result] = await supradrive.query(query, values);
             if (result[0].count === 0) {
-                const query = `DELETE FROM tagsusers WHERE tuuserid = ? AND tuid = ?`;
+                const query = `DELETE FROM codeimageuser WHERE uid = ? AND id = ?`;
                 const values = [userid, tagid];
                 await supradrive.query(query, values);
             }
@@ -348,7 +348,7 @@ export abstract class sqlSupraDrive {
         }
 
         try {
-            const query = `SELECT * FROM tagsusers WHERE tuuserid = ?`;
+            const query = `SELECT * FROM codeimageuser WHERE uid = ?`;
             const values = [userid];
             const [result] = await supradrive.query(query, values);
             return result;
@@ -360,7 +360,7 @@ export abstract class sqlSupraDrive {
 
     public static async SupraDriveRemoveImageLocationTag(userid: number, username: string, imageid: number, tagid: number): Promise<any> {
         try {
-            const query = `DELETE FROM imageslocations WHERE iluserid = ? AND ilimageid = ? AND iltlid = ?`;
+            const query = `DELETE FROM imagelocation WHERE uid = ? AND imageid = ? AND locationid = ?`;
             const values = [userid, imageid, tagid];
             await supradrive.query(query, values);
         } catch (e: any) {
@@ -369,11 +369,11 @@ export abstract class sqlSupraDrive {
         }
 
         try {
-            const query = `SELECT COUNT(ilid) AS count FROM imageslocations WHERE iltlid = ?`;
+            const query = `SELECT COUNT(id) AS count FROM imagelocation WHERE locationid = ?`;
             const values = [tagid];
             const [result] = await supradrive.query(query, values);
             if (result[0].count === 0) {
-                const query = `DELETE FROM tagslocations WHERE tluserid = ? AND tlid = ?`;
+                const query = `DELETE FROM codeimagelocation WHERE uid = ? AND id = ?`;
                 const values = [userid, tagid];
                 await supradrive.query(query, values);
             }
@@ -383,7 +383,7 @@ export abstract class sqlSupraDrive {
         }
 
         try {
-            const query = `SELECT * FROM tagslocations WHERE tluserid = ?`;
+            const query = `SELECT * FROM codeimagelocation WHERE uid = ?`;
             const values = [userid];
             const [result] = await supradrive.query(query, values);
             return result;
@@ -399,7 +399,7 @@ export abstract class sqlSupraDrive {
         let foldernamedisk = await fnFolderNameDB(foldername);
         try {
             // Insert folder and get the new folderid
-            const query = `INSERT INTO foldersimages (foldersubid, folderuserid, foldername, foldernamedisk) VALUES (?, ?, ?, ?)`;
+            const query = `INSERT INTO imagefolder (foldersubid, folderuserid, foldername, foldernamedisk) VALUES (?, ?, ?, ?)`;
             const values = [foldersubid, userid, foldername, foldernamedisk];
             const [result] = await supradrive.query(query, values);
 
@@ -594,7 +594,7 @@ export abstract class sqlSupraDrive {
         const filenamedisk = await fnFilenameDisk(filename, filesha1);
 
         try {
-            const query = `SELECT imageid FROM filesimages WHERE imagesha1 = ?`;
+            const query = `SELECT imageid FROM imagefile WHERE imagesha1 = ?`;
             const values = [filesha1];
             var [sqlimageid] = await supradrive.query(query, values);
             if (sqlimageid.length > 0) {
@@ -606,7 +606,7 @@ export abstract class sqlSupraDrive {
 
         let foldernamedisk = "";
         try {
-            const foldername = `SELECT foldernamedisk FROM foldersimages WHERE folderid = ?`;
+            const foldername = `SELECT foldernamedisk FROM imagefolder WHERE folderid = ?`;
             const values = [folderid];
             const [result] = await supradrive.query(foldername, values);
             foldernamedisk = result[0].foldernamedisk;
@@ -629,13 +629,17 @@ export abstract class sqlSupraDrive {
         }
         const filePath = path.join(folderDir, `${filenamedisk}`);
         const metaPath = path.join(folderDir, `${filenamedisk}.json`);
+
+        if (fs.existsSync(filePath)) {
+            return APIResponse("error", 400, filename + " is duplicate.", "", null);
+        }
+
         // save new file
         fs.writeFileSync(filePath, filecontent);
 
         const thumbnailBuffer = await createThumbnail(filecontent);
         const thumbnailPath = path.join(folderDir, `${filenamedisk}.thumb`);
         fs.writeFileSync(thumbnailPath, thumbnailBuffer);
-
 
         // Extract metadata using Sharp
         let imageMetadata: any = {};
@@ -690,17 +694,14 @@ export abstract class sqlSupraDrive {
 
 
         try {
-            const query = `INSERT INTO filesimages (imagefolderid, imageuserid, imagesha1, imagefilename, imagefilenamedisk, imageformat, imagedatetime, imagefiledatetime, imageheight, imagewidth, imagemetamake, imagemetamodel, imagemetasoftware, imagemetadatetime, imagemetafnumber, imagemetadatetimeoriginal, imagemetajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const query = `INSERT INTO imagefile (imagefolderid, imageuserid, imagesha1, imagefilename, imagefilenamedisk, imageformat, imagedatetime, imagefiledatetime, imageheight, imagewidth, imagemetamake, imagemetamodel, imagemetasoftware, imagemetadatetime, imagemetafnumber, imagemetadatetimeoriginal, imagemetajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
             const values = [folderid, userid, filesha1, filename, filenamedisk, imageMetadata.format, imagedatetime, created, imageMetadata.height, imageMetadata.width, metamake, metamodel, imagemetasoftware, metacreatedate, metafnumber, metacreatedate, JSON.stringify(exifData, null, 4)];
             await supradrive.query(query, values);
 
         } catch (e) {
             console.log(e);
         }
-
-
         return APIResponse("success", 200, "Image " + filename + " uploaded successfully", "", null);
-
     }
 
     public static async getFolders(userid: number, username: string, foldersysid: number): Promise<SupraDrive[]> {
@@ -745,25 +746,20 @@ export abstract class sqlSupraDrive {
     public static async SupraDriveGetImagesFolder(userid: number, username: string, foldersubid: number): Promise<SupraDrive[]> {
         if (foldersubid === 0) {
             try {
-                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername,foldernamedisk FROM \`foldersimages\` WHERE foldersubid IS NULL AND folderuserid=? AND folderwiped='0' ORDER BY foldername ASC`, [userid]);
+                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername,foldernamedisk FROM \`imagefolder\` WHERE foldersubid IS NULL AND folderuserid=? AND folderwiped='0' ORDER BY foldername ASC`, [userid]);
             } catch (e) {
                 console.log(e);
             }
         }
         else {
             try {
-                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername,foldernamedisk FROM \`foldersimages\` WHERE foldersubid=? AND folderuserid=? AND folderwiped='0' ORDER BY foldername ASC`, [foldersubid, userid]);
+                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername,foldernamedisk FROM \`imagefolder\` WHERE foldersubid=? AND folderuserid=? AND folderwiped='0' ORDER BY foldername ASC`, [foldersubid, userid]);
             } catch (e) {
                 console.log(e);
             }
 
             try {
-                var [files] = await supradrive.query(
-                    `SELECT i.*, f.foldernamedisk FROM filesimages i 
-                    LEFT JOIN foldersimages f ON i.imagefolderid = f.folderid 
-                    WHERE i.imagefolderid = ? AND i.imageuserid = ? AND i.imagewiped = '0'`,
-                    [foldersubid, userid]
-                );
+                var [files] = await supradrive.query(`SELECT i.*, f.foldernamedisk FROM imagefile i LEFT JOIN imagefolder f ON i.imagefolderid = f.folderid WHERE i.imagefolderid = ? AND i.imageuserid = ? AND i.imagewiped = '0'`, [foldersubid, userid]);
 
                 files = await Promise.all(files.map(async file => {
 
@@ -781,7 +777,7 @@ export abstract class sqlSupraDrive {
 
                     let imagehashtags = [];
                     try {
-                        const [imagetags] = await supradrive.query(`SELECT t.itid,t.tagid,n.tiname FROM imagestags t LEFT OUTER JOIN tagsimages n ON t.tagid = n.tiid WHERE imageid = ?`, [file.imageid]);
+                        const [imagetags] = await supradrive.query(`SELECT t.id,t.hashtagid,h.hashtag FROM imagehashtag t LEFT OUTER JOIN codeimagehashtag h ON t.hashtagid = h.id WHERE imageid = ?`, [file.imageid]);
                         imagehashtags = imagetags;
                     } catch (e) {
                         console.log(e);
@@ -789,7 +785,7 @@ export abstract class sqlSupraDrive {
 
                     let imageusertags = [];
                     try {
-                        const [utags] = await supradrive.query(`SELECT u.iuid,u.tagimageid,u.taguserid,n.tuname FROM imagesusers u LEFT OUTER JOIN tagsusers n ON n.tuid = u.taguserid WHERE u.tagimageid = ?`, [file.imageid]);
+                        const [utags] = await supradrive.query(`SELECT u.id,u.imageid,u.userid,n.user FROM imageuser u LEFT OUTER JOIN codeimageuser n ON n.id = u.userid WHERE u.imageid = ?`, [file.imageid]);
                         imageusertags = utags;
                     } catch (e) {
                         console.log(e);
@@ -797,7 +793,7 @@ export abstract class sqlSupraDrive {
 
                     let imagelocationtags = [];
                     try {
-                        const [ltags] = await supradrive.query(`SELECT l.ilid,l.ilimageid,l.iltlid,n.tlname FROM imageslocations l LEFT OUTER JOIN tagslocations n ON n.tlid = l.iltlid WHERE l.ilimageid = ?`, [file.imageid]);
+                        const [ltags] = await supradrive.query(`SELECT l.id,l.imageid,l.locationid,n.location FROM imagelocation l LEFT OUTER JOIN codeimagelocation n ON n.id = l.locationid WHERE l.imageid = ?`, [file.imageid]);
                         imagelocationtags = ltags;
                     } catch (e) {
                         console.log(e);
@@ -901,7 +897,7 @@ export abstract class sqlSupraDrive {
     public static async SupraDriveGetImage(userid: number, username: string, fileid: number): Promise<SupraDrive[]> {
         var fileContent = "";
         try {
-            var [fileinfo] = await supradrive.query(`SELECT i.*, f.foldernamedisk FROM \`filesimages\` i LEFT JOIN \`foldersimages\` f ON i.imagefolderid = f.folderid WHERE i.imageid=? AND i.imageuserid=? AND i.imagewiped='0'`, [fileid, userid]);
+            var [fileinfo] = await supradrive.query(`SELECT i.*, f.foldernamedisk FROM \`imagefile\` i LEFT JOIN \`imagefolder\` f ON i.imagefolderid = f.folderid WHERE i.imageid=? AND i.imageuserid=? AND i.imagewiped='0'`, [fileid, userid]);
         } catch (e) {
             console.log(e);
         }

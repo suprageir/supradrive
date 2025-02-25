@@ -31,7 +31,6 @@ apiRouter.get('/supradrive/images/locationtags', supradriveauth, SupraDriveGetIm
 apiRouter.post('/supradrive/images/locationtag/:imageid', supradriveauth, SupraDriveAddImageLocationTag);
 apiRouter.delete('/supradrive/images/locationtag/:imageid/:tagid', supradriveauth, SupraDriveRemoveImageLocationTag);
 
-
 // Export the base-router
 const baseRouter = Router();
 baseRouter.use('/', apiRouter);

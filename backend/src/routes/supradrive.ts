@@ -15,51 +15,38 @@ interface MulterRequest extends Request {
 
 export async function SupraDriveAuthToken(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
-    const ip = req.headers['x-forwarded-for']
-        ? (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for'].split(',')[0])
-        : req.socket.remoteAddress;
-    const clientIp = ip ? ip.trim() : null;
+    console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m(auth)\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
     return res.status(OK).json({ message: 'Token is valid' });
 }
 
 export async function SupraDriveNewFolder(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
-    const ip = req.headers['x-forwarded-for']
-        ? (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for'].split(',')[0])
-        : req.socket.remoteAddress;
-    const clientIp = ip ? ip.trim() : null;
-
     const supradriveuser = (req as any).user;
     const userid = supradriveuser.userid;
     const username = supradriveuser.username;
     if (req.body) {
-        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl + " \x1b[30m(" + ip + ")\x1b[0m");
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
         let posts: SupraDrive[] = await sqlSupraDrive.SupraDriveFolderNew(userid, username, req.body);
         return res.status(OK).json(posts);
     }
     else {
-        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl + " \x1b[30m(" + ip + ")\x1b[0m");
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
         return res.status(BAD_REQUEST);
     }
 }
 
 export async function SupraDriveNewImagesFolder(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
-    const ip = req.headers['x-forwarded-for']
-        ? (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for'].split(',')[0])
-        : req.socket.remoteAddress;
-    const clientIp = ip ? ip.trim() : null;
-
     const supradriveuser = (req as any).user;
     const userid = supradriveuser.userid;
     const username = supradriveuser.username;
     if (req.body) {
-        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl + " \x1b[30m(" + ip + ")\x1b[0m");
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
         let posts: SupraDrive[] = await sqlSupraDrive.SupraDriveNewImagesFolder(userid, username, req.body);
         return res.status(OK).json(posts);
     }
     else {
-        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl + " \x1b[30m(" + ip + ")\x1b[0m");
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
         return res.status(BAD_REQUEST);
     }
 }
@@ -150,21 +137,17 @@ export async function SupraDriveGetFolders(req: Request, res: Response) {
 
 export async function SupraDriveGetImagesFolder(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
-    const ip = req.headers['x-forwarded-for']
-        ? (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for'].split(',')[0])
-        : req.socket.remoteAddress;
-    const clientIp = ip ? ip.trim() : null;
     const supradriveuser = (req as any).user;
     const userid = supradriveuser.userid;
     const username = supradriveuser.username;
 
     if (req.params.foldersubid) {
-        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl + " \x1b[30m(" + ip + ")\x1b[0m");
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
         let posts: SupraDrive[] = await sqlSupraDrive.SupraDriveGetImagesFolder(userid, username, parseInt(req.params.foldersubid));
         return res.status(OK).json(posts);
     }
     else {
-        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl + " \x1b[30m(" + ip + ")\x1b[0m");
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
         return res.status(BAD_REQUEST);
     }
 }
@@ -192,21 +175,17 @@ export async function SupraDriveGetFile(req: Request, res: Response) {
 
 export async function SupraDriveGetImage(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
-    const ip = req.headers['x-forwarded-for']
-        ? (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for'].split(',')[0])
-        : req.socket.remoteAddress;
-    const clientIp = ip ? ip.trim() : null;
     const supradriveuser = (req as any).user;
     const userid = supradriveuser.userid;
     const username = supradriveuser.username;
 
     if (req.params.fileid) {
-        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl + " \x1b[30m(" + ip + ")\x1b[0m");
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
         let posts: SupraDrive[] = await sqlSupraDrive.SupraDriveGetImage(userid, username, parseInt(req.params.fileid));
         return res.status(OK).json(posts);
     }
     else {
-        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl + " \x1b[30m(" + ip + ")\x1b[0m");
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
         return res.status(BAD_REQUEST);
     }
 }

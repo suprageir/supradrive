@@ -3,10 +3,11 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: 23. Feb, 2025 15:26 PM
+-- Generation Time: 25. Feb, 2025 19:36 PM
 -- Tjener-versjon: 10.6.18-MariaDB-0ubuntu0.22.04.1
 -- PHP Version: 8.1.2-1ubuntu2.20
 
+SET FOREIGN_KEY_CHECKS=0;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -22,6 +23,45 @@ SET time_zone = "+00:00";
 --
 CREATE DATABASE IF NOT EXISTS `supradrive` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `supradrive`;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur for tabell `codeimagehashtag`
+--
+
+DROP TABLE IF EXISTS `codeimagehashtag`;
+CREATE TABLE `codeimagehashtag` (
+  `id` int(11) NOT NULL,
+  `uid` int(11) DEFAULT NULL,
+  `hashtag` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur for tabell `codeimagelocation`
+--
+
+DROP TABLE IF EXISTS `codeimagelocation`;
+CREATE TABLE `codeimagelocation` (
+  `id` int(11) NOT NULL,
+  `uid` int(11) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur for tabell `codeimageuser`
+--
+
+DROP TABLE IF EXISTS `codeimageuser`;
+CREATE TABLE `codeimageuser` (
+  `id` int(11) NOT NULL,
+  `uid` int(11) DEFAULT NULL,
+  `user` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -49,11 +89,29 @@ CREATE TABLE `filesencrypted` (
 -- --------------------------------------------------------
 
 --
--- Tabellstruktur for tabell `filesimages`
+-- Tabellstruktur for tabell `foldersencrypted`
 --
 
-DROP TABLE IF EXISTS `filesimages`;
-CREATE TABLE `filesimages` (
+DROP TABLE IF EXISTS `foldersencrypted`;
+CREATE TABLE `foldersencrypted` (
+  `folderid` int(11) NOT NULL,
+  `foldersysid` int(11) DEFAULT NULL,
+  `foldersubid` int(11) DEFAULT NULL,
+  `folderuserid` int(11) DEFAULT NULL,
+  `foldername` varchar(250) DEFAULT NULL,
+  `foldersalt` varchar(250) DEFAULT NULL,
+  `folderiv` varchar(250) DEFAULT NULL,
+  `folderwiped` int(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur for tabell `imagefile`
+--
+
+DROP TABLE IF EXISTS `imagefile`;
+CREATE TABLE `imagefile` (
   `imageid` int(11) NOT NULL,
   `imagets` timestamp NOT NULL DEFAULT current_timestamp(),
   `imagefolderid` int(11) DEFAULT NULL,
@@ -80,29 +138,11 @@ CREATE TABLE `filesimages` (
 -- --------------------------------------------------------
 
 --
--- Tabellstruktur for tabell `foldersencrypted`
+-- Tabellstruktur for tabell `imagefolder`
 --
 
-DROP TABLE IF EXISTS `foldersencrypted`;
-CREATE TABLE `foldersencrypted` (
-  `folderid` int(11) NOT NULL,
-  `foldersysid` int(11) DEFAULT NULL,
-  `foldersubid` int(11) DEFAULT NULL,
-  `folderuserid` int(11) DEFAULT NULL,
-  `foldername` varchar(250) DEFAULT NULL,
-  `foldersalt` varchar(250) DEFAULT NULL,
-  `folderiv` varchar(250) DEFAULT NULL,
-  `folderwiped` int(1) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Tabellstruktur for tabell `foldersimages`
---
-
-DROP TABLE IF EXISTS `foldersimages`;
-CREATE TABLE `foldersimages` (
+DROP TABLE IF EXISTS `imagefolder`;
+CREATE TABLE `imagefolder` (
   `folderid` int(11) NOT NULL,
   `foldersubid` int(11) DEFAULT NULL,
   `folderuserid` int(11) DEFAULT NULL,
@@ -114,43 +154,43 @@ CREATE TABLE `foldersimages` (
 -- --------------------------------------------------------
 
 --
--- Tabellstruktur for tabell `imageslocations`
+-- Tabellstruktur for tabell `imagehashtag`
 --
 
-DROP TABLE IF EXISTS `imageslocations`;
-CREATE TABLE `imageslocations` (
-  `ilid` int(11) NOT NULL,
-  `iluserid` int(11) DEFAULT NULL,
-  `ilimageid` int(11) DEFAULT NULL,
-  `iltlid` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Tabellstruktur for tabell `imagestags`
---
-
-DROP TABLE IF EXISTS `imagestags`;
-CREATE TABLE `imagestags` (
-  `itid` int(11) NOT NULL,
-  `userid` int(11) DEFAULT NULL,
+DROP TABLE IF EXISTS `imagehashtag`;
+CREATE TABLE `imagehashtag` (
+  `id` int(11) NOT NULL,
+  `uid` int(11) DEFAULT NULL,
   `imageid` int(11) DEFAULT NULL,
-  `tagid` int(11) DEFAULT NULL
+  `hashtagid` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Tabellstruktur for tabell `imagesusers`
+-- Tabellstruktur for tabell `imagelocation`
 --
 
-DROP TABLE IF EXISTS `imagesusers`;
-CREATE TABLE `imagesusers` (
-  `iuid` int(11) NOT NULL,
-  `iuserid` int(11) DEFAULT NULL,
-  `tagimageid` int(11) DEFAULT NULL,
-  `taguserid` int(11) DEFAULT NULL
+DROP TABLE IF EXISTS `imagelocation`;
+CREATE TABLE `imagelocation` (
+  `id` int(11) NOT NULL,
+  `uid` int(11) DEFAULT NULL,
+  `imageid` int(11) DEFAULT NULL,
+  `locationid` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur for tabell `imageuser`
+--
+
+DROP TABLE IF EXISTS `imageuser`;
+CREATE TABLE `imageuser` (
+  `id` int(11) NOT NULL,
+  `uid` int(11) DEFAULT NULL,
+  `imageid` int(11) DEFAULT NULL,
+  `userid` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -163,45 +203,6 @@ DROP TABLE IF EXISTS `systemfolders`;
 CREATE TABLE `systemfolders` (
   `sysfolderid` int(11) NOT NULL,
   `sysfolderdescription` varchar(250) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Tabellstruktur for tabell `tagsimages`
---
-
-DROP TABLE IF EXISTS `tagsimages`;
-CREATE TABLE `tagsimages` (
-  `tiid` int(11) NOT NULL,
-  `tiuserid` int(11) DEFAULT NULL,
-  `tiname` varchar(250) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Tabellstruktur for tabell `tagslocations`
---
-
-DROP TABLE IF EXISTS `tagslocations`;
-CREATE TABLE `tagslocations` (
-  `tlid` int(11) NOT NULL,
-  `tluserid` int(11) DEFAULT NULL,
-  `tlname` varchar(250) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Tabellstruktur for tabell `tagsusers`
---
-
-DROP TABLE IF EXISTS `tagsusers`;
-CREATE TABLE `tagsusers` (
-  `tuid` int(11) NOT NULL,
-  `tuuserid` int(11) DEFAULT NULL,
-  `tuname` varchar(250) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -224,6 +225,27 @@ CREATE TABLE `users` (
 --
 
 --
+-- Indexes for table `codeimagehashtag`
+--
+ALTER TABLE `codeimagehashtag`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uid` (`uid`,`hashtag`);
+
+--
+-- Indexes for table `codeimagelocation`
+--
+ALTER TABLE `codeimagelocation`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uid` (`uid`,`location`);
+
+--
+-- Indexes for table `codeimageuser`
+--
+ALTER TABLE `codeimageuser`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uid` (`uid`,`user`);
+
+--
 -- Indexes for table `filesencrypted`
 --
 ALTER TABLE `filesencrypted`
@@ -233,16 +255,6 @@ ALTER TABLE `filesencrypted`
   ADD KEY `userid` (`userid`),
   ADD KEY `wiped` (`wiped`),
   ADD KEY `filesha1` (`filesha1`);
-
---
--- Indexes for table `filesimages`
---
-ALTER TABLE `filesimages`
-  ADD PRIMARY KEY (`imageid`),
-  ADD KEY `imagewiped` (`imagewiped`),
-  ADD KEY `imagefolderid` (`imagefolderid`),
-  ADD KEY `imageuserid` (`imageuserid`),
-  ADD KEY `imagesha1` (`imagesha1`);
 
 --
 -- Indexes for table `foldersencrypted`
@@ -255,70 +267,57 @@ ALTER TABLE `foldersencrypted`
   ADD KEY `folderwiped` (`folderwiped`);
 
 --
--- Indexes for table `foldersimages`
+-- Indexes for table `imagefile`
 --
-ALTER TABLE `foldersimages`
+ALTER TABLE `imagefile`
+  ADD PRIMARY KEY (`imageid`),
+  ADD UNIQUE KEY `imagesha1_2` (`imagesha1`),
+  ADD KEY `imagewiped` (`imagewiped`),
+  ADD KEY `imagefolderid` (`imagefolderid`),
+  ADD KEY `imageuserid` (`imageuserid`),
+  ADD KEY `imagesha1` (`imagesha1`);
+
+--
+-- Indexes for table `imagefolder`
+--
+ALTER TABLE `imagefolder`
   ADD PRIMARY KEY (`folderid`),
   ADD KEY `folderwiped` (`folderwiped`),
   ADD KEY `foldersubid` (`foldersubid`),
   ADD KEY `folderuserid` (`folderuserid`);
 
 --
--- Indexes for table `imageslocations`
+-- Indexes for table `imagehashtag`
 --
-ALTER TABLE `imageslocations`
-  ADD PRIMARY KEY (`ilid`),
-  ADD KEY `iluserid` (`iluserid`),
-  ADD KEY `ilimageid` (`ilimageid`),
-  ADD KEY `iltlid` (`iltlid`);
+ALTER TABLE `imagehashtag`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `imageid` (`imageid`,`hashtagid`),
+  ADD KEY `uid` (`uid`),
+  ADD KEY `imagehashtagid` (`hashtagid`);
 
 --
--- Indexes for table `imagestags`
+-- Indexes for table `imagelocation`
 --
-ALTER TABLE `imagestags`
-  ADD PRIMARY KEY (`itid`),
-  ADD KEY `userid` (`userid`),
-  ADD KEY `imageid` (`imageid`),
-  ADD KEY `tagid` (`tagid`);
+ALTER TABLE `imagelocation`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `imageid` (`imageid`,`locationid`),
+  ADD KEY `uid` (`uid`),
+  ADD KEY `imagelocationlocationid` (`locationid`);
 
 --
--- Indexes for table `imagesusers`
+-- Indexes for table `imageuser`
 --
-ALTER TABLE `imagesusers`
-  ADD PRIMARY KEY (`iuid`),
-  ADD KEY `iuserid` (`iuserid`),
-  ADD KEY `tagimageid` (`tagimageid`),
-  ADD KEY `taguserid` (`taguserid`);
+ALTER TABLE `imageuser`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `imageid` (`imageid`,`userid`),
+  ADD KEY `imageuseruid` (`uid`),
+  ADD KEY `imageuseruserid` (`userid`);
 
 --
 -- Indexes for table `systemfolders`
 --
 ALTER TABLE `systemfolders`
   ADD PRIMARY KEY (`sysfolderid`);
-
---
--- Indexes for table `tagsimages`
---
-ALTER TABLE `tagsimages`
-  ADD PRIMARY KEY (`tiid`),
-  ADD KEY `tiuserid` (`tiuserid`),
-  ADD KEY `tiname` (`tiname`);
-
---
--- Indexes for table `tagslocations`
---
-ALTER TABLE `tagslocations`
-  ADD PRIMARY KEY (`tlid`),
-  ADD KEY `tluserid` (`tluserid`),
-  ADD KEY `tlname` (`tlname`);
-
---
--- Indexes for table `tagsusers`
---
-ALTER TABLE `tagsusers`
-  ADD PRIMARY KEY (`tuid`),
-  ADD KEY `tuuserid` (`tuuserid`),
-  ADD KEY `tuname` (`tuname`);
 
 --
 -- Indexes for table `users`
@@ -333,16 +332,28 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `codeimagehashtag`
+--
+ALTER TABLE `codeimagehashtag`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `codeimagelocation`
+--
+ALTER TABLE `codeimagelocation`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `codeimageuser`
+--
+ALTER TABLE `codeimageuser`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `filesencrypted`
 --
 ALTER TABLE `filesencrypted`
   MODIFY `fileid` bigint(20) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `filesimages`
---
-ALTER TABLE `filesimages`
-  MODIFY `imageid` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `foldersencrypted`
@@ -351,28 +362,34 @@ ALTER TABLE `foldersencrypted`
   MODIFY `folderid` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `foldersimages`
+-- AUTO_INCREMENT for table `imagefile`
 --
-ALTER TABLE `foldersimages`
+ALTER TABLE `imagefile`
+  MODIFY `imageid` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `imagefolder`
+--
+ALTER TABLE `imagefolder`
   MODIFY `folderid` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `imageslocations`
+-- AUTO_INCREMENT for table `imagehashtag`
 --
-ALTER TABLE `imageslocations`
-  MODIFY `ilid` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `imagehashtag`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `imagestags`
+-- AUTO_INCREMENT for table `imagelocation`
 --
-ALTER TABLE `imagestags`
-  MODIFY `itid` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `imagelocation`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `imagesusers`
+-- AUTO_INCREMENT for table `imageuser`
 --
-ALTER TABLE `imagesusers`
-  MODIFY `iuid` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `imageuser`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `systemfolders`
@@ -381,28 +398,70 @@ ALTER TABLE `systemfolders`
   MODIFY `sysfolderid` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `tagsimages`
---
-ALTER TABLE `tagsimages`
-  MODIFY `tiid` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `tagslocations`
---
-ALTER TABLE `tagslocations`
-  MODIFY `tlid` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `tagsusers`
---
-ALTER TABLE `tagsusers`
-  MODIFY `tuid` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
   MODIFY `userid` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Begrensninger for dumpede tabeller
+--
+
+--
+-- Begrensninger for tabell `codeimagehashtag`
+--
+ALTER TABLE `codeimagehashtag`
+  ADD CONSTRAINT `codeimagehashtaguid` FOREIGN KEY (`uid`) REFERENCES `users` (`userid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Begrensninger for tabell `codeimagelocation`
+--
+ALTER TABLE `codeimagelocation`
+  ADD CONSTRAINT `codeimagelocationuid` FOREIGN KEY (`uid`) REFERENCES `users` (`userid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Begrensninger for tabell `codeimageuser`
+--
+ALTER TABLE `codeimageuser`
+  ADD CONSTRAINT `codeimageuseruid` FOREIGN KEY (`uid`) REFERENCES `users` (`userid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Begrensninger for tabell `imagefile`
+--
+ALTER TABLE `imagefile`
+  ADD CONSTRAINT `imagefolder` FOREIGN KEY (`imagefolderid`) REFERENCES `imagefolder` (`folderid`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `imageuid` FOREIGN KEY (`imageuserid`) REFERENCES `users` (`userid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Begrensninger for tabell `imagefolder`
+--
+ALTER TABLE `imagefolder`
+  ADD CONSTRAINT `imagefolderuid` FOREIGN KEY (`folderuserid`) REFERENCES `users` (`userid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Begrensninger for tabell `imagehashtag`
+--
+ALTER TABLE `imagehashtag`
+  ADD CONSTRAINT `imagehashimageid` FOREIGN KEY (`imageid`) REFERENCES `imagefile` (`imageid`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `imagehashtagid` FOREIGN KEY (`hashtagid`) REFERENCES `codeimagehashtag` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `imagehashtaguid` FOREIGN KEY (`uid`) REFERENCES `users` (`userid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Begrensninger for tabell `imagelocation`
+--
+ALTER TABLE `imagelocation`
+  ADD CONSTRAINT `imagelocationimageid` FOREIGN KEY (`imageid`) REFERENCES `imagefile` (`imageid`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `imagelocationlocationid` FOREIGN KEY (`locationid`) REFERENCES `codeimagelocation` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `imagelocationuid` FOREIGN KEY (`uid`) REFERENCES `users` (`userid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Begrensninger for tabell `imageuser`
+--
+ALTER TABLE `imageuser`
+  ADD CONSTRAINT `imageuserimageid` FOREIGN KEY (`imageid`) REFERENCES `imagefile` (`imageid`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `imageuseruid` FOREIGN KEY (`uid`) REFERENCES `users` (`userid`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `imageuseruserid` FOREIGN KEY (`userid`) REFERENCES `codeimageuser` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+SET FOREIGN_KEY_CHECKS=1;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
