@@ -85,6 +85,12 @@ export default function Page() {
     const firstMatchLocation = filteredLocationTags?.length ? filteredLocationTags[0] : null;
 
     const handleKeyDownUserTags = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "ArrowUp") {
+            inputHashtagsRef.current?.focus();
+        }
+        if (e.key === "ArrowDown") {
+            inputLocationRef.current?.focus();
+        }        
         if (e.key === "Tab" && !firstMatchUser) {
             e.preventDefault();
             inputUserTagsRef.current?.focus();
@@ -166,6 +172,12 @@ export default function Page() {
     };
 
     const handleKeyDownHashtags = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "ArrowUp") {
+            inputLocationRef.current?.focus();
+        }
+        if (e.key === "ArrowDown") {
+            inputUserTagsRef.current?.focus();
+        }
         if (e.key === "Tab" && !firstMatch && inputValueHashtags.trim() === "") {
             e.preventDefault();
             inputHashtagsRef.current?.focus();
@@ -185,6 +197,12 @@ export default function Page() {
     };
 
     const handleKeyDownLocation = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "ArrowUp") {
+            inputUserTagsRef.current?.focus();
+        }
+        if (e.key === "ArrowDown") {
+            inputHashtagsRef.current?.focus();
+        }
         if (e.key === "Tab" && !firstMatchLocation && inputValueLocation.trim() === "") {
             e.preventDefault();
             inputLocationRef.current?.focus();
