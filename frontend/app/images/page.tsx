@@ -660,7 +660,7 @@ export default function Page() {
                 const endX = e.changedTouches[0].clientX;
                 if (endX - startX > 50) {
                     if (firstMatchUser) {
-                        addTagUser(firstMatchUser.tuname);
+                        addTagUser(firstMatchUser.user);
                     }
                 }
             }
@@ -668,7 +668,7 @@ export default function Page() {
                 const endX = e.changedTouches[0].clientX;
                 if (endX - startX > 50) {
                     if (firstMatch) {
-                        addTag(firstMatch.tiname);
+                        addTag(firstMatch.hashtag);
                     }
                 }
             }
@@ -676,7 +676,7 @@ export default function Page() {
                 const endX = e.changedTouches[0].clientX;
                 if (endX - startX > 50) {
                     if (firstMatchLocation) {
-                        addTagLocation(firstMatchLocation.tlname);
+                        addTagLocation(firstMatchLocation.location);
                     }
                 }
             }

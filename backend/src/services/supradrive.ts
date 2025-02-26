@@ -410,7 +410,7 @@ export abstract class sqlSupraDrive {
             const updatedFolderName = `${foldernamedisk}_${folderid}`;
 
             // Update the foldername in the database
-            const updateQuery = `UPDATE foldersimages SET foldernamedisk = ? WHERE folderid = ?`;
+            const updateQuery = `UPDATE imagefolder SET foldernamedisk = ? WHERE folderid = ?`;
             await supradrive.query(updateQuery, [updatedFolderName, folderid]);
 
             return APIResponse("success", 200, `Folder ${foldername} created successfully`, "", folderid);
