@@ -42,7 +42,7 @@ const Notification: React.FC<NotificationProps> = ({
 
   return (
     <div
-      className={`fixed bottom-5 left-1/2 transform -translate-x-1/2 flex items-center gap-3 p-4 border-l-4 rounded-lg shadow-md transition-transform duration-300 ${typeStyles[type]}`}
+      className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 flex items-center p-4 border-l-4 rounded-lg shadow-md transition-transform duration-300 w-full ${visible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"} ${typeStyles[type]}`}
     >
       <span className="text-2xl">{icon[type]}</span>
       <div className="flex-1">

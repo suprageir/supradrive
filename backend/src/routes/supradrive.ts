@@ -99,11 +99,9 @@ export async function SupraDriveNewImagesUpload(req: MulterRequest, res: Respons
         let posts: any = await sqlSupraDrive.SupraDriveNewImagesUpload(userid, username, req.body, req.file);
         let json = JSON.parse(posts);
         if (json.status === "success") {
-            console.log(posts);
             return res.status(OK).json(posts);
         }
         else {
-            console.log(posts);
             return res.status(BAD_REQUEST).json(posts);
         }
     }
@@ -320,7 +318,6 @@ export async function SupraDriveAuthLogin(req: Request, res: Response) {
             secure: true,
             signed: false
         }
-        console.log("login request from " + clientIp + " username: " + username + " token: " + token + " OK");
         res.cookie('supratvtoken', token, options).status(200).json({ token: token, userid: dbuserid, username: dbuser });
     }
     else {

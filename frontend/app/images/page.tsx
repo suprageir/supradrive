@@ -90,7 +90,7 @@ export default function Page() {
         }
         if (e.key === "ArrowDown") {
             inputLocationRef.current?.focus();
-        }        
+        }
         if (e.key === "Tab" && !firstMatchUser) {
             e.preventDefault();
             inputUserTagsRef.current?.focus();
@@ -118,7 +118,6 @@ export default function Page() {
             const tagjson = JSON.stringify(json);
             await axios.post(APIURL + "/supradrive/images/usertag/" + imagesFiles[imageTagIndex].imageid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
                 .then((response) => {
-                    console.log(response.data);
                     setMyUserTags(response.data);
                     setCurrentImageUserTags([...currentImageUserTags, tag.toLowerCase()]);
                 })
@@ -385,6 +384,21 @@ export default function Page() {
         // setIsModalUploadImagesOpen(false);
         // setUploadProgress({});
         // getFilesAndFolders(folderid);
+
+        const successCount = Object.values(uploadProgress).filter((file: any) => file.progress === 100 && file.error === undefined).length;
+        const errorCount = Object.values(uploadProgress).filter((file: any) => file.progress === 100 && file.error !== undefined).length;
+
+        if (errorCount > 0) {
+            setNotificationMessage("Total files: " + files.length + " Success: " + successCount + " Error: " + errorCount);
+            setNotificationType("error");
+            setShowNotification(true);
+        }
+        else {
+            setNotificationMessage("Total files: " + files.length + " Success: " + successCount + " Error: " + errorCount);
+            setNotificationType("success");
+            setShowNotification(true);
+            closeModalUploadImages();
+        }
     }
 
     type MenuItem = {
@@ -476,7 +490,6 @@ export default function Page() {
         const folderidext = folderiduse ?? folderid;
         axios.get(APIURL + "/supradrive/images/folder/" + folderidext, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
-                console.log(response.data);
                 setImagesFolders(response.data[0]?.folders);
                 setImagesFiles(response.data[0]?.files);
             })
