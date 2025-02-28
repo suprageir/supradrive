@@ -498,6 +498,8 @@ export default function Page() {
         setUploadProgress({});
         getFilesAndFolders(folderid);
         setIsModalUploadImagesOpen(false);
+        setCurrentUploadedSize(0);
+        setCurrentUploadSize(0);
     }
 
     const getFilesAndFolders = async (folderiduse: number | undefined) => {
