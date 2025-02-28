@@ -18,6 +18,13 @@ interface UploadProgressType {
         error?: string;
     };
 }
+const formatBytes = (bytes: number, decimals = 2): string => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))} ${sizes[i]}`;
+};
 
 export default function Page() {
     const [loading, setLoading] = useState(true);
@@ -56,7 +63,6 @@ export default function Page() {
     const inputLocationRef = useRef<HTMLInputElement>(null);
     const [currentUploadFile, setCurrentUploadFile] = useState<string[]>([]);
     const [currentUploadSize, setCurrentUploadSize] = useState<number>(0);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentUploadedSize, setCurrentUploadedSize] = useState<number>(0);
 
     const filteredHashtags = inputValueHashtags
@@ -333,6 +339,7 @@ export default function Page() {
                         // const remainingBytes = event.total - event.loaded;
                         const remainingBytes = currentUploadSize - currentUploadedSize - event.loaded;
                         const remainingSeconds = remainingBytes / (deltaLoaded / deltaTime);
+                        setCurrentUploadedSize(prevSize => prevSize + event.loaded);
 
                         let timeRemaining = '';
                         if (remainingSeconds < 60) {
@@ -1148,9 +1155,6 @@ export default function Page() {
                                                                     {file.name} ({uploadProgress[file.name]?.progress || 0}%)
                                                                     {uploadProgress[file.name]?.speed > 0 &&
                                                                         `${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`}
-                                                                    <div style={{ fontSize: '10px', color: 'gray', marginTop: '5px', alignSelf: 'center' }}>
-                                                                        {currentUploadedSize} / {currentUploadSize}
-                                                                    </div>
                                                                 </div>
                                                             }
                                                             {uploadProgress[file.name]?.error ? (
@@ -1163,6 +1167,9 @@ export default function Page() {
                                                                     ></div>
                                                                 </div>
                                                             )}
+                                                            <div style={{ fontSize: '16px', color: 'gray', marginTop: '5px' }}>
+                                                                {formatBytes(currentUploadedSize)} / {formatBytes(currentUploadSize)} &nbsp; ({Math.round((currentUploadedSize / currentUploadSize) * 100)}%)
+                                                            </div>
                                                         </div>
                                                     ))}
                                             </div>
