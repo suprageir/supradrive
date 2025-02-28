@@ -55,6 +55,8 @@ export default function Page() {
     const [myLocationTags, setMyLocationTags] = useState<any[]>([]);
     const inputLocationRef = useRef<HTMLInputElement>(null);
     const [currentUploadFile, setCurrentUploadFile] = useState<string[]>([]);
+    const [currentUploadSize, setCurrentUploadSize] = useState<number>(0);
+    const [currentUploadedSize, setCurrentUploadedSize] = useState<number>(0);
 
     const filteredHashtags = inputValueHashtags
         ? myHashtags?.filter(
@@ -286,6 +288,7 @@ export default function Page() {
     const onDropImages = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
         event.stopPropagation();
         setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
+        setCurrentUploadSize(prevSize => prevSize + acceptedFiles.reduce((acc, file) => acc + file.size, 0));
 
         if (!uploading) {
             handleUploadNextFile(0, [...acceptedFiles]);
@@ -326,7 +329,8 @@ export default function Page() {
 
                         const speed = Number(((deltaLoaded / (1024 * 1024)) / deltaTime).toFixed(2));
 
-                        const remainingBytes = event.total - event.loaded;
+                        // const remainingBytes = event.total - event.loaded;
+                        const remainingBytes = currentUploadSize - currentUploadedSize - event.loaded;
                         const remainingSeconds = remainingBytes / (deltaLoaded / deltaTime);
 
                         let timeRemaining = '';
@@ -1140,7 +1144,7 @@ export default function Page() {
                                                                         }`}
                                                                     style={{ minWidth: '480px' }}
                                                                 >
-                                                                    {file.name} ({uploadProgress[file.name]?.progress || 0}%)
+                                                                    {file.name} ({uploadProgress[file.name]?.progress || 0}%) -- {currentUploadedSize} / {currentUploadSize}
                                                                     {uploadProgress[file.name]?.speed > 0 &&
                                                                         `${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`}
                                                                 </div>

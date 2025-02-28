@@ -591,6 +591,7 @@ export abstract class sqlSupraDrive {
         let filecontent = file.buffer;
         let filesha1 = crypto.createHash('sha1').update(file.buffer).digest('hex');
         let created = body.created || null;
+        let filesize = file.size || null;
         const filenamedisk = await fnFilenameDisk(filename, filesha1);
 
         try {
@@ -694,8 +695,8 @@ export abstract class sqlSupraDrive {
 
 
         try {
-            const query = `INSERT INTO imagefile (imagefolderid, imageuserid, imagesha1, imagefilename, imagefilenamedisk, imageformat, imagedatetime, imagefiledatetime, imageheight, imagewidth, imagemetamake, imagemetamodel, imagemetasoftware, imagemetadatetime, imagemetafnumber, imagemetadatetimeoriginal, imagemetajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-            const values = [folderid, userid, filesha1, filename, filenamedisk, imageMetadata.format, imagedatetime, created, imageMetadata.height, imageMetadata.width, metamake, metamodel, imagemetasoftware, metacreatedate, metafnumber, metacreatedate, JSON.stringify(exifData, null, 4)];
+            const query = `INSERT INTO imagefile (imagefolderid, imageuserid, imagesha1, imagefilename, imagefilenamedisk, imagefilesize, imageformat, imagedatetime, imagefiledatetime, imageheight, imagewidth, imagemetamake, imagemetamodel, imagemetasoftware, imagemetadatetime, imagemetafnumber, imagemetadatetimeoriginal, imagemetajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, imageMetadata.format, imagedatetime, created, imageMetadata.height, imageMetadata.width, metamake, metamodel, imagemetasoftware, metacreatedate, metafnumber, metacreatedate, JSON.stringify(exifData, null, 4)];
             await supradrive.query(query, values);
 
         } catch (e) {
