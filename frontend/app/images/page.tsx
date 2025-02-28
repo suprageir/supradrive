@@ -54,6 +54,7 @@ export default function Page() {
     const [inputValueLocation, setInputValueLocation] = useState<string>('');
     const [myLocationTags, setMyLocationTags] = useState<any[]>([]);
     const inputLocationRef = useRef<HTMLInputElement>(null);
+    const [currentUploadFile, setCurrentUploadFile] = useState<string[]>([]);
 
     const filteredHashtags = inputValueHashtags
         ? myHashtags?.filter(
@@ -299,6 +300,7 @@ export default function Page() {
         }
 
         const file = fileQueue[index];
+        setCurrentUploadFile([...currentUploadFile, file.name]);
         setUploading(true);
         const startTime = Date.now();
         const lastLoaded = 0;
@@ -1128,8 +1130,9 @@ export default function Page() {
                                             )}
                                             <div className="mt-4">
                                                 {files
-                                                    .filter((file) => (uploadProgress[file.name]?.progress !== 100 || uploadProgress[file.name]?.error !== undefined))
-                                                    .map((file) => (
+                                                    // .filter((file) => (uploadProgress[file.name]?.progress !== 100 || uploadProgress[file.name]?.error !== undefined))
+                                                    .filter((file: any) => currentUploadFile.includes(file.name))
+                                                    .map((file: any) => (
                                                         <div key={file.name} className="mb-2 mr-5 ml-5">
                                                             {!uploadProgress[file.name]?.error &&
                                                                 <div
