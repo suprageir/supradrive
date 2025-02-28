@@ -56,6 +56,7 @@ export default function Page() {
     const inputLocationRef = useRef<HTMLInputElement>(null);
     const [currentUploadFile, setCurrentUploadFile] = useState<string[]>([]);
     const [currentUploadSize, setCurrentUploadSize] = useState<number>(0);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentUploadedSize, setCurrentUploadedSize] = useState<number>(0);
 
     const filteredHashtags = inputValueHashtags
@@ -1144,9 +1145,12 @@ export default function Page() {
                                                                         }`}
                                                                     style={{ minWidth: '480px' }}
                                                                 >
-                                                                    {file.name} ({uploadProgress[file.name]?.progress || 0}%) -- {currentUploadedSize} / {currentUploadSize}
+                                                                    {file.name} ({uploadProgress[file.name]?.progress || 0}%)
                                                                     {uploadProgress[file.name]?.speed > 0 &&
                                                                         `${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`}
+                                                                    <div style={{ fontSize: '10px', color: 'gray', marginTop: '5px', alignSelf: 'center' }}>
+                                                                        {currentUploadedSize} / {currentUploadSize}
+                                                                    </div>
                                                                 </div>
                                                             }
                                                             {uploadProgress[file.name]?.error ? (
