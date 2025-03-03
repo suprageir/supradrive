@@ -65,7 +65,6 @@ export default function Page() {
     const [currentUploadSize, setCurrentUploadSize] = useState<number>(0);
     const [currentUploadedSize, setCurrentUploadedSize] = useState<number>(0);
     const [displayImageInfo, setDisplayImageInfo] = useState<boolean>(false);
-    const [currentImageFilename, setCurrentImageFilename] = useState<string>("");
     const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
 
     const filteredHashtags = inputValueHashtags
@@ -891,7 +890,7 @@ export default function Page() {
             {showNotification && (
                 <Notification
                     type={notificationType}
-                    message={currentImageFilename}
+                    message={notificationMessage}
                     duration={3000}
                     onClose={() => setShowNotification(false)}
                 />
