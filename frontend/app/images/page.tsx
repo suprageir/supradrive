@@ -294,6 +294,9 @@ export default function Page() {
 
     const onDropImages = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
         event.stopPropagation();
+        if (!isModalUploadImagesOpen) {
+            setIsModalUploadImagesOpen(true);
+        }
         setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
         setCurrentUploadSize(prevSize => prevSize + acceptedFiles.reduce((acc, file) => acc + file.size, 0));
 
@@ -879,7 +882,7 @@ export default function Page() {
                     onClose={() => setShowNotification(false)}
                 />
             )}
-            <div className="min-h-screen bg-black text-gray-900 dark:text-gray-100">
+            <div className={`min-h-screen bg-black text-gray-900 dark:text-gray-100 ${isDragActive ? 'border-2 border-green-500' : 'border-2 border-transparent'}`} {...getRootPropsImages()}>
                 <nav className="p-4 bg-black">
                     <ol className="flex space-x-2">
                         <Link href="/"><li className="text-green-700">Home</li></Link>
@@ -1017,7 +1020,9 @@ export default function Page() {
                     <div className="rounded-lg bg-vc-border-gradient p-px shadow-lg shadow-black/20">
                         <div className="rounded-lg bg-black w-full pt-2">
                             <div className="prose prose-sm prose-invert max-w-none">
-                                <div className="flex flex-wrap items-center justify-start gap-2">
+                                <div
+                                    className={`flex flex-wrap items-center justify-start gap-2`}
+                                >
                                     {imagesFolders?.map((folder) => {
                                         if (folder.foldername) {
                                             return (
