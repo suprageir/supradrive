@@ -64,6 +64,9 @@ export default function Page() {
     const [currentUploadFile, setCurrentUploadFile] = useState<string[]>([]);
     const [currentUploadSize, setCurrentUploadSize] = useState<number>(0);
     const [currentUploadedSize, setCurrentUploadedSize] = useState<number>(0);
+    const [displayImageInfo, setDisplayImageInfo] = useState<boolean>(false);
+    const [currentImageFilename, setCurrentImageFilename] = useState<string>("");
+    const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
 
     const filteredHashtags = inputValueHashtags
         ? myHashtags?.filter(
@@ -559,6 +562,17 @@ export default function Page() {
             });
     }
 
+    const handleImageInfo = (imageid: number | boolean) => {
+        if (typeof imageid === "number") {
+            setDisplayImageInfo(true);
+            setCurrentImageIndex(imageid);
+        }
+        else {
+            setDisplayImageInfo(false);
+            setCurrentImageIndex(0);
+        }
+    }
+
     const setNewFolderName = (foldername: string) => {
         foldername = foldername.replace(/[^a-zA-ZæøåÆØÅ0-9-_ .]/g, '');
         setFolderName(foldername);
@@ -877,12 +891,19 @@ export default function Page() {
             {showNotification && (
                 <Notification
                     type={notificationType}
-                    message={notificationMessage}
+                    message={currentImageFilename}
                     duration={3000}
                     onClose={() => setShowNotification(false)}
                 />
             )}
-            <div className={`min-h-screen bg-black text-gray-900 dark:text-gray-100 ${isDragActive ? 'border-2 border-green-500' : 'border-2 border-transparent'}`} {...getRootPropsImages()}>
+            {displayImageInfo && (
+                <Notification
+                    type="info"
+                    message={imagesFiles[currentImageIndex]?.imagefilename + " (" + imagesFiles[currentImageIndex]?.imagewidth + "x" + imagesFiles[currentImageIndex]?.imageheight + ") " + formatBytes(imagesFiles[currentImageIndex]?.imagefilesize)}
+                    onClose={() => setDisplayImageInfo(false)}
+                />
+            )}
+            <div className="min-h-screen bg-black text-gray-900 dark:text-gray-100">
                 <nav className="p-4 bg-black">
                     <ol className="flex space-x-2">
                         <Link href="/"><li className="text-green-700">Home</li></Link>
@@ -1050,7 +1071,7 @@ export default function Page() {
                                         if (file.imagefilename) {
                                             return (
                                                 <div key={index} onClick={() => file.imageid}>
-                                                    <div className="FileMenu flex flex-col items-center relative" onContextMenu={handleContextMenu}>
+                                                    <div className="FileMenu flex flex-col items-center relative border-1 border-transparent hover:border-1 hover:border-white hover:border-dotted" onContextMenu={handleContextMenu}>
                                                         <div className="relative">
                                                             {file.base64Thumbnail ? (
                                                                 <Image
@@ -1060,6 +1081,8 @@ export default function Page() {
                                                                     width={thumbSize}
                                                                     height={thumbSize}
                                                                     onClick={() => handleViewImage(file.imageid)}
+                                                                    onMouseEnter={() => handleImageInfo(file.imageid)}
+                                                                    onMouseLeave={() => handleImageInfo(false)}
                                                                     className="relative"
                                                                 />
                                                             ) : (
