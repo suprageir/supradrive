@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useEffect } from "react";
 
 interface NotificationProps {
@@ -30,7 +31,7 @@ const Notification: React.FC<NotificationProps> = ({
     success: "text-green-700 border-2 border-green-500",
     error: "text-red-700 border-2 border-red-500",
     warning: "text-yellow-700 border-2 border-yellow-500",
-    info: "text-blue-700 border-2 border-blue-500",
+    info: "text-white border-2 border-blue-500",
   };
 
   const icon: Record<string, string> = {
@@ -42,11 +43,18 @@ const Notification: React.FC<NotificationProps> = ({
 
   return (
     <div
-      className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 flex items-center p-4 border-l-4 rounded-lg shadow-md transition-transform duration-300 w-full ${visible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"} ${typeStyles[type]}`}
+      className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 flex items-center p-4 border-l-4 rounded-lg shadow-md transition-transform duration-300 w-full z-[9999] ${visible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"} ${typeStyles[type]}`}
     >
       <span className="text-2xl">{icon[type]}</span>
       <div className="flex-1">
-        <p className="text-sm font-semibold">{message}</p>
+        <p className="text-sm font-semibold">
+          {message.split("\n").map((line, index) => (
+            <React.Fragment key={index}>
+              {line}
+              <br />
+            </React.Fragment>
+          ))}
+        </p>
       </div>
       <button
         onClick={() => setVisible(false)}

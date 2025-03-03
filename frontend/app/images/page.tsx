@@ -898,7 +898,7 @@ export default function Page() {
             {displayImageInfo && (
                 <Notification
                     type="info"
-                    message={imagesFiles[currentImageIndex]?.imagefilename + " (" + imagesFiles[currentImageIndex]?.imagewidth + "x" + imagesFiles[currentImageIndex]?.imageheight + ") " + formatBytes(imagesFiles[currentImageIndex]?.imagefilesize)}
+                    message={imagesFiles[currentImageIndex]?.imagefilename + " (" + formatBytes(imagesFiles[currentImageIndex]?.imagefilesize) + ") " + moment(imagesFiles[currentImageIndex]?.imagefiledatetime).format("DD.MM.YYYY HH:mm:ss") + "\n#" + imagesFiles[currentImageIndex]?.imagehashtags.map((tag: any) => tag.hashtag).join(", #") + "\n@" + imagesFiles[currentImageIndex]?.imageusertags.map((tag: any) => tag.user).join(", @") + "\n!" + imagesFiles[currentImageIndex]?.imagelocationtags.map((tag: any) => tag.location).join(", !")}
                     onClose={() => setDisplayImageInfo(false)}
                 />
             )}
