@@ -542,7 +542,6 @@ export default function Page() {
     const getImageLocationTags = async () => {
         axios.get(APIURL + "/supradrive/images/locationtags", { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then(async (response) => {
-                console.log(response.data);
                 setMyLocationTags(response.data);
             })
             .catch((error) => {
