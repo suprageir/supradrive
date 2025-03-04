@@ -757,7 +757,7 @@ export default function Page() {
             <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90"
             >
                 <Image
-                    src={videosFiles[imageTagIndex]?.base64Thumbnail}
+                    src={videosFiles[currentVideoIndex]?.base64Thumbnail}
                     alt={"n/a"}
                     layout="intrinsic"
                     width={320}
