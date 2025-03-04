@@ -316,6 +316,7 @@ export default function Page() {
 
     const handleUploadNextFile = async (index: number, fileQueue: File[]) => {
         if (index >= fileQueue.length) {
+            getFilesAndFolders(folderid);
             handleAllFilesUploaded();
             return;
         }
@@ -559,13 +560,6 @@ export default function Page() {
 
     const handleViewVideo = (videoid: number) => {
         setVideo(videoid);
-        // axios.get(APIURL + "/supradrive/video/" + videoid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
-        //     .then(async (response) => {
-        //         setVideo(response.data);
-        //     })
-        //     .catch((error) => {
-        //         console.log(error);
-        //     });
     }
 
     const handleVideoInfo = (videoid: number | boolean) => {

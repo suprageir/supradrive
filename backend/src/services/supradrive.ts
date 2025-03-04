@@ -802,7 +802,7 @@ export abstract class sqlSupraDrive {
             recordingTime = moment(formatTags.creation_time).format("HH:mm:ss") || null;
             ffmpeg(filePath)
                 .screenshots({
-                    timestamps: [1],
+                    timestamps: [0.1],
                     filename: `${filenamedisk}.jpg`,
                     folder: thumbnailPath,
                     size: "300x300",
