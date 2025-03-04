@@ -48,7 +48,6 @@ export default function Page() {
     const [thumbSize, setThumbSize] = useState(100);
     const [video, setVideo] = useState<number>(0);
     const [tags, setTags] = useState<any>(null);
-    const [imageTagIndex, setImageTagIndex] = useState<any>(0);
     const [myHashtags, setMyHashtags] = useState<any[]>([]);
     const [inputValueHashtags, setInputValueHashtags] = useState<string>('');
     const inputHashtagsRef = useRef<HTMLInputElement>(null);
@@ -135,7 +134,7 @@ export default function Page() {
                 user: tag.toLowerCase(),
             }
             const tagjson = JSON.stringify(json);
-            await axios.post(APIURL + "/supradrive/videos/usertag/" + videosFiles[imageTagIndex].videoid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+            await axios.post(APIURL + "/supradrive/videos/usertag/" + videosFiles[currentVideoIndex].videoid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
                 .then((response) => {
                     setMyUserTags(response.data);
                     setCurrentImageUserTags([...currentImageUserTags, tag.toLowerCase()]);
@@ -153,7 +152,7 @@ export default function Page() {
                 location: tag.toLowerCase(),
             }
             const tagjson = JSON.stringify(json);
-            await axios.post(APIURL + "/supradrive/videos/locationtag/" + videosFiles[imageTagIndex].videoid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+            await axios.post(APIURL + "/supradrive/videos/locationtag/" + videosFiles[currentVideoIndex].videoid, tagjson, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
                 .then((response) => {
                     setMyLocationTags(response.data);
                     setCurrentImageLocationTags([...currentImageLocationTags, tag.toLowerCase()]);
@@ -167,7 +166,7 @@ export default function Page() {
 
     const removeTagUser = async (tag: string) => {
         const tagid = myUserTags.find((t: any) => t.user === tag)?.id;
-        await axios.delete(APIURL + "/supradrive/videos/usertag/" + videosFiles[imageTagIndex].videoid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+        await axios.delete(APIURL + "/supradrive/videos/usertag/" + videosFiles[currentVideoIndex].videoid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then((response) => {
                 setMyUserTags(response.data);
                 setCurrentImageUserTags(currentImageUserTags.filter((t: string) => t !== tag));
@@ -179,7 +178,7 @@ export default function Page() {
 
     const removeTagLocation = async (tag: string) => {
         const tagid = myLocationTags.find((t: any) => t.location === tag)?.id;
-        await axios.delete(APIURL + "/supradrive/videos/locationtag/" + videosFiles[imageTagIndex].videoid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+        await axios.delete(APIURL + "/supradrive/videos/locationtag/" + videosFiles[currentVideoIndex].videoid + "/" + tagid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
             .then((response) => {
                 setMyLocationTags(response.data);
                 setCurrentImageLocationTags(currentImageLocationTags.filter((t: string) => t !== tag));
@@ -260,7 +259,7 @@ export default function Page() {
         if (!currentImageTags.includes(tag.toLowerCase())) {
             try {
                 const response = await axios.post(
-                    `${APIURL}/supradrive/videos/tag/${videosFiles[imageTagIndex].videoid}`,
+                    `${APIURL}/supradrive/videos/tag/${videosFiles[currentVideoIndex].videoid}`,
                     JSON.stringify({ hashtag: tag.toLowerCase() }),
                     {
                         withCredentials: true,
@@ -285,7 +284,7 @@ export default function Page() {
 
         try {
             const response = await axios.delete(
-                `${APIURL}/supradrive/videos/tag/${videosFiles[imageTagIndex].videoid}/${tagid}`,
+                `${APIURL}/supradrive/videos/tag/${videosFiles[currentVideoIndex].videoid}/${tagid}`,
                 {
                     withCredentials: true,
                     headers: {

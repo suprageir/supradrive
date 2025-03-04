@@ -35,6 +35,7 @@ export default function VideoPlayer({ videoid }: { videoid: number }) {
         };
 
         fetchVideo();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
