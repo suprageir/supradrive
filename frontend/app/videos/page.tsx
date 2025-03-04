@@ -409,7 +409,9 @@ export default function Page() {
         // setFiles([]);
         // setIsModalUploadImagesOpen(false);
         // setUploadProgress({});
-        getFilesAndFolders(folderid);
+        setInterval(() => {
+            getFilesAndFolders(folderid);
+        }, 1000);
 
         const successCount = Object.values(uploadProgress).filter((file: any) => file.progress === 100 && file.error === undefined).length;
         const errorCount = Object.values(uploadProgress).filter((file: any) => file.progress === 100 && file.error !== undefined).length;
