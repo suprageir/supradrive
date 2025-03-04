@@ -8,6 +8,9 @@ const { BAD_REQUEST, OK } = StatusCodes;
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcryptjs");
+import * as fs from 'fs';
+import * as path from 'path';
+const SUPRADRIVE_PATH = process.env.SUPRADRIVE_PATH || '';
 
 interface MulterRequest extends Request {
     file?: any;
@@ -43,6 +46,22 @@ export async function SupraDriveNewImagesFolder(req: Request, res: Response) {
     if (req.body) {
         console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
         let posts: SupraDrive[] = await sqlSupraDrive.SupraDriveNewImagesFolder(userid, username, req.body);
+        return res.status(OK).json(posts);
+    }
+    else {
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
+        return res.status(BAD_REQUEST);
+    }
+}
+
+export async function SupraDriveNewVideosFolder(req: Request, res: Response) {
+    const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
+    const supradriveuser = (req as any).user;
+    const userid = supradriveuser.userid;
+    const username = supradriveuser.username;
+    if (req.body) {
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
+        let posts: SupraDrive[] = await sqlSupraDrive.SupraDriveNewVideosFolder(userid, username, req.body);
         return res.status(OK).json(posts);
     }
     else {
@@ -111,6 +130,27 @@ export async function SupraDriveNewImagesUpload(req: MulterRequest, res: Respons
     }
 }
 
+export async function SupraDriveNewVideosUpload(req: MulterRequest, res: Response) {
+    const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
+    const supradriveuser = (req as any).user;
+    const userid = supradriveuser.userid;
+    const username = supradriveuser.username;
+    if (req.body) {
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
+        let posts: any = await sqlSupraDrive.SupraDriveNewVideosUpload(userid, username, req.body, req.file);
+        let json = JSON.parse(posts);
+        if (json.status === "success") {
+            return res.status(OK).json(posts);
+        }
+        else {
+            return res.status(BAD_REQUEST).json(posts);
+        }
+    }
+    else {
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
+        return res.status(BAD_REQUEST);
+    }
+}
 
 export async function SupraDriveGetFolders(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
@@ -129,6 +169,23 @@ export async function SupraDriveGetFolders(req: Request, res: Response) {
     }
     else {
         console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl + " \x1b[30m(" + ip + ")\x1b[0m");
+        return res.status(BAD_REQUEST);
+    }
+}
+
+export async function SupraDriveGetVideosFolder(req: Request, res: Response) {
+    const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
+    const supradriveuser = (req as any).user;
+    const userid = supradriveuser.userid;
+    const username = supradriveuser.username;
+
+    if (req.params.foldersubid) {
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
+        let posts: SupraDrive[] = await sqlSupraDrive.SupraDriveGetVideosFolder(userid, username, parseInt(req.params.foldersubid));
+        return res.status(OK).json(posts);
+    }
+    else {
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
         return res.status(BAD_REQUEST);
     }
 }
@@ -187,6 +244,71 @@ export async function SupraDriveGetImage(req: Request, res: Response) {
         return res.status(BAD_REQUEST);
     }
 }
+
+
+export async function SupraDriveGetVideo(req: Request, res: Response) {
+    const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
+    const supradriveuser = (req as any).user;
+    const userid = supradriveuser.userid;
+    const username = supradriveuser.username;
+
+    try {
+        var [fileinfo] = await supradrive.query(
+            `SELECT v.*, f.foldernamedisk FROM \`videofile\` v 
+             LEFT JOIN \`videofolder\` f ON v.videofolderid = f.folderid 
+             WHERE v.videoid=? AND v.videouserid=? AND v.videowiped='0'`,
+            [req.params.fileid, userid]
+        );
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: "Database query error" });
+        return false;
+    }
+
+    if (!fileinfo || fileinfo.length === 0) {
+        return false;
+    }
+
+    const videopath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'videos', fileinfo[0].foldernamedisk, fileinfo[0].videofilenamedisk);
+
+    if (!fs.existsSync(videopath)) {
+        return res.status(404).json({ error: "File not found" });
+    }
+
+    const stat = fs.statSync(videopath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+
+
+    if (range) {
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunkSize = end - start + 1;
+
+        const file = fs.createReadStream(videopath, { start, end });
+        const head = {
+            "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+            "Accept-Ranges": "bytes",
+            "Content-Length": chunkSize,
+            "Content-Type": "video/mp4",
+        };
+
+        res.writeHead(206, head);
+        file.pipe(res);
+    } else {
+        const head = {
+            "Content-Length": fileSize,
+            "Content-Type": "video/mp4",
+        };
+
+        res.writeHead(200, head);
+        fs.createReadStream(videopath).pipe(res);
+    }
+
+
+}
+
 
 export async function SupraDriveGetImageTags(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");

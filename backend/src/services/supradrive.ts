@@ -8,6 +8,8 @@ import * as path from 'path';
 const sharp = require('sharp');
 import ExifParser from 'exif-parser';
 import { APIResponse } from "@shared/APIResponse";
+const ffmpeg = require("fluent-ffmpeg");
+
 
 async function createThumbnail(fileBuffer) {
     try {
@@ -420,6 +422,33 @@ export abstract class sqlSupraDrive {
         }
     }
 
+    public static async SupraDriveNewVideosFolder(userid: number, username: string, body: any): Promise<any> {
+        let foldersubid = body.foldersubid || null;
+        let foldername = body.foldername;
+        let foldernamedisk = await fnFolderNameDB(foldername);
+        try {
+            // Insert folder and get the new folderid
+            const query = `INSERT INTO videofolder (foldersubid, folderuserid, foldername, foldernamedisk) VALUES (?, ?, ?, ?)`;
+            const values = [foldersubid, userid, foldername, foldernamedisk];
+            const [result] = await supradrive.query(query, values);
+
+            // Get the newly inserted folderid
+            const folderid = result.insertId;
+
+            // Create the new foldername with the folderid appended
+            const updatedFolderName = `${foldernamedisk}_${folderid}`;
+
+            // Update the foldername in the database
+            const updateQuery = `UPDATE videofolder SET foldernamedisk = ? WHERE folderid = ?`;
+            await supradrive.query(updateQuery, [updatedFolderName, folderid]);
+
+            return APIResponse("success", 200, `Folder ${foldername} created successfully`, "", folderid);
+        } catch (e: any) {
+            console.log(e);
+            return APIResponse("error", 500, "Folder creation failed", e.message, null);
+        }
+    }
+
 
     public static async SupraDriveEncryptedTextSave(userid: number, username: string, body: any): Promise<SupraDrive[]> {
         const timestamp = moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
@@ -705,6 +734,114 @@ export abstract class sqlSupraDrive {
         return APIResponse("success", 200, "Image " + filename + " uploaded successfully", "", null);
     }
 
+
+    public static async SupraDriveNewVideosUpload(userid: number, username: string, body: any, file: any): Promise<any> {
+        const folderid = body.folderid;
+        const filename = Buffer.from(file.originalname, 'latin1').toString('utf-8');
+        let filecontent = file.buffer;
+        let filesha1 = crypto.createHash('sha1').update(file.buffer).digest('hex');
+        let filesize = file.size || null;
+        const filenamedisk = await fnFilenameDisk(filename, filesha1);
+
+        try {
+            const query = `SELECT videoid FROM videofile WHERE videosha1 = ?`;
+            const values = [filesha1];
+            var [sqlvideoid] = await supradrive.query(query, values);
+            if (sqlvideoid.length > 0) {
+                return APIResponse("error", 400, filename + " is duplicate.", "", sqlvideoid[0].videoid);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+
+        let foldernamedisk = "";
+        try {
+            const foldername = `SELECT foldernamedisk FROM videofolder WHERE folderid = ?`;
+            const values = [folderid];
+            const [result] = await supradrive.query(foldername, values);
+            foldernamedisk = result[0].foldernamedisk;
+        } catch (e) {
+            console.log(e);
+        }
+
+        const userDir = path.join(SUPRADRIVE_PATH, 'userdata', username);
+        if (!fs.existsSync(userDir)) {
+            fs.mkdirSync(userDir, { recursive: true });
+        }
+        const videosDir = path.join(userDir, 'videos');
+        if (!fs.existsSync(videosDir)) {
+            fs.mkdirSync(videosDir, { recursive: true });
+        }
+        const folderDir = path.join(videosDir, `${foldernamedisk}`);
+        if (!fs.existsSync(folderDir)) {
+            fs.mkdirSync(folderDir, { recursive: true });
+        }
+        const filePath = path.join(folderDir, `${filenamedisk}`);
+        const metaPath = path.join(folderDir, `${filenamedisk}.json`);
+
+        if (fs.existsSync(filePath)) {
+            return APIResponse("error", 400, filename + " is duplicate.", "", null);
+        }
+
+        fs.writeFileSync(filePath, filecontent);
+
+        const thumbnailPath = path.join(folderDir);
+
+        let videoMetadata: any = {};
+
+        let recordingDate = null;
+        let recordingTime = null;
+
+        ffmpeg.ffprobe(filePath, (err, metadata) => {
+            if (err) {
+                console.error("Error extracting metadata:", err);
+            }
+            const duration = metadata.format.duration;
+            const formatTags = metadata.format.tags || {};
+            recordingDate = moment(formatTags.creation_time).format("YYYY-MM-DD") || null;
+            recordingTime = moment(formatTags.creation_time).format("HH:mm:ss") || null;
+            ffmpeg(filePath)
+                .screenshots({
+                    timestamps: [1],
+                    filename: `${filenamedisk}.jpg`,
+                    folder: thumbnailPath,
+                    size: "300x300",
+                })
+                .on("end", async () => {
+                    videoMetadata = {
+                        format: metadata.format.format_name,
+                        duration,
+                        size: filesize,
+                        width: metadata.streams[0]?.width,
+                        height: metadata.streams[0]?.height,
+                        codec: metadata.streams[0]?.codec_name,
+                        frame_rate: metadata.streams[0]?.r_frame_rate,
+                        recordingDate: recordingDate,
+                        recordingTime: recordingTime,
+                    };
+
+                    try {
+                        const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                        const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
+                        await supradrive.query(query, values);
+
+                    } catch (e) {
+                        console.log(e);
+                    }
+
+                })
+                .on("error", (err) => {
+                    console.error("Error generating thumbnail", err.message);
+                });
+        });
+
+
+        fs.writeFileSync(metaPath, JSON.stringify(videoMetadata, null, 4), 'utf8');
+
+        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", null);
+    }
+
+
     public static async getFolders(userid: number, username: string, foldersysid: number): Promise<SupraDrive[]> {
         if (foldersysid === 0) {
             try {
@@ -819,6 +956,80 @@ export abstract class sqlSupraDrive {
     }
 
 
+    public static async SupraDriveGetVideosFolder(userid: number, username: string, foldersubid: number): Promise<SupraDrive[]> {
+        if (foldersubid === 0) {
+            try {
+                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername,foldernamedisk FROM \`videofolder\` WHERE foldersubid IS NULL AND folderuserid=? AND folderwiped='0' ORDER BY foldername ASC`, [userid]);
+            } catch (e) {
+                console.log(e);
+            }
+        }
+        else {
+            try {
+                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername,foldernamedisk FROM \`videofolder\` WHERE foldersubid=? AND folderuserid=? AND folderwiped='0' ORDER BY foldername ASC`, [foldersubid, userid]);
+            } catch (e) {
+                console.log(e);
+            }
+
+            try {
+                var [files] = await supradrive.query(`SELECT v.*, f.foldernamedisk FROM videofile v LEFT JOIN videofolder f ON v.videofolderid = f.folderid WHERE v.videofolderid = ? AND v.videouserid = ? AND v.videowiped = '0'`, [foldersubid, userid]);
+
+                files = await Promise.all(files.map(async file => {
+
+                    const thumbnailpath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'videos', file.foldernamedisk, `${file.videofilenamedisk}.jpg`);
+
+                    let base64Thumbnail = "";
+                    try {
+                        if (fs.existsSync(thumbnailpath)) {
+                            const imageBuffer = fs.readFileSync(thumbnailpath);
+                            base64Thumbnail = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+                        }
+                    } catch (error) {
+                        console.error(`Error reading thumbnail: ${thumbnailpath}`, error);
+                    }
+
+                    let videohashtags = [];
+                    try {
+                        const [videotags] = await supradrive.query(`SELECT t.id,t.hashtagid,h.hashtag FROM videohashtag t LEFT OUTER JOIN codevideohashtag h ON t.hashtagid = h.id WHERE videoid = ?`, [file.videoid]);
+                        videohashtags = videotags;
+                    } catch (e) {
+                        console.log(e);
+                    }
+
+                    let videousertags = [];
+                    try {
+                        const [utags] = await supradrive.query(`SELECT u.id,u.videoid,u.userid,n.user FROM videouser u LEFT OUTER JOIN codevideouser n ON n.id = u.userid WHERE u.videoid = ?`, [file.videoid]);
+                        videousertags = utags;
+                    } catch (e) {
+                        console.log(e);
+                    }
+
+                    let videolocationtags = [];
+                    try {
+                        const [ltags] = await supradrive.query(`SELECT l.id,l.videoid,l.locationid,n.location FROM videolocation l LEFT OUTER JOIN codevideolocation n ON n.id = l.locationid WHERE l.videoid = ?`, [file.videoid]);
+                        videolocationtags = ltags;
+                    } catch (e) {
+                        console.log(e);
+                    }
+
+                    return { ...file, base64Thumbnail, videohashtags, videousertags, videolocationtags };
+                }));
+
+            } catch (e) {
+                console.log(e);
+            }
+
+
+        }
+
+        const res = [{ folders, files }];
+
+        let SupraDrive = res.map((r: any) => {
+            return <SupraDrive>r;
+        })
+        return SupraDrive;
+    }
+
     public static async SupraDriveGetFile(userid: number, username: string, fileid: number): Promise<SupraDrive[]> {
         var fileContent = "";
         try {
@@ -929,4 +1140,58 @@ export abstract class sqlSupraDrive {
         return SupraDrive;
     }
 
+    public static async SupraDriveGetVideo(userid: number, username: string, fileid: number, req: any, res: any): Promise<any> {
+        try {
+            var [fileinfo] = await supradrive.query(
+                `SELECT v.*, f.foldernamedisk FROM \`videofile\` v 
+                 LEFT JOIN \`videofolder\` f ON v.videofolderid = f.folderid 
+                 WHERE v.videoid=? AND v.videouserid=? AND v.videowiped='0'`,
+                [fileid, userid]
+            );
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ error: "Database query error" });
+            return false;
+        }
+
+        if (!fileinfo || fileinfo.length === 0) {
+            return false; // Return false to indicate no video found
+        }
+
+        const videopath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'videos', fileinfo[0].foldernamedisk, fileinfo[0].videofilenamedisk);
+
+        if (!fs.existsSync(videopath)) {
+            return res.status(404).json({ error: "File not found" });
+        }
+
+        const stat = fs.statSync(videopath);
+        const fileSize = stat.size;
+        const range = req.headers.range;
+
+        if (range) {
+            const parts = range.replace(/bytes=/, "").split("-");
+            const start = parseInt(parts[0], 10);
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+            const chunkSize = end - start + 1;
+
+            const file = fs.createReadStream(videopath, { start, end });
+            const head = {
+                "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+                "Accept-Ranges": "bytes",
+                "Content-Length": chunkSize,
+                "Content-Type": "video/mp4",
+            };
+
+            res.writeHead(206, head);
+            file.pipe(res);
+        } else {
+            const head = {
+                "Content-Length": fileSize,
+                "Content-Type": "video/mp4",
+            };
+
+            res.writeHead(200, head);
+            fs.createReadStream(videopath).pipe(res);
+        }
+    }
 }

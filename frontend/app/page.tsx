@@ -117,7 +117,7 @@ export default function Page() {
           </div>
 
           <div className="flex items-center space-x-10">
-            <Link href="/encrypted/textfiles">
+            <Link href="/videos">
               <div className="flex flex-col items-center group">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -130,7 +130,7 @@ export default function Page() {
                   <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
                 </svg>
                 <span className="text-green-500 group-hover:text-white transition duration-300">
-                  Text
+                  Videos
                 </span>
               </div>
             </Link>

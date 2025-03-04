@@ -1,6 +1,6 @@
 const supradriveauth = require("src/middleware/supradriveauth");
 import { Router } from 'express';
-import { SupraDriveAuthLogin, SupraDriveAuthToken, SupraDriveNewFolder, SupraDriveGetFolders, SupraDriveEncryptedTextSave, SupraDriveGetFile, SupraDriveEncryptedTextUpload, SupraDriveNewImagesFolder, SupraDriveGetImagesFolder, SupraDriveNewImagesUpload, SupraDriveGetImage, SupraDriveGetImageTags, SupraDriveGetImageUserTags, SupraDriveAddImageTag, SupraDriveRemoveImageTag, SupraDriveAddImageUserTag, SupraDriveRemoveImageUserTag, SupraDriveGetImageLocationTags, SupraDriveAddImageLocationTag, SupraDriveRemoveImageLocationTag } from './supradrive';
+import { SupraDriveAuthLogin, SupraDriveAuthToken, SupraDriveNewFolder, SupraDriveGetFolders, SupraDriveGetVideosFolder, SupraDriveEncryptedTextSave, SupraDriveGetFile, SupraDriveEncryptedTextUpload, SupraDriveNewImagesFolder, SupraDriveNewVideosFolder, SupraDriveGetImagesFolder, SupraDriveNewImagesUpload, SupraDriveNewVideosUpload, SupraDriveGetImage, SupraDriveGetVideo, SupraDriveGetImageTags, SupraDriveGetImageUserTags, SupraDriveAddImageTag, SupraDriveRemoveImageTag, SupraDriveAddImageUserTag, SupraDriveRemoveImageUserTag, SupraDriveGetImageLocationTags, SupraDriveAddImageLocationTag, SupraDriveRemoveImageLocationTag } from './supradrive';
 
 import multer from 'multer';
 
@@ -30,6 +30,14 @@ apiRouter.delete('/supradrive/images/usertag/:imageid/:tagid', supradriveauth, S
 apiRouter.get('/supradrive/images/locationtags', supradriveauth, SupraDriveGetImageLocationTags);
 apiRouter.post('/supradrive/images/locationtag/:imageid', supradriveauth, SupraDriveAddImageLocationTag);
 apiRouter.delete('/supradrive/images/locationtag/:imageid/:tagid', supradriveauth, SupraDriveRemoveImageLocationTag);
+
+
+apiRouter.get('/supradrive/videos/folder/:foldersubid', supradriveauth, SupraDriveGetVideosFolder);
+apiRouter.post('/supradrive/videos/folder', supradriveauth, SupraDriveNewVideosFolder);
+apiRouter.post('/supradrive/videos/upload', supradriveauth, upload.single('file'), SupraDriveNewVideosUpload);
+apiRouter.get('/supradrive/video/:fileid', supradriveauth, SupraDriveGetVideo);
+
+
 
 // Export the base-router
 const baseRouter = Router();
