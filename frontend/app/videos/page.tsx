@@ -343,6 +343,8 @@ export default function Page() {
                     if (event.total) {
                         const currentTime = Date.now();
                         const loaded = event.loaded;
+                        setCurrentUploadedSize(loaded);
+                        
                         const deltaTime = (currentTime - lastTime) / 1000;
                         const deltaLoaded = loaded - lastLoaded;
 
@@ -351,8 +353,7 @@ export default function Page() {
                         // const remainingBytes = event.total - event.loaded;
                         const remainingBytes = currentUploadSize - currentUploadedSize - event.loaded;
                         const remainingSeconds = remainingBytes / (deltaLoaded / deltaTime);
-                        setCurrentUploadedSize(prevSize => prevSize + event.loaded);
-
+                        
                         let timeRemaining = '';
                         if (remainingSeconds < 60) {
                             timeRemaining = `${Math.round(remainingSeconds)}s`;
@@ -1171,7 +1172,7 @@ export default function Page() {
                                                                         }`}
                                                                     style={{ minWidth: '480px' }}
                                                                 >
-                                                                    {file.name} ({uploadProgress[file.name]?.progress || 0}%)
+                                                                    {file.name} ({uploadProgress[file.name]?.progress || 0}%) &nbsp; ({formatBytes(currentUploadedSize)} / {formatBytes(currentUploadSize)}) &nbsp; - &nbsp;
                                                                     {uploadProgress[file.name]?.speed > 0 &&
                                                                         `${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`}
                                                                 </div>
@@ -1186,9 +1187,6 @@ export default function Page() {
                                                                     ></div>
                                                                 </div>
                                                             )}
-                                                            <div style={{ fontSize: '16px', color: 'gray', marginTop: '5px' }}>
-                                                                {formatBytes(currentUploadedSize)} / {formatBytes(currentUploadSize)} &nbsp; ({Math.round((currentUploadedSize / currentUploadSize) * 100)}%)
-                                                            </div>
                                                         </div>
                                                     ))}
                                             </div>
