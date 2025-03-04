@@ -630,7 +630,7 @@ export default function Page() {
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
-                setVideo(null);
+                setVideo(0);
             }
         };
         document.addEventListener("keydown", handleKeyDown);
