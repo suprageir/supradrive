@@ -67,13 +67,12 @@ export default function Page() {
     const [currentUploadedSize, setCurrentUploadedSize] = useState<number>(0);
     const [displayVideoInfo, setDisplayVideoInfo] = useState<boolean>(false);
     const [currentVideoIndex, setCurrentVideoIndex] = useState<number>(0);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentVideoTags, setCurrentVideoTags] = useState<string[]>([]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentVideoUserTags, setCurrentVideoUserTags] = useState<string[]>([]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentVideoLocationTags, setCurrentVideoLocationTags] = useState<string[]>([]);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [videoSrc, setVideoSrc] = useState<string | null>(null);
-
-
 
     const filteredHashtags = inputValueHashtags
         ? myHashtags?.filter(
