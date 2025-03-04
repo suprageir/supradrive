@@ -889,7 +889,7 @@ export default function Page() {
             {displayVideoInfo && (
                 <Notification
                     type="info"
-                    message={videosFiles[currentVideoIndex]?.videofilename + " (" + formatBytes(videosFiles[currentVideoIndex]?.videofilesize) + ") " + moment(videosFiles[currentVideoIndex]?.videofiledatetime).format("DD.MM.YYYY HH:mm:ss") + "\n#" + videosFiles[currentVideoIndex]?.videohashtags.map((tag: any) => tag.hashtag).join(", #") + "\n@" + videosFiles[currentVideoIndex]?.videousertags.map((tag: any) => tag.user).join(", @") + "\n!" + videosFiles[currentVideoIndex]?.videolocationtags.map((tag: any) => tag.location).join(", !")}
+                    message={videosFiles[currentVideoIndex]?.videofilename + " (" + formatBytes(videosFiles[currentVideoIndex]?.videosize) + ") " + moment(videosFiles[currentVideoIndex]?.videodate).format("DD.MM.YYYY") + " " + videosFiles[currentVideoIndex]?.videotime + "\n#" + videosFiles[currentVideoIndex]?.videohashtags.map((tag: any) => tag.hashtag).join(", #") + "\n@" + videosFiles[currentVideoIndex]?.videousertags.map((tag: any) => tag.user).join(", @") + "\n!" + videosFiles[currentVideoIndex]?.videolocationtags.map((tag: any) => tag.location).join(", !")}
                     onClose={() => setDisplayVideoInfo(false)}
                 />
             )}
