@@ -409,7 +409,7 @@ export default function Page() {
         // setFiles([]);
         // setIsModalUploadImagesOpen(false);
         // setUploadProgress({});
-        setInterval(() => {
+        setTimeout(() => {
             getFilesAndFolders(folderid);
         }, 1000);
 
