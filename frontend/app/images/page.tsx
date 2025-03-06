@@ -1079,7 +1079,7 @@ export default function Page() {
                                                                     width={thumbSize}
                                                                     height={thumbSize}
                                                                     onClick={() => handleViewImage(file.imageid)}
-                                                                    onMouseEnter={() => handleImageInfo(file.imageid)}
+                                                                    onMouseEnter={() => handleImageInfo(index)}
                                                                     onMouseLeave={() => handleImageInfo(false)}
                                                                     className="relative"
                                                                 />
