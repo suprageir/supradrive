@@ -10,6 +10,9 @@ const handle = app.getRequestHandler();
 app.prepare().then(() => {
   const server = express();
 
+  server.use(express.json({ limit: "100gb" })); // JSON body limit
+  server.use(express.urlencoded({ limit: "100gb", extended: true })); // URL-encoded data limit
+
   // Use HTTPS with self-signed certificates
   const options = {
     key: fs.readFileSync(process.env.NEXT_PUBLIC_SSL_KEY),

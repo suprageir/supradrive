@@ -4,7 +4,13 @@ import { SupraDriveAuthLogin, SupraDriveAuthToken, SupraDriveNewFolder, SupraDri
 
 import multer from 'multer';
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+    storage: multer.memoryStorage(), // or use diskStorage()
+    limits: {
+      fileSize: 100 * 1024 * 1024 * 1024, // 100GB file size limit
+      fieldSize: 100 * 1024 * 1024 * 1024, // 100GB field size limit
+    },
+  });
 
 const apiRouter = Router();
 

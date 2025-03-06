@@ -10,6 +10,7 @@ import Notification from "@/app/components/Notification";
 import VideoPlayer from "../components/VideoPlayer";
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
+const MAX_FILE_SIZE = 100 * 1024 * 1024 * 1024; // 100GB in bytes
 
 interface UploadProgressType {
     [key: string]: {
@@ -386,7 +387,8 @@ export default function Page() {
                 }));
             }
         } catch (error: any) {
-            const errorMessage = JSON.parse(error.response.data);
+            console.log(error);
+            const errorMessage = JSON.parse(JSON.stringify(error.response.data));
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
                 [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
@@ -397,6 +399,7 @@ export default function Page() {
 
     const { getRootProps: getRootPropsVideos, getInputProps: getInputPropsVideos, isDragActive } = useDropzone({
         onDrop: onDropVideos,
+        maxSize: MAX_FILE_SIZE,
         multiple: true,
         accept: {
             'video/*': []
@@ -567,8 +570,8 @@ export default function Page() {
 
     const handleVideoInfo = (videoid: number | boolean) => {
         if (typeof videoid === "number") {
-            setDisplayVideoInfo(true);
             setCurrentVideoIndex(videoid);
+            setDisplayVideoInfo(true);
         }
         else {
             setDisplayVideoInfo(false);
@@ -1071,7 +1074,7 @@ export default function Page() {
                                                                     width={thumbSize}
                                                                     height={thumbSize}
                                                                     onClick={() => handleViewVideo(file.videoid)}
-                                                                    onMouseEnter={() => handleVideoInfo(file.videoid)}
+                                                                    onMouseEnter={() => handleVideoInfo(index)}
                                                                     onMouseLeave={() => handleVideoInfo(false)}
                                                                     className="relative"
                                                                 />
