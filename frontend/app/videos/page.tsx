@@ -345,7 +345,7 @@ export default function Page() {
                         const currentTime = Date.now();
                         const loaded = event.loaded;
                         setCurrentUploadedSize(loaded);
-                        
+
                         const deltaTime = (currentTime - lastTime) / 1000;
                         const deltaLoaded = loaded - lastLoaded;
 
@@ -354,7 +354,7 @@ export default function Page() {
                         // const remainingBytes = event.total - event.loaded;
                         const remainingBytes = currentUploadSize - currentUploadedSize - event.loaded;
                         const remainingSeconds = remainingBytes / (deltaLoaded / deltaTime);
-                        
+
                         let timeRemaining = '';
                         if (remainingSeconds < 60) {
                             timeRemaining = `${Math.round(remainingSeconds)}s`;
@@ -402,7 +402,10 @@ export default function Page() {
         maxSize: MAX_FILE_SIZE,
         multiple: true,
         accept: {
-            'video/*': []
+            'video/*': [],
+            'video/mts': [],
+            'video/vnd.dlna.mpeg-tts': [],
+            'application/octet-stream': []
         },
         maxFiles: 1000,
     });
