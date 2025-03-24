@@ -11,7 +11,10 @@ import { APIResponse } from "@shared/APIResponse";
 const ffmpeg = require("fluent-ffmpeg");
 
 import { rename } from 'fs/promises';
+import { promisify } from 'util';
 
+const copyFile = promisify(fs.copyFile);
+const unlink = promisify(fs.unlink);
 
 async function moveFile(tempPath: string, newPath: string) {
     try {
@@ -800,10 +803,13 @@ export abstract class sqlSupraDrive {
         const metaPath = path.join(folderDir, `${filenamedisk}.json`);
 
         if (fs.existsSync(filePath)) {
+            await unlink(file.path);
             return APIResponse("error", 400, filename + " is duplicate.", "", null);
         }
 
-        moveFile(file.path, filePath);
+        // moveFile(file.path, filePath);
+        await copyFile(file.path, filePath);
+        await unlink(file.path);
 
         const thumbnailPath = path.join(folderDir);
 
