@@ -4,13 +4,28 @@ import { SupraDriveAuthLogin, SupraDriveAuthToken, SupraDriveNewFolder, SupraDri
 
 import multer from 'multer';
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, '/tmp/uploads/'); // Save files to 'uploads' directory
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}_${file.originalname}`); // Unique filenames
+  },
+});
+
 const upload = multer({
-    storage: multer.memoryStorage(), // or use diskStorage()
-    limits: {
-      fileSize: 100 * 1024 * 1024 * 1024, // 100GB file size limit
-      fieldSize: 100 * 1024 * 1024 * 1024, // 100GB field size limit
-    },
-  });
+  storage: storage,
+  limits: {
+    fileSize: 100 * 1024 * 1024 * 1024, // 100GB file size limit
+  },
+});
+
+const uploadimage = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024 * 1024, // 100GB file size limit
+  },
+});
 
 const apiRouter = Router();
 
@@ -24,7 +39,7 @@ apiRouter.get('/supradrive/encrypted/folder/:foldersysid', supradriveauth, Supra
 apiRouter.get('/supradrive/encrypted/textfile/:fileid', supradriveauth, SupraDriveGetFile);
 
 apiRouter.post('/supradrive/images/folder', supradriveauth, SupraDriveNewImagesFolder);
-apiRouter.post('/supradrive/images/upload', supradriveauth, upload.single('file'), SupraDriveNewImagesUpload);
+apiRouter.post('/supradrive/images/upload', supradriveauth, uploadimage.single('file'), SupraDriveNewImagesUpload);
 apiRouter.get('/supradrive/image/:fileid', supradriveauth, SupraDriveGetImage);
 apiRouter.get('/supradrive/images/folder/:foldersubid', supradriveauth, SupraDriveGetImagesFolder);
 apiRouter.get('/supradrive/images/tags', supradriveauth, SupraDriveGetImageTags);

@@ -132,7 +132,6 @@ export async function SupraDriveNewImagesUpload(req: MulterRequest, res: Respons
 
 export async function SupraDriveNewVideosUpload(req: MulterRequest, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
-    
     const supradriveuser = (req as any).user;
     const userid = supradriveuser.userid;
     const username = supradriveuser.username;

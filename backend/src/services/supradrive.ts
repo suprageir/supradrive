@@ -10,6 +10,26 @@ import ExifParser from 'exif-parser';
 import { APIResponse } from "@shared/APIResponse";
 const ffmpeg = require("fluent-ffmpeg");
 
+import { rename } from 'fs/promises';
+
+async function moveFile(tempPath: string, newPath: string) {
+    try {
+        await rename(tempPath, newPath);
+    } catch (err) {
+        console.error('Error moving file:', err);
+    }
+}
+
+async function getFileSHA1(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const hash = crypto.createHash('sha1');
+        const stream = fs.createReadStream(filePath);
+
+        stream.on('data', (chunk) => hash.update(chunk));
+        stream.on('end', () => resolve(hash.digest('hex')));
+        stream.on('error', (err) => reject(err));
+    });
+}
 
 async function createThumbnail(fileBuffer) {
     try {
@@ -737,9 +757,8 @@ export abstract class sqlSupraDrive {
 
     public static async SupraDriveNewVideosUpload(userid: number, username: string, body: any, file: any): Promise<any> {
         const folderid = body.folderid;
-        const filename = Buffer.from(file.originalname, 'latin1').toString('utf-8');
-        let filecontent = file.buffer;
-        let filesha1 = crypto.createHash('sha1').update(file.buffer).digest('hex');
+        const filename = file.originalname.toString('utf-8');
+        let filesha1 = await getFileSHA1(file.path);
         let filesize = file.size || null;
         const filenamedisk = await fnFilenameDisk(filename, filesha1);
 
@@ -783,7 +802,7 @@ export abstract class sqlSupraDrive {
             return APIResponse("error", 400, filename + " is duplicate.", "", null);
         }
 
-        fs.writeFileSync(filePath, filecontent);
+        moveFile(file.path, filePath);
 
         const thumbnailPath = path.join(folderDir);
 
