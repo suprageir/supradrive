@@ -771,6 +771,7 @@ export abstract class sqlSupraDrive {
             const values = [filesha1];
             var [sqlvideoid] = await supradrive.query(query, values);
             if (sqlvideoid.length > 0) {
+                await unlink(file.path);
                 return APIResponse("error", 400, filename + " is duplicate.", "", sqlvideoid[0].videoid);
             }
         } catch (e) {
@@ -803,7 +804,7 @@ export abstract class sqlSupraDrive {
         const metaPath = path.join(folderDir, `${filenamedisk}.json`);
 
         if (fs.existsSync(filePath)) {
-            fs.unlinkSync(file.path);
+            await unlink(file.path);
             return APIResponse("error", 400, filename + " is duplicate.", "", null);
         }
 
