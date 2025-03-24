@@ -6,7 +6,7 @@ import multer from 'multer';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, '/tmp/uploads/'); // Save files to 'uploads' directory
+    cb(null, '/supradrive/temp/'); // Save files to 'uploads' directory
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}_${file.originalname}`); // Unique filenames

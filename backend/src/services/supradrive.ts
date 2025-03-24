@@ -803,13 +803,11 @@ export abstract class sqlSupraDrive {
         const metaPath = path.join(folderDir, `${filenamedisk}.json`);
 
         if (fs.existsSync(filePath)) {
-            await unlink(file.path);
+            unlink(file.path);
             return APIResponse("error", 400, filename + " is duplicate.", "", null);
         }
 
-        // moveFile(file.path, filePath);
-        await copyFile(file.path, filePath);
-        await unlink(file.path);
+        moveFile(file.path, filePath);
 
         const thumbnailPath = path.join(folderDir);
 
