@@ -399,7 +399,7 @@ export default function Page() {
                 }));
             }
         } catch (error: any) {
-            console.log(error);
+            console.log(error.response.data);
             const errorMessage = JSON.parse(JSON.stringify(error.response.data));
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
