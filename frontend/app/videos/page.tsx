@@ -302,30 +302,32 @@ export default function Page() {
     };
 
     const onDropVideos = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
-        event.stopPropagation();
-    
+        if ('stopPropagation' in event) {
+            event.stopPropagation();
+        }
+
         // Filter files to include only videos or .mts files
         const filteredFiles = acceptedFiles.filter(file =>
             file.type.startsWith('video/') || file.name.toLowerCase().endsWith('.mts')
         );
-    
+
         if (!isModalUploadImagesOpen) {
             setIsModalUploadImagesOpen(true);
         }
-    
+
         // Update file list with filtered files
         setFiles(prevFiles => [...prevFiles, ...filteredFiles]);
-    
+
         // Update upload size based on filtered files
         setCurrentUploadSize(prevSize => prevSize + filteredFiles.reduce((acc, file) => acc + file.size, 0));
-    
+
         // Start upload if not already in progress
         if (!uploading) {
             handleUploadNextFile(0, filteredFiles);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [uploading, folderid]);
-    
+
 
     const handleUploadNextFile = async (index: number, fileQueue: File[]) => {
         if (index >= fileQueue.length) {
