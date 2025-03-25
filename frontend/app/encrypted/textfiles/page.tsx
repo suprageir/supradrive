@@ -84,7 +84,9 @@ export default function Page() {
     };
 
     const onDropTXTFiles = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
-        event.stopPropagation();
+        if ('stopPropagation' in event) {
+            event.stopPropagation();
+        }
         setFiles(prevFiles => [...prevFiles, ...acceptedFiles]); // Add files to queue
 
         if (!uploading) {

@@ -295,7 +295,10 @@ export default function Page() {
     };
 
     const onDropImages = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
-        event.stopPropagation();
+        if ('stopPropagation' in event) {
+            event.stopPropagation();
+        }
+
         if (!isModalUploadImagesOpen) {
             setIsModalUploadImagesOpen(true);
         }
