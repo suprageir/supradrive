@@ -808,7 +808,7 @@ export abstract class sqlSupraDrive {
             return APIResponse("error", 400, filename + " is duplicate.", "", null);
         }
 
-        moveFile(file.path, filePath);
+        await moveFile(file.path, filePath);
 
         const thumbnailPath = path.join(folderDir);
 
