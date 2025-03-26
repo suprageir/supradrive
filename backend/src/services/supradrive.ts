@@ -815,7 +815,7 @@ export abstract class sqlSupraDrive {
         let recordingDate = null;
         let recordingTime = null;
 
-        ffmpeg.ffprobe(file.path, (err, metadata) => {
+        await ffmpeg.ffprobe(file.path, async (err, metadata) => {
             if (err) {
                 console.error("Error extracting metadata:", err);
             }
@@ -847,9 +847,8 @@ export abstract class sqlSupraDrive {
                 .on("error", (err) => {
                     console.error("Error generating thumbnail", err.message);
                 });
-        });
-
-        await moveFile(file.path, filePath);
+                await moveFile(file.path, filePath);
+            });
 
         try {
             const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
