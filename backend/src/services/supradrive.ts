@@ -823,7 +823,7 @@ export abstract class sqlSupraDrive {
             const formatTags = metadata.format.tags || {};
             recordingDate = moment(formatTags.creation_time).format("YYYY-MM-DD") || null;
             recordingTime = moment(formatTags.creation_time).format("HH:mm:ss") || null;
-            ffmpeg(filePath)
+            ffmpeg(file.path)
                 .screenshots({
                     timestamps: [0.1],
                     filename: `${filenamedisk}.jpg`,
