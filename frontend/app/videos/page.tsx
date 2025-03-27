@@ -403,8 +403,7 @@ export default function Page() {
                 }));
             }
         } catch (error: any) {
-            console.log(error.response.data);
-            const errorMessage = JSON.parse(JSON.stringify(error.response.data));
+            const errorMessage = JSON.parse(error.response.data);
             console.log("[" + index + " / " + fileQueue.length + "]: " + errorMessage.message + " (" + errorMessage.id + ")");
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
