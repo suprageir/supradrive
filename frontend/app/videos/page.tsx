@@ -1188,7 +1188,7 @@ export default function Page() {
                                                                         }`}
                                                                     style={{ minWidth: '480px' }}
                                                                 >
-                                                                    {file.name} ({uploadProgress[file.name]?.progress || 0}%) &nbsp; ({formatBytes(currentUploadedSize)} / {formatBytes(currentUploadSize)}) &nbsp; - &nbsp;
+                                                                    {file.name} ({uploadProgress[file.name]?.progress || 0}%) &nbsp; ({formatBytes(file.size - currentUploadedSize)}) &nbsp; - &nbsp;
                                                                     {uploadProgress[file.name]?.speed > 0 &&
                                                                         `${uploadProgress[file.name]?.speed} MB/s (${uploadProgress[file.name]?.timeRemaining})`}
                                                                 </div>
