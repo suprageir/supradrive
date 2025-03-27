@@ -825,8 +825,8 @@ export abstract class sqlSupraDrive {
             if (err) {
                 console.error("Error extracting metadata:", err);
             }
-            const duration = metadata.format.duration || 0;
-            const formatTags = metadata.format.tags || {};
+            const duration = metadata?.format?.duration || 0;
+            const formatTags = metadata?.format?.tags || {};
             recordingDate = moment(formatTags.creation_time).format("YYYY-MM-DD") || null;
             recordingTime = moment(formatTags.creation_time).format("HH:mm:ss") || null;
             ffmpeg(filePath)
