@@ -390,11 +390,13 @@ export default function Page() {
             });
             const resdata = JSON.parse(response.data);
             if (resdata.code === 200 && resdata.status === "success") {
+                console.log("[" + index + " / " + fileQueue.length + "]: " + resdata.message);
                 setUploadProgress(prevProgress => ({
                     ...prevProgress,
                     [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
                 }));
             } else {
+                console.log("[" + index + " / " + fileQueue.length + "]: " + resdata.message);
                 setUploadProgress(prevProgress => ({
                     ...prevProgress,
                     [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: resdata.message }
@@ -403,6 +405,7 @@ export default function Page() {
         } catch (error: any) {
             console.log(error.response.data);
             const errorMessage = JSON.parse(JSON.stringify(error.response.data));
+            console.log("[" + index + " / " + fileQueue.length + "]: " + errorMessage.message + " (" + errorMessage.id + ")");
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
                 [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
