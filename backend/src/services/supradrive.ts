@@ -821,49 +821,51 @@ export abstract class sqlSupraDrive {
         let recordingDate = null;
         let recordingTime = null;
 
-        ffmpeg.ffprobe(filePath, (err, metadata) => {
-            if (err) {
-                console.error("Error extracting metadata:", err);
-            }
-            const duration = metadata.format.duration;
-            const formatTags = metadata.format.tags || {};
-            recordingDate = moment(formatTags.creation_time).format("YYYY-MM-DD") || null;
-            recordingTime = moment(formatTags.creation_time).format("HH:mm:ss") || null;
-            ffmpeg(filePath)
-                .screenshots({
-                    timestamps: [0.1],
-                    filename: `${filenamedisk}.jpg`,
-                    folder: thumbnailPath,
-                    size: "300x300",
-                })
-                .on("end", async () => {
-                    videoMetadata = {
-                        format: metadata.format.format_name,
-                        duration,
-                        size: filesize,
-                        width: metadata.streams[0]?.width,
-                        height: metadata.streams[0]?.height,
-                        codec: metadata.streams[0]?.codec_name,
-                        frame_rate: metadata.streams[0]?.r_frame_rate,
-                        recordingDate: recordingDate,
-                        recordingTime: recordingTime,
-                    };
+        await new Promise((resolve, reject) => {
+            ffmpeg.ffprobe(filePath, (err, metadata) => {
+                if (err) {
+                    console.error("Error extracting metadata:", err);
+                }
+                const duration = metadata.format.duration || 0;
+                const formatTags = metadata.format.tags || {};
+                recordingDate = moment(formatTags.creation_time).format("YYYY-MM-DD") || null;
+                recordingTime = moment(formatTags.creation_time).format("HH:mm:ss") || null;
+                ffmpeg(filePath)
+                    .screenshots({
+                        timestamps: [0.1],
+                        filename: `${filenamedisk}.jpg`,
+                        folder: thumbnailPath,
+                        size: "300x300",
+                    })
+                    .on("end", async () => {
+                        videoMetadata = {
+                            format: metadata.format.format_name,
+                            duration,
+                            size: filesize,
+                            width: metadata.streams[0]?.width,
+                            height: metadata.streams[0]?.height,
+                            codec: metadata.streams[0]?.codec_name,
+                            frame_rate: metadata.streams[0]?.r_frame_rate,
+                            recordingDate: recordingDate,
+                            recordingTime: recordingTime,
+                        };
 
-                    try {
-                        const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-                        const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
-                        await supradrive.query(query, values);
+                    })
+                    .on("error", (err) => {
+                        console.error("Error generating thumbnail", err.message);
+                    });
 
-                    } catch (e) {
-                        console.log(e);
-                    }
-
-                })
-                .on("error", (err) => {
-                    console.error("Error generating thumbnail", err.message);
-                });
+            });
         });
 
+        try {
+            const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
+            await supradrive.query(query, values);
+
+        } catch (e) {
+            console.log(e);
+        }
 
         fs.writeFileSync(metaPath, JSON.stringify(videoMetadata, null, 4), 'utf8');
 
