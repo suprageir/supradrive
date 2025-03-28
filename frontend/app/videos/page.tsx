@@ -415,7 +415,7 @@ export default function Page() {
         } catch (error: any) {
             let errorMessage: any;
             try {
-                if (isValidObject(error.response.data)) {
+                if (!isValidObject(error.response.data)) {
                     errorMessage = JSON.parse(error.response.data);
                     console.log("[" + (index + 1) + " / " + fileQueue.length + "]: ERROR: " + errorMessage.message + " (" + errorMessage.id + ")");
                 }
@@ -423,7 +423,7 @@ export default function Page() {
                     console.log("[" + (index + 1) + " / " + fileQueue.length + "]: ERROR: " + error);
                 }
             } catch {
-                if (isValidObject(error.response.data)) {
+                if (!isValidObject(error.response.data)) {
                     errorMessage = JSON.parse(error.response.data);
                     console.log("[" + (index + 1) + " / " + fileQueue.length + "]: Catch ERROR: " + errorMessage.message + " (" + errorMessage.id + ")");
                 }
