@@ -390,8 +390,6 @@ export default function Page() {
             });
             let resdata: any;
             try {
-                console.log("response.data");
-                console.log(response.data);
                 resdata = JSON.parse(response.data);
             } catch {
                 resdata = response.data || "Response data is not a JSON";
@@ -415,10 +413,10 @@ export default function Page() {
             let errorMessage: any;
             try {
                 errorMessage = JSON.parse(error.response.data);
+                console.log("[" + (index + 1) + " / " + fileQueue.length + "]: ERROR: " + errorMessage.message + " (" + errorMessage.id + ")");
             } catch {
-                errorMessage = error.response?.data || "Response data is not a JSON";
+                console.log("[" + (index + 1) + " / " + fileQueue.length + "]: ERROR: " + error.response?.data || "Response data is not a JSON");
             }
-            console.log("[" + (index + 1) + " / " + fileQueue.length + "]: " + errorMessage.message + " (" + errorMessage.id + ")");
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
                 [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
