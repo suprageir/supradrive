@@ -388,6 +388,7 @@ export default function Page() {
                     }
                 },
             });
+            console.log(response.data);
             let resdata: any;
             try {
                 resdata = JSON.parse(response.data);
