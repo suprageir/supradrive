@@ -417,7 +417,7 @@ export default function Page() {
             try {
                 if (!isValidObject(error.response.data)) {
                     errorMessage = JSON.parse(error.response.data);
-                    console.log("[" + (index + 1) + " / " + fileQueue.length + "]: ERROR: " + errorMessage.message + " (" + errorMessage.id + ")");
+                    console.log("[" + (index + 1) + " / " + fileQueue.length + "]: ERROR: " + errorMessage?.message + " (" + errorMessage?.id + ")");
                 }
                 else {
                     console.log("[" + (index + 1) + " / " + fileQueue.length + "]: ERROR: " + error);
@@ -425,7 +425,7 @@ export default function Page() {
             } catch {
                 if (!isValidObject(error.response.data)) {
                     errorMessage = JSON.parse(error.response.data);
-                    console.log("[" + (index + 1) + " / " + fileQueue.length + "]: Catch ERROR: " + errorMessage.message + " (" + errorMessage.id + ")");
+                    console.log("[" + (index + 1) + " / " + fileQueue.length + "]: Catch ERROR: " + errorMessage?.message + " (" + errorMessage?.id + ")");
                 }
                 else {
                     console.log("[" + (index + 1) + " / " + fileQueue.length + "]: Catch ERROR: " + error);
@@ -433,7 +433,7 @@ export default function Page() {
             }
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
-                [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
+                [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage?.message }
             }));
         }
         handleUploadNextFile(index + 1, fileQueue);
