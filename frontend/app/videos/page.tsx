@@ -391,7 +391,7 @@ export default function Page() {
             console.log(response.data);
             let resdata: any;
             try {
-                resdata = JSON.parse(response.data);
+                resdata = JSON.parse(JSON.stringify(response.data));
             } catch {
                 resdata = response.data || "Response data is not a JSON";
             }
