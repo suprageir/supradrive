@@ -849,33 +849,32 @@ export abstract class sqlSupraDrive {
                         recordingDate: recordingDate,
                         recordingTime: recordingTime,
                     };
+
+                    fs.writeFileSync(metaPath, JSON.stringify(videoMetadata, null, 4), 'utf8');
+
                     try {
                         const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
                         const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
                         [result] = await supradrive.query(query, values);
-
+                        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", result[0].insertId || null);
                     } catch (e) {
                         console.log(e);
                     }
                 })
                 .on("error", async (err) => {
                     console.error("Error generating thumbnail", err.message);
+                    fs.writeFileSync(metaPath, JSON.stringify(videoMetadata, null, 4), 'utf8');
                     try {
                         const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
                         const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
                         [result] = await supradrive.query(query, values);
+                        return APIResponse("success", 200, "Video " + filename + " uploaded successfully (meta error)", "", result[0].insertId || null);
 
                     } catch (e) {
                         console.log(e);
                     }
                 });
         });
-
-        fs.writeFileSync(metaPath, JSON.stringify(videoMetadata, null, 4), 'utf8');
-
-        console.log(result);
-        console.log(result[0].insertId);
-        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", result[0].insertId || null);
     }
 
 
