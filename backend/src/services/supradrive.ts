@@ -820,6 +820,7 @@ export abstract class sqlSupraDrive {
 
         let recordingDate = null;
         let recordingTime = null;
+        var result: any = null;
 
         ffmpeg.ffprobe(filePath, (err, metadata) => {
             if (err) {
@@ -848,25 +849,31 @@ export abstract class sqlSupraDrive {
                         recordingDate: recordingDate,
                         recordingTime: recordingTime,
                     };
+                    try {
+                        const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                        const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
+                        result = await supradrive.query(query, values);
+
+                    } catch (e) {
+                        console.log(e);
+                    }
                 })
-                .on("error", (err) => {
+                .on("error", async (err) => {
                     console.error("Error generating thumbnail", err.message);
+                    try {
+                        const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                        const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
+                        result = await supradrive.query(query, values);
+
+                    } catch (e) {
+                        console.log(e);
+                    }
                 });
         });
 
-        try {
-            const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-            const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
-            await supradrive.query(query, values);
-
-        } catch (e) {
-            console.log(e);
-        }
-
-    
         fs.writeFileSync(metaPath, JSON.stringify(videoMetadata, null, 4), 'utf8');
 
-        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", null);
+        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", result.insertId || null);
     }
 
 
