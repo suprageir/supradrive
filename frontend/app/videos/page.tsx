@@ -388,10 +388,11 @@ export default function Page() {
                     }
                 },
             });
-            console.log(response.data);
             let resdata: any;
             try {
-                resdata = JSON.parse(JSON.stringify(response.data));
+                console.log("response.data");
+                console.log(response.data);
+                resdata = JSON.parse(response.data);
             } catch {
                 resdata = response.data || "Response data is not a JSON";
             }
