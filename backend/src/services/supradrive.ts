@@ -873,7 +873,7 @@ export abstract class sqlSupraDrive {
 
         fs.writeFileSync(metaPath, JSON.stringify(videoMetadata, null, 4), 'utf8');
 
-        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", result[0].videoid || null);
+        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", result[0].insertId || null);
     }
 
 
