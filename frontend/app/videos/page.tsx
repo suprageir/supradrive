@@ -409,13 +409,14 @@ export default function Page() {
                 }));
             }
         } catch (error: any) {
+            console.log(error);
             let errorMessage: any;
             try {
                 errorMessage = JSON.parse(error.response.data);
             } catch {
                 errorMessage = error.response?.data || "Response data is not a JSON";
             }
-            console.log("[" + index + " / " + fileQueue.length + "]: " + errorMessage.message + " (" + errorMessage.id + ")");
+            console.log("[" + (index + 1) + " / " + fileQueue.length + "]: " + errorMessage.message + " (" + errorMessage.id + ")");
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
                 [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
