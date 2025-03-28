@@ -388,22 +388,33 @@ export default function Page() {
                     }
                 },
             });
-            const resdata = JSON.parse(response.data);
+            let resdata: any;
+            try {
+                resdata = JSON.parse(response.data);
+            } catch {
+                resdata = response.data || "Response data is not a JSON";
+            }
+
             if (resdata.code === 200 && resdata.status === "success") {
-                console.log("[" + index + " / " + fileQueue.length + "]: " + resdata.message);
+                console.log("[" + (index + 1) + " / " + fileQueue.length + "]: " + resdata.message + " (" + resdata.id + ")");
                 setUploadProgress(prevProgress => ({
                     ...prevProgress,
                     [file.name]: { progress: 100, speed: 0, timeRemaining: "" }
                 }));
             } else {
-                console.log("[" + index + " / " + fileQueue.length + "]: " + resdata.message);
+                console.log("[" + (index + 1) + " / " + fileQueue.length + "]: " + resdata.message + " (" + resdata.id + ")");
                 setUploadProgress(prevProgress => ({
                     ...prevProgress,
                     [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: resdata.message }
                 }));
             }
         } catch (error: any) {
-            const errorMessage = JSON.parse(error.response.data);
+            let errorMessage: any;
+            try {
+                errorMessage = JSON.parse(error.response.data);
+            } catch {
+                errorMessage = error.response?.data || "Response data is not a JSON";
+            }
             console.log("[" + index + " / " + fileQueue.length + "]: " + errorMessage.message + " (" + errorMessage.id + ")");
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
