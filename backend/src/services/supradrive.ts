@@ -820,7 +820,7 @@ export abstract class sqlSupraDrive {
 
         let recordingDate = null;
         let recordingTime = null;
-        var result: any = null;
+        var [result] = [{}];
 
         ffmpeg.ffprobe(filePath, (err, metadata) => {
             if (err) {
@@ -852,7 +852,7 @@ export abstract class sqlSupraDrive {
                     try {
                         const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
                         const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
-                        result = await supradrive.query(query, values);
+                        [result] = await supradrive.query(query, values);
 
                     } catch (e) {
                         console.log(e);
@@ -863,7 +863,7 @@ export abstract class sqlSupraDrive {
                     try {
                         const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
                         const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
-                        result = await supradrive.query(query, values);
+                        [result] = await supradrive.query(query, values);
 
                     } catch (e) {
                         console.log(e);
@@ -873,7 +873,7 @@ export abstract class sqlSupraDrive {
 
         fs.writeFileSync(metaPath, JSON.stringify(videoMetadata, null, 4), 'utf8');
 
-        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", result.insertId || null);
+        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", result[0].videoid || null);
     }
 
 
