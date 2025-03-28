@@ -855,7 +855,7 @@ export abstract class sqlSupraDrive {
                         const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
                         const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
                         const [result] = await supradrive.query(query, values);
-                        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", result[0].insertId || null);
+                        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", result.insertId);
                     } catch (e) {
                         console.log(e);
                     }
@@ -867,7 +867,7 @@ export abstract class sqlSupraDrive {
                         const query = `INSERT INTO videofile (videofolderid, videouserid, videosha1, videofilename, videofilenamedisk, videosize, videoformat, videoduration, videowidth, videoheight, videocodec, videodate, videotime, videometajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
                         const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
                         const [result] = await supradrive.query(query, values);
-                        return APIResponse("success", 200, "Video " + filename + " uploaded successfully (meta error)", "", result[0].insertId || null);
+                        return APIResponse("success", 200, "Video " + filename + " uploaded successfully (meta error)", "", result.insertId);
 
                     } catch (e) {
                         console.log(e);
