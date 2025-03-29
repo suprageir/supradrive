@@ -772,7 +772,7 @@ export abstract class sqlSupraDrive {
             var [sqlvideoid] = await supradrive.query(query, values);
             if (sqlvideoid.length > 0) {
                 await unlink(file.path);
-                return APIResponse("error", 400, filename + " is duplicate.", "", sqlvideoid[0].videoid);
+                return APIResponse("success", 200, filename + " already exists in database. File is not uploaded.", "", sqlvideoid[0].videoid);
             }
         } catch (e) {
             console.log(e);
@@ -805,7 +805,7 @@ export abstract class sqlSupraDrive {
 
         if (fs.existsSync(filePath)) {
             await unlink(file.path);
-            return APIResponse("error", 400, filename + " is duplicate.", "", null);
+            return APIResponse("success", 200, filename + " already exists on disk but not in database. File is not uploaded.", "", null);
         }
 
         try {
@@ -837,6 +837,7 @@ export abstract class sqlSupraDrive {
                     size: "300x300",
                 })
                 .on("end", async () => {
+                    console.log("ffprobe ok end");
                     videoMetadata = {
                         format: metadata.format.format_name,
                         duration,
@@ -862,6 +863,7 @@ export abstract class sqlSupraDrive {
                     }
                 })
                 .on("error", async (err) => {
+                    console.log("ffprobe error");
                     console.error("Error generating thumbnail", err.message);
                     fs.writeFileSync(metaPath, JSON.stringify(videoMetadata, null, 4), 'utf8');
                     try {
