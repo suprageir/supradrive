@@ -139,10 +139,7 @@ export async function SupraDriveNewVideosUpload(req: MulterRequest, res: Respons
         console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
         let posts: any = await sqlSupraDrive.SupraDriveNewVideosUpload(userid, username, req.body, req.file);
         let json = JSON.parse(posts);
-        console.log(json);
-        console.log(json.status);
         if (json.status === "success") {
-            console.log("success");
             return res.status(OK).json(posts);
         }
         else {
