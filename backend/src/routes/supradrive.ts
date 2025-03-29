@@ -142,13 +142,16 @@ export async function SupraDriveNewVideosUpload(req: MulterRequest, res: Respons
         console.log(json);
         console.log(json.status);
         if (json.status === "success") {
+            console.log("success");
             return res.status(OK).json(posts);
         }
         else {
+            console.log("error");
             return res.status(BAD_REQUEST).json(posts);
         }
     }
     else {
+        console.log("else");
         console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
         return res.status(BAD_REQUEST);
     }
