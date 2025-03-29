@@ -837,7 +837,6 @@ export abstract class sqlSupraDrive {
                     size: "300x300",
                 })
                 .on("end", async () => {
-                    console.log("ffprobe ok end");
                     videoMetadata = {
                         format: metadata.format.format_name,
                         duration,
@@ -857,13 +856,13 @@ export abstract class sqlSupraDrive {
                         const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
                         const [result] = await supradrive.query(query, values);
                         let insertId = result.insertId || null;
+                        console.log("insertId");
                         return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", insertId);
                     } catch (e) {
                         console.log(e);
                     }
                 })
                 .on("error", async (err) => {
-                    console.log("ffprobe error");
                     console.error("Error generating thumbnail", err.message);
                     fs.writeFileSync(metaPath, JSON.stringify(videoMetadata, null, 4), 'utf8');
                     try {
