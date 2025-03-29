@@ -858,7 +858,6 @@ export abstract class sqlSupraDrive {
                         let insertId = result.insertId || null;
                         console.log("insertId " + insertId + " " + filename);
                         return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", insertId);
-                        console.log("returned")
                     } catch (e) {
                         console.log(e);
                     }
