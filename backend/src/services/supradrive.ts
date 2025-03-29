@@ -856,8 +856,9 @@ export abstract class sqlSupraDrive {
                         const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, videoMetadata.format, videoMetadata.duration, videoMetadata.width, videoMetadata.height, videoMetadata.codec, recordingDate, recordingTime, JSON.stringify(videoMetadata)];
                         const [result] = await supradrive.query(query, values);
                         let insertId = result.insertId || null;
-                        console.log("insertId " + insertId + " " + filename);
-                        return APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", insertId);
+                        let apires = APIResponse("success", 200, "Video " + filename + " uploaded successfully", "", insertId);
+                        console.log(apires);
+                        return apires;
                     } catch (e) {
                         console.log(e);
                     }
