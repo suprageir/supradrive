@@ -10,6 +10,11 @@ import Notification from "@/app/components/Notification";
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 
+const isValidObject = (val: unknown): val is Record<string, unknown> => {
+    return typeof val === "object" && val !== null && !Array.isArray(val);
+};
+
+
 interface UploadProgressType {
     [key: string]: {
         progress: number;
@@ -382,9 +387,24 @@ export default function Page() {
                 }));
             }
         } catch (error: any) {
-            // const errorMessage = JSON.parse(error.response.data);
-            console.log(error);
-            console.log("[" + index + " / " + fileQueue.length + "]: " + error.message);
+            let errorMessage: any;
+            try {
+                if (!isValidObject(error.response.data)) {
+                    errorMessage = JSON.parse(error.response.data);
+                    console.log("[" + (index + 1) + " / " + fileQueue.length + "]: ERROR: " + errorMessage?.message + " (" + errorMessage?.id + ")");
+                }
+                else {
+                    console.log("[" + (index + 1) + " / " + fileQueue.length + "]: ERROR: " + error);
+                }
+            } catch {
+                if (!isValidObject(error.response.data)) {
+                    errorMessage = JSON.parse(error.response.data);
+                    console.log("[" + (index + 1) + " / " + fileQueue.length + "]: Catch ERROR: " + errorMessage?.message + " (" + errorMessage?.id + ")");
+                }
+                else {
+                    console.log("[" + (index + 1) + " / " + fileQueue.length + "]: Catch ERROR: " + error);
+                }
+            }
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
                 [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: error.message }

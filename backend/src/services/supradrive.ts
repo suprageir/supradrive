@@ -652,7 +652,7 @@ export abstract class sqlSupraDrive {
             const values = [filesha1];
             var [sqlimageid] = await supradrive.query(query, values);
             if (sqlimageid.length > 0) {
-                return APIResponse("error", 400, filename + " is duplicate.", "", sqlimageid[0].imageid);
+                return APIResponse("error", 200, filename + " is duplicate in database, not uploaded.", "", sqlimageid[0].imageid);
             }
         } catch (e) {
             console.log(e);
@@ -685,7 +685,7 @@ export abstract class sqlSupraDrive {
         const metaPath = path.join(folderDir, `${filenamedisk}.json`);
 
         if (fs.existsSync(filePath)) {
-            return APIResponse("error", 400, filename + " is duplicate.", "", null);
+            return APIResponse("error", 200, filename + " is duplicate on disk, NOT IN DATABSAE, not uploaded.", "", null);
         }
 
         // save new file

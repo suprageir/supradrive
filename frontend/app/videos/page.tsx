@@ -14,7 +14,7 @@ const MAX_FILE_SIZE = 100 * 1024 * 1024 * 1024; // 100GB in bytes
 
 const isValidObject = (val: unknown): val is Record<string, unknown> => {
     return typeof val === "object" && val !== null && !Array.isArray(val);
-  };
+};
 
 interface UploadProgressType {
     [key: string]: {
