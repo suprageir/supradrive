@@ -650,12 +650,15 @@ export abstract class sqlSupraDrive {
         try {
             const query = `SELECT imageid FROM imagefile WHERE imagesha1 = ?`;
             const values = [filesha1];
-            var [sqlimageid] = await supradrive.query(query, values);
+            const [sqlimageid] = await supradrive.query(query, values);
+
+            // If the file already exists in the database, return immediately
             if (sqlimageid.length > 0) {
-                return APIResponse("success", 200, filename + " is duplicate in database (SHA1: " + filesha1 + "), not uploaded.", "", sqlimageid[0].imageid);
+                return APIResponse("success", 200, `${filename} is duplicate in database (SHA1: ${filesha1}), not uploaded.`, "", sqlimageid[0].imageid);
             }
         } catch (e) {
-            console.log(e);
+            console.log("Database query error:", e);
+            return APIResponse("error", 500, "Error checking for duplicate file", "", null);
         }
 
         let foldernamedisk = "";
@@ -663,32 +666,28 @@ export abstract class sqlSupraDrive {
             const foldername = `SELECT foldernamedisk FROM imagefolder WHERE folderid = ?`;
             const values = [folderid];
             const [result] = await supradrive.query(foldername, values);
-            foldernamedisk = result[0].foldernamedisk;
+            foldernamedisk = result[0]?.foldernamedisk || "";
         } catch (e) {
-            console.log(e);
+            console.log("Error fetching folder name:", e);
         }
-
 
         const userDir = path.join(SUPRADRIVE_PATH, 'userdata', username);
-        if (!fs.existsSync(userDir)) {
-            fs.mkdirSync(userDir, { recursive: true });
-        }
+        if (!fs.existsSync(userDir)) fs.mkdirSync(userDir, { recursive: true });
+
         const imagesDir = path.join(userDir, 'images');
-        if (!fs.existsSync(imagesDir)) {
-            fs.mkdirSync(imagesDir, { recursive: true });
-        }
-        const folderDir = path.join(imagesDir, `${foldernamedisk}`);
-        if (!fs.existsSync(folderDir)) {
-            fs.mkdirSync(folderDir, { recursive: true });
-        }
-        const filePath = path.join(folderDir, `${filenamedisk}`);
+        if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
+
+        const folderDir = path.join(imagesDir, foldernamedisk);
+        if (!fs.existsSync(folderDir)) fs.mkdirSync(folderDir, { recursive: true });
+
+        const filePath = path.join(folderDir, filenamedisk);
         const metaPath = path.join(folderDir, `${filenamedisk}.json`);
 
         if (fs.existsSync(filePath)) {
-            return APIResponse("success", 200, filename + " is duplicate on disk (" + filePath + "), NOT IN DATABSAE, not uploaded.", "", null);
+            return APIResponse("success", 200, `${filename} is duplicate on disk (${filePath}), NOT IN DATABASE, not uploaded.`, "", null);
         }
 
-        // save new file
+        // Save new file
         fs.writeFileSync(filePath, filecontent);
 
         const thumbnailBuffer = await createThumbnail(filecontent);
@@ -716,14 +715,14 @@ export abstract class sqlSupraDrive {
 
         // Merge metadata
         const metadata = {
-            filename: filename,
-            timestamp: timestamp,
-            ts: ts,
+            filename,
+            timestamp,
+            ts,
             width: imageMetadata.width,
             height: imageMetadata.height,
             format: imageMetadata.format,
             size: imageMetadata.size,
-            imageMetadata: imageMetadata,
+            imageMetadata,
             exif: exifData,
         };
 
@@ -737,25 +736,37 @@ export abstract class sqlSupraDrive {
         let imagemetasoftware = exifData.Software || null;
 
         let imagedatetime = null;
-        if (metacreatedate && metacreatedate !== null && metacreatedate !== undefined) {
+        if (metacreatedate) {
             imagedatetime = moment.unix(parseInt(metacreatedate)).format("YYYY-MM-DD HH:mm:ss");
         }
-        if (!imagedatetime && metadatetimeoriginal && metadatetimeoriginal !== null && metadatetimeoriginal !== undefined) {
+        if (!imagedatetime && metadatetimeoriginal) {
             imagedatetime = moment.unix(parseInt(metadatetimeoriginal)).format("YYYY-MM-DD HH:mm:ss");
         }
 
         fs.writeFileSync(metaPath, JSON.stringify(metadata, null, 4), 'utf8');
 
-
         try {
-            const query = `INSERT INTO imagefile (imagefolderid, imageuserid, imagesha1, imagefilename, imagefilenamedisk, imagefilesize, imageformat, imagedatetime, imagefiledatetime, imageheight, imagewidth, imagemetamake, imagemetamodel, imagemetasoftware, imagemetadatetime, imagemetafnumber, imagemetadatetimeoriginal, imagemetajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-            const values = [folderid, userid, filesha1, filename, filenamedisk, filesize, imageMetadata.format, imagedatetime, created, imageMetadata.height, imageMetadata.width, metamake, metamodel, imagemetasoftware, metacreatedate, metafnumber, metacreatedate, JSON.stringify(exifData, null, 4)];
-            await supradrive.query(query, values);
+            const insertQuery = `
+                INSERT INTO imagefile (
+                    imagefolderid, imageuserid, imagesha1, imagefilename, imagefilenamedisk, 
+                    imagefilesize, imageformat, imagedatetime, imagefiledatetime, imageheight, 
+                    imagewidth, imagemetamake, imagemetamodel, imagemetasoftware, imagemetadatetime, 
+                    imagemetafnumber, imagemetadatetimeoriginal, imagemetajson
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
+            const insertValues = [
+                folderid, userid, filesha1, filename, filenamedisk, filesize,
+                imageMetadata.format, imagedatetime, created, imageMetadata.height,
+                imageMetadata.width, metamake, metamodel, imagemetasoftware, metacreatedate,
+                metafnumber, metacreatedate, JSON.stringify(exifData, null, 4)
+            ];
+
+            await supradrive.query(insertQuery, insertValues);
         } catch (e) {
-            console.log(e);
+            console.log("Error inserting image data:", e);
         }
-        return APIResponse("success", 200, "Image " + filename + " uploaded successfully", "", null);
+
+        return APIResponse("success", 200, `Image ${filename} uploaded successfully`, "", null);
     }
 
 
