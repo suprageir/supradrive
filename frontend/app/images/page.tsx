@@ -382,11 +382,12 @@ export default function Page() {
                 }));
             }
         } catch (error: any) {
-            const errorMessage = JSON.parse(error.response.data);
-            console.log("[" + index + " / " + fileQueue.length + "]: " + errorMessage.message + " (" + errorMessage.id + ")");
+            // const errorMessage = JSON.parse(error.response.data);
+            console.log(error);
+            console.log("[" + index + " / " + fileQueue.length + "]: " + error.message);
             setUploadProgress(prevProgress => ({
                 ...prevProgress,
-                [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: errorMessage.message }
+                [file.name]: { progress: 100, speed: 0, timeRemaining: "", error: error.message }
             }));
         }
         handleUploadNextFile(index + 1, fileQueue);
