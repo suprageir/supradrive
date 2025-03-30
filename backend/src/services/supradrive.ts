@@ -690,10 +690,6 @@ export abstract class sqlSupraDrive {
         // Save new file
         fs.writeFileSync(filePath, filecontent);
 
-        const thumbnailBuffer = await createThumbnail(filecontent);
-        const thumbnailPath = path.join(folderDir, `${filenamedisk}.thumb`);
-        fs.writeFileSync(thumbnailPath, thumbnailBuffer);
-
         // Extract metadata using Sharp
         let imageMetadata: any = {};
         try {
@@ -765,6 +761,10 @@ export abstract class sqlSupraDrive {
         } catch (e) {
             console.log("Error inserting image data:", e);
         }
+
+        const thumbnailBuffer = await createThumbnail(filecontent);
+        const thumbnailPath = path.join(folderDir, `${filenamedisk}.thumb`);
+        fs.writeFileSync(thumbnailPath, thumbnailBuffer);
 
         return APIResponse("success", 200, `Image ${filename} uploaded successfully`, "", null);
     }
