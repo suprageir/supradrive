@@ -109,51 +109,68 @@ export default function Page() {
                   </div>
                 </Link>
               </div>
-  
 
 
-          <div className="text-xl text-green-500 flex items-center gap-2 mt-5">
-            Folders
-          </div>
 
-          <div className="flex items-center space-x-10">
-            <Link href="/videos">
-              <div className="flex flex-col items-center group">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="yellow"
-                  width="60"
-                  height="60"
-                  viewBox="0 0 24 24"
-                  className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
-                >
-                  <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
-                </svg>
-                <span className="text-green-500 group-hover:text-white transition duration-300">
-                  Videos
-                </span>
+              <div className="text-xl text-green-500 flex items-center gap-2 mt-5">
+                Folders
               </div>
-            </Link>
-            <Link href="/images">
-              <div className="flex flex-col items-center group">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="yellow"
-                  width="60"
-                  height="60"
-                  viewBox="0 0 24 24"
-                  className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
-                >
-                  <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
-                </svg>
-                <span className="text-green-500 group-hover:text-white transition duration-300">
-                  Images
-                </span>
+
+              <div className="flex items-center space-x-10">
+                <Link href="/videos">
+                  <div className="flex flex-col items-center group">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="yellow"
+                      width="60"
+                      height="60"
+                      viewBox="0 0 24 24"
+                      className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
+                    >
+                      <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
+                    </svg>
+                    <span className="text-green-500 group-hover:text-white transition duration-300">
+                      Videos
+                    </span>
+                  </div>
+                </Link>
+                <Link href="/images">
+                  <div className="flex flex-col items-center group">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="yellow"
+                      width="60"
+                      height="60"
+                      viewBox="0 0 24 24"
+                      className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
+                    >
+                      <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
+                    </svg>
+                    <span className="text-green-500 group-hover:text-white transition duration-300">
+                      Images
+                    </span>
+                  </div>
+                </Link>
+                <Link href="/music">
+                  <div className="flex flex-col items-center group">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="yellow"
+                      width="60"
+                      height="60"
+                      viewBox="0 0 24 24"
+                      className="hi-folder text-yellow-500 group-hover:text-yellow-400 transform group-hover:scale-110 transition duration-300"
+                    >
+                      <path d="M3 18V6a2 2 0 012-2h4.539a2 2 0 011.562.75L12.2 6.126a1 1 0 00.78.375H20a1 1 0 011 1V18a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
+                    </svg>
+                    <span className="text-green-500 group-hover:text-white transition duration-300">
+                      Music
+                    </span>
+                  </div>
+                </Link>
               </div>
-            </Link>
+            </div>
           </div>
-        </div>
-      </div>
         </div >
       </div >
     );

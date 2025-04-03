@@ -37,8 +37,11 @@ app.use(cors(corsConfig));
 //    app.use(helmet());
 //}
 
-app.use(express.urlencoded({extended: true}));
-app.use(express.json());
+
+
+
+// // app.use(express.urlencoded({extended: true}));
+// // app.use(express.json());
 
 app.use('/api', BaseRouter);    
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
