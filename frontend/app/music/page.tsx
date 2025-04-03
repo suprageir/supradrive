@@ -51,54 +51,15 @@ export default function Page() {
     const [uploading, setUploading] = useState<boolean>(false);
     const [thumbSize, setThumbSize] = useState(100);
     const [music, setMusic] = useState<number>(0);
-    const [tags, setTags] = useState<any>(null);
-    const [myHashtags, setMyHashtags] = useState<any[]>([]);
-    const [inputValueHashtags, setInputValueHashtags] = useState<string>('');
     const inputHashtagsRef = useRef<HTMLInputElement>(null);
-    const [currentImageTags, setCurrentImageTags] = useState<string[]>([]);
-    const [inputValueUserTags, setInputValueUserTags] = useState<string>('');
-    const [currentImageUserTags, setCurrentImageUserTags] = useState<string[]>([]);
-    const [myUserTags, setMyUserTags] = useState<any[]>([]);
     const inputUserTagsRef = useRef<HTMLInputElement>(null);
     const [startX, setStartX] = useState<number | null>(null);
-    const [currentImageLocationTags, setCurrentImageLocationTags] = useState<string[]>([]);
-    const [inputValueLocation, setInputValueLocation] = useState<string>('');
-    const [myLocationTags, setMyLocationTags] = useState<any[]>([]);
     const inputLocationRef = useRef<HTMLInputElement>(null);
     const [currentUploadFile, setCurrentUploadFile] = useState<string[]>([]);
     const [currentUploadSize, setCurrentUploadSize] = useState<number>(0);
     const [currentUploadedSize, setCurrentUploadedSize] = useState<number>(0);
     const [displayMusicInfo, setDisplayMusicInfo] = useState<boolean>(false);
     const [currentMusicIndex, setCurrentMusicIndex] = useState<number>(0);
-
-    const filteredHashtags = inputValueHashtags
-        ? myHashtags?.filter(
-            (tag: any) =>
-                tag?.hashtag?.toLowerCase().startsWith(inputValueHashtags.toLowerCase()) &&
-                !currentImageTags?.includes(tag?.hashtag.toLowerCase())
-        )
-        : null;
-
-    const firstMatch = filteredHashtags?.length ? filteredHashtags[0] : null;
-
-    const filteredUserTags = inputValueUserTags
-        ? myUserTags?.filter(
-            (tag: any) =>
-                tag?.user?.toLowerCase().startsWith(inputValueUserTags.toLowerCase()) &&
-                !currentImageUserTags?.includes(tag?.user.toLowerCase())
-        )
-        : null;
-    const firstMatchUser = filteredUserTags?.length ? filteredUserTags[0] : null;
-
-    const filteredLocationTags = inputValueLocation
-        ? myLocationTags?.filter(
-            (tag: any) =>
-                tag?.location?.toLowerCase().startsWith(inputValueLocation.toLowerCase()) &&
-                !currentImageLocationTags?.includes(tag?.location.toLowerCase())
-        )
-        : null;
-
-    const firstMatchLocation = filteredLocationTags?.length ? filteredLocationTags[0] : null;
 
     const handleChangeThumbSize = (size: number | null) => {
         if (size) {
@@ -117,7 +78,7 @@ export default function Page() {
         }
     };
 
-    const onDropVideos = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
+    const onDropMusic = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
         if ('stopPropagation' in event) {
             event.stopPropagation();
         }
@@ -251,8 +212,8 @@ export default function Page() {
         handleUploadNextFile(index + 1, fileQueue);
     };
 
-    const { getRootProps: getRootPropsVideos, getInputProps: getInputPropsVideos, isDragActive } = useDropzone({
-        onDrop: onDropVideos,
+    const { getRootProps: getRootPropsMusic, getInputProps: getInputPropsMusic, isDragActive } = useDropzone({
+        onDrop: onDropMusic,
         maxSize: MAX_FILE_SIZE,
         multiple: true,
         maxFiles: 1000,
@@ -376,7 +337,7 @@ export default function Page() {
         if (typeof musicid === "number") {
             setCurrentMusicIndex(musicid);
             setDisplayMusicInfo(true);
-        }        else {
+        } else {
             setDisplayMusicInfo(false);
             setCurrentMusicIndex(0);
         }

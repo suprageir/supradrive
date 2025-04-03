@@ -940,7 +940,7 @@ export default function Page() {
                     <ol className="flex space-x-2">
                         <Link href="/"><li className="text-green-700">Home</li></Link>
                         <li className="before:content-['»'] before:pr-2 text-green-700">{username}</li>
-                        <li className="before:content-['»'] before:pr-2 text-green-700">Images</li>
+                        <li className="before:content-['»'] before:pr-2 text-green-700">Videos</li>
                         {folderid !== 0 && <li className="before:content-['»'] before:pr-2 text-green-700">{foldername}</li>}
                     </ol>
                 </nav>
