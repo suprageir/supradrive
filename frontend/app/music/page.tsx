@@ -456,6 +456,7 @@ export default function Page() {
         };
 
         const handleTouchEnd = (e: TouchEvent) => {
+            console.log(e);
         };
 
         document.addEventListener("touchstart", handleTouchStart);
@@ -465,7 +466,6 @@ export default function Page() {
             document.removeEventListener("touchstart", handleTouchStart);
             document.removeEventListener("touchend", handleTouchEnd);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [startX]);
 
     if (music) {
@@ -473,29 +473,6 @@ export default function Page() {
             <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
 
             </div >
-        );
-    }
-
-    if (tags) {
-        return (
-            <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90"
-            >
-                <Image
-                    src={musicFiles[currentMusicIndex]?.base64Thumbnail}
-                    alt={"n/a"}
-                    layout="intrinsic"
-                    width={320}
-                    height={320}
-                    onClick={() => setIsModalUploadMusicOpen(false)}
-                    style={{
-                        maxWidth: "100vw",
-                        maxHeight: "100vh",
-                        objectFit: "contain"
-                    }}
-                />
-            </div>
-
-
         );
     }
 
