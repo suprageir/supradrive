@@ -151,6 +151,7 @@ export async function SupraDriveNewVideosUpload(req: MulterRequest, res: Respons
     const supradriveuser = (req as any).user;
     const userid = supradriveuser.userid;
     const username = supradriveuser.username;
+    console.log("upload video req from userid: " + userid + " and username: " + username);
     if (req.body) {
         console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
         let posts: any = await sqlSupraDrive.SupraDriveNewVideosUpload(userid, username, req.body, req.file);
