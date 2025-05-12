@@ -14,6 +14,10 @@ const verifyToken = (req, res, next) => {
         var token = req.cookies.supradrivetoken;
     }
 
+    if (!token) {
+        var token = req.query.token;
+    }
+
     if (token) {
         try {
             const decoded = jwt.verify(token, config.SUPRADRIVE_SECRET_TOKENKEY);

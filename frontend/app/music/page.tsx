@@ -4,9 +4,9 @@ import axios from 'axios';
 import Link from "next/link";
 import LoadingScreen from "@/app/components/LoadingScreen";
 import { DropEvent, FileRejection, useDropzone } from 'react-dropzone';
-import Image from "next/image";
 import moment from "moment";
 import Notification from "@/app/components/Notification";
+import MusicPlayer from "@/app/components/MusicPlayer";
 
 const APIURL = process.env.NEXT_PUBLIC_APIURL;
 const MAX_FILE_SIZE = 100 * 1024 * 1024 * 1024; // 100GB in bytes
@@ -468,14 +468,6 @@ export default function Page() {
         };
     }, [startX]);
 
-    if (music) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-
-            </div >
-        );
-    }
-
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-screen bg-black">
@@ -665,29 +657,16 @@ export default function Page() {
                                             );
                                         }
                                     })}
+                                </div>
+                                <div>
                                     {musicFiles?.map((file, index) => {
                                         if (file.musicfilename) {
                                             return (
                                                 <div key={index} onClick={() => file.musicid}>
-                                                    <div className="FileMenu flex flex-col items-center relative border-1 border-transparent hover:border-1 hover:border-white hover:border-dotted" onContextMenu={handleContextMenu}>
-                                                        <div className="relative">
-                                                            {file.base64Thumbnail ? (
-                                                                <Image
-                                                                    id={index.toString()}
-                                                                    src={file.base64Thumbnail}
-                                                                    alt={file.musicfilename}
-                                                                    width={thumbSize}
-                                                                    height={thumbSize}
-                                                                    onClick={() => handleViewMusic(file.musicid)}
-                                                                    onMouseEnter={() => handleMusicInfo(index)}
-                                                                    onMouseLeave={() => handleMusicInfo(false)}
-                                                                    className="relative"
-                                                                />
-                                                            ) : (
-                                                                <p>[N/A]</p>
-                                                            )}
-                                                        </div>
+                                                    <div className="FileMenu border-1 border-transparent hover:underline" onContextMenu={handleContextMenu}>
+                                                        <p onClick={() => handleViewMusic(file.musicid)}>{file.musicfilename}</p>
                                                     </div>
+
                                                     {
                                                         menuPosition && (
                                                             <ul
@@ -848,7 +827,11 @@ export default function Page() {
 
                 </div>
             </div >
-
+            {music && (
+                <footer className="fixed bottom-0 left-0 w-full h-[100px]">
+                    <MusicPlayer key={music} musicid={music} />
+                </footer>
+            )}
         </>
     );
 }

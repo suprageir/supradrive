@@ -932,6 +932,114 @@ export abstract class sqlSupraDrive {
 
 
 
+    public static async SupraDriveNewMusicUpload(userid: number, username: string, body: any, file: any): Promise<any> {
+        const folderid = body.folderid;
+        const filename = file.originalname.toString("utf-8");
+        let filesha1 = await getFileSHA1(file.path);
+        let filesize = file.size || null;
+        const filenamedisk = await fnFilenameDisk(filename, filesha1);
+
+        try {
+            const query = `SELECT musicid FROM musicfile WHERE musicsha1 = ?`;
+            const values = [filesha1];
+            var [sqlmusicid] = await supradrive.query(query, values);
+            if (sqlmusicid.length > 0) {
+                await unlink(file.path);
+                return APIResponse("success", 200, filename + " already exists in database. File is not uploaded.", "", sqlmusicid[0].musicid);
+            }
+        } catch (e) {
+            console.error("SQL Error:", e);
+            return APIResponse("error", 500, "Database error", "", null);
+        }
+
+        let foldernamedisk = "";
+        try {
+            const foldername = `SELECT foldernamedisk FROM musicfolder WHERE folderid = ?`;
+            const values = [folderid];
+            const [result] = await supradrive.query(foldername, values);
+            foldernamedisk = result[0]?.foldernamedisk || "";
+        } catch (e) {
+            console.error("SQL Error:", e);
+            return APIResponse("error", 500, "Database error", "", null);
+        }
+
+        const userDir = path.join(SUPRADRIVE_PATH, "userdata", username);
+        const musicDir = path.join(userDir, "music");
+        const folderDir = path.join(musicDir, foldernamedisk);
+
+        [userDir, musicDir, folderDir].forEach(dir => {
+            if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        });
+
+        const filePath = path.join(folderDir, filenamedisk);
+        const metaPath = path.join(folderDir, `${filenamedisk}.json`);
+
+        if (fs.existsSync(filePath)) {
+            await unlink(file.path);
+            return APIResponse("success", 200, filename + " already exists on disk but not in database. File is not uploaded.", "", null);
+        }
+
+        try {
+            await moveFile(file.path, filePath);
+        } catch (e) {
+            console.error("File move error:", e);
+            return APIResponse("error", 500, "File system error", "", null);
+        }
+
+
+        const musicMetadata: {
+            format: string;
+            duration: number;
+            size: number | null;
+            width?: number;
+            height?: number;
+            codec?: string;
+            frame_rate?: string;
+            recordingDate: string | null;
+            recordingTime: string | null;
+        } = await new Promise((resolve, reject) => {
+            ffmpeg.ffprobe(filePath, (err, metadata) => {
+                if (err) {
+                    console.error("Error extracting metadata:", err);
+                    return reject(err);
+                }
+
+                const duration = metadata?.format?.duration || 0;
+                const formatTags = metadata?.format?.tags || {};
+                const recordingDate = formatTags.creation_time ? moment(formatTags.creation_time).format("YYYY-MM-DD") : null;
+                const recordingTime = formatTags.creation_time ? moment(formatTags.creation_time).format("HH:mm:ss") : null;
+
+                resolve({
+                    format: metadata.format.format_name,
+                    duration,
+                    size: filesize,
+                    width: metadata.streams[0]?.width,
+                    height: metadata.streams[0]?.height,
+                    codec: metadata.streams[0]?.codec_name,
+                    frame_rate: metadata.streams[0]?.r_frame_rate,
+                    recordingDate,
+                    recordingTime,
+                });
+            });
+        });
+
+
+        fs.writeFileSync(metaPath, JSON.stringify(musicMetadata, null, 4), "utf8");
+
+        try {
+            const query = `INSERT INTO musicfile (musicfolderid, musicuserid, musicsha1, musictitle, musicfilename, musicfilenamedisk, musicsize, musicformat, musicduration, musiccodec, musicdate, musicmetajson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const values = [folderid, userid, filesha1, filename, filename, filenamedisk, filesize, musicMetadata.format, musicMetadata.duration, musicMetadata.codec, musicMetadata.recordingDate, JSON.stringify(musicMetadata)];
+            const [result] = await supradrive.query(query, values);
+            let insertId = result.insertId || null;
+            return APIResponse("success", 200, "Music " + filename + " uploaded successfully", "", insertId);
+        } catch (e) {
+            console.error("Database insert error:", e);
+            return APIResponse("error", 500, "Database error", "", null);
+        }
+    }
+
+
+
     public static async getFolders(userid: number, username: string, foldersysid: number): Promise<SupraDrive[]> {
         if (foldersysid === 0) {
             try {

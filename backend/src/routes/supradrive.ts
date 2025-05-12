@@ -171,6 +171,31 @@ export async function SupraDriveNewVideosUpload(req: MulterRequest, res: Respons
     }
 }
 
+export async function SupraDriveNewMusicUpload(req: MulterRequest, res: Response) {
+    const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
+    const supradriveuser = (req as any).user;
+    const userid = supradriveuser.userid;
+    const username = supradriveuser.username;
+    console.log("upload video req from userid: " + userid + " and username: " + username);
+    if (req.body) {
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
+        let posts: any = await sqlSupraDrive.SupraDriveNewMusicUpload(userid, username, req.body, req.file);
+        let json = JSON.parse(posts);
+        if (json.status === "success") {
+            return res.status(OK).json(posts);
+        }
+        else {
+            console.log("error");
+            return res.status(BAD_REQUEST).json(posts);
+        }
+    }
+    else {
+        console.log("else");
+        console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[31mERROR\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mGET\x1b[30m => \x1b[36m" + req.originalUrl);
+        return res.status(BAD_REQUEST);
+    }
+}
+
 export async function SupraDriveGetFolders(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
     const ip = req.headers['x-forwarded-for']
@@ -264,6 +289,7 @@ export async function SupraDriveGetFile(req: Request, res: Response) {
     }
 }
 
+
 export async function SupraDriveGetImage(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
     const supradriveuser = (req as any).user;
@@ -344,6 +370,70 @@ export async function SupraDriveGetVideo(req: Request, res: Response) {
 
 
 }
+
+export async function SupraDriveGetMusic(req: Request, res: Response) {
+    const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
+    const supradriveuser = (req as any).user;
+    const userid = supradriveuser.userid;
+    const username = supradriveuser.username;
+    try {
+        var [fileinfo] = await supradrive.query(
+            `SELECT m.*, f.foldernamedisk FROM \`musicfile\` m 
+             LEFT JOIN \`musicfolder\` f ON m.musicfolderid = f.folderid 
+             WHERE m.musicid=? AND m.musicuserid=? AND m.musicwiped='0'`,
+            [req.params.fileid, userid]
+        );
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: "Database query error" });
+        return false;
+    }
+
+    if (!fileinfo || fileinfo.length === 0) {
+        return false;
+    }
+
+    const musicpath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'music', fileinfo[0].foldernamedisk, fileinfo[0].musicfilenamedisk);
+
+    if (!fs.existsSync(musicpath)) {
+        return res.status(404).json({ error: "File not found" });
+    }
+
+    const stat = fs.statSync(musicpath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+
+
+    if (range) {
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunkSize = end - start + 1;
+
+        const file = fs.createReadStream(musicpath, { start, end });
+        const head = {
+            "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+            "Accept-Ranges": "bytes",
+            "Content-Length": chunkSize,
+            "Content-Type": "audio/mpeg",
+        };
+
+        res.writeHead(206, head);
+        file.pipe(res);
+    } else {
+        const head = {
+            "Content-Length": fileSize,
+            "Content-Type": "audio/mpeg",
+        };
+
+        res.writeHead(200, head);
+        fs.createReadStream(musicpath).pipe(res);
+    }
+
+
+}
+
+
 
 
 export async function SupraDriveGetImageTags(req: Request, res: Response) {
