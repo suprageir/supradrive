@@ -34,7 +34,7 @@ export default function MusicPlayer({ musicid }: { musicid: number }) {
         const audio = audioRef.current;
         if (!audio) return;
 
-        let newVolume = Math.min(1, Math.max(0, volume + delta));
+        const newVolume = Math.min(1, Math.max(0, volume + delta));
         setVolume(newVolume);
         audio.volume = newVolume;
     };

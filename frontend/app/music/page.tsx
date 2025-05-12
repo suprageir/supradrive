@@ -333,15 +333,15 @@ export default function Page() {
         setMusic(musicid);
     }
 
-    const handleMusicInfo = (musicid: number | boolean) => {
-        if (typeof musicid === "number") {
-            setCurrentMusicIndex(musicid);
-            setDisplayMusicInfo(true);
-        } else {
-            setDisplayMusicInfo(false);
-            setCurrentMusicIndex(0);
-        }
-    }
+    // const handleMusicInfo = (musicid: number | boolean) => {
+    //     if (typeof musicid === "number") {
+    //         setCurrentMusicIndex(musicid);
+    //         setDisplayMusicInfo(true);
+    //     } else {
+    //         setDisplayMusicInfo(false);
+    //         setCurrentMusicIndex(0);
+    //     }
+    // }
 
     const setNewFolderName = (foldername: string) => {
         foldername = foldername.replace(/[^a-zA-ZæøåÆØÅ0-9-_ .]/g, '');
