@@ -58,8 +58,8 @@ export default function Page() {
     const [currentUploadFile, setCurrentUploadFile] = useState<string[]>([]);
     const [currentUploadSize, setCurrentUploadSize] = useState<number>(0);
     const [currentUploadedSize, setCurrentUploadedSize] = useState<number>(0);
-    const [displayMusicInfo, setDisplayMusicInfo] = useState<boolean>(false);
-    const [currentMusicIndex, setCurrentMusicIndex] = useState<number>(0);
+    // const [displayMusicInfo, setDisplayMusicInfo] = useState<boolean>(false);
+    // const [currentMusicIndex, setCurrentMusicIndex] = useState<number>(0);
 
     const handleChangeThumbSize = (size: number | null) => {
         if (size) {
@@ -486,13 +486,13 @@ export default function Page() {
                     onClose={() => setShowNotification(false)}
                 />
             )}
-            {displayMusicInfo && (
+            {/* {displayMusicInfo && (
                 <Notification
                     type="info"
                     message={musicFiles[currentMusicIndex]?.musicfilename + " (" + formatBytes(musicFiles[currentMusicIndex]?.musicsize) + ") " + moment(musicFiles[currentMusicIndex]?.musicdate).format("DD.MM.YYYY") + " " + musicFiles[currentMusicIndex]?.musictime + "\n#" + musicFiles[currentMusicIndex]?.musichashtags.map((tag: any) => tag.hashtag).join(", #") + "\n@" + musicFiles[currentMusicIndex]?.musicousertags.map((tag: any) => tag.user).join(", @") + "\n!" + musicFiles[currentMusicIndex]?.musiclocationtags.map((tag: any) => tag.location).join(", !")}
                     onClose={() => setDisplayMusicInfo(false)}
                 />
-            )}
+            )} */}
             <div className="min-h-screen bg-black text-gray-900 dark:text-gray-100">
                 <nav className="p-4 bg-black">
                     <ol className="flex space-x-2">
