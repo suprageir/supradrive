@@ -57,6 +57,10 @@ export default function Page() {
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
+    type MenuItem = {
+        label: string;
+        action: () => void;
+    };
 
 
     const handleChangeThumbSize = (size: number | null) => {
