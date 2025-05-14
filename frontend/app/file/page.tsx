@@ -87,7 +87,6 @@ export default function Page() {
 
         if (target.closest(".FileMenu")) {
             setMenuItems([
-                { label: "Tags", action: () => handleOpenTags(target.id) },
                 { label: "View", action: () => alert("Open") },
                 { label: "Download", action: () => alert("Download") },
                 { label: "Delete", action: () => alert("Deleted") },
