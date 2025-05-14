@@ -29,7 +29,7 @@ import {
   SupraDriveNewMusicFolder,
   SupraDriveNewMusicUpload,
   SupraDriveGetMusic,
-  SupraDriveGetFileDetails,
+  SupraDriveDownloadFile,
   SupraDriveGetFilesFolder,
   SupraDriveNewFilesFolder,
   SupraDriveNewFilesUpload
@@ -99,7 +99,7 @@ apiRouter.get('/supradrive/music/:fileid', supradriveauth, SupraDriveGetMusic);
 apiRouter.get('/supradrive/file/folder/:foldersubid', supradriveauth, SupraDriveGetFilesFolder);
 apiRouter.post('/supradrive/file/folder', supradriveauth, SupraDriveNewFilesFolder);
 apiRouter.post('/supradrive/file/upload', supradriveauth, upload.single('file'), SupraDriveNewFilesUpload);
-apiRouter.get('/supradrive/file/:fileid', supradriveauth, SupraDriveGetFileDetails);
+apiRouter.get('/supradrive/file/:fileid', supradriveauth, SupraDriveDownloadFile);
 
 
 

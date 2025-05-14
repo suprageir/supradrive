@@ -300,15 +300,39 @@ export default function Page() {
             });
     };
 
-    // const handleGetFile = (fileid: number) => {
-    //     axios.get(APIURL + "/supradrive/file/" + fileid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
-    //         .then(async (response) => {
-    //             setFile(response.data);
-    //         })
-    //         .catch((error) => {
-    //             console.log(error);
-    //         });
-    // }
+    const handleGetFile = (fileid: number, filename: string) => {
+        axios.get(APIURL + "/supradrive/file/" + fileid, {
+            withCredentials: true,
+            headers: {
+                'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"),
+                'Content-Type': 'application/json'
+            },
+            responseType: 'blob' // Important for downloading files
+        })
+            .then((response) => {
+                const blob = new Blob([response.data]);
+                const url = window.URL.createObjectURL(blob);
+
+                // Optional: Extract filename from headers (if your backend sends it)
+                const contentDisposition = response.headers['content-disposition'];
+                if (contentDisposition) {
+                    const match = contentDisposition.match(/filename="?(.+?)"?$/);
+                    if (match && match[1]) filename = match[1];
+                }
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url); // Clean up
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    };
+
 
     // const handleFileInfo = (fileid: number | boolean) => {
     //     if (typeof fileid === "number") {
@@ -623,9 +647,11 @@ export default function Page() {
                                             return (
                                                 <div key={index} onClick={() => file.fileid}>
                                                     <div className="FileMenu flex flex-col items-center relative border-1 border-transparent hover:border-1 hover:border-white hover:border-dotted" onContextMenu={handleContextMenu}>
-                                                        <div className="relative">
+                                                        <span
+                                                            onClick={() => handleGetFile(file.fileid, file.filename)}
+                                                        >
                                                             {file.filename}
-                                                        </div>
+                                                        </span>
                                                     </div>
                                                 </div>
                                             );

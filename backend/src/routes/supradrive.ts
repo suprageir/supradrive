@@ -218,9 +218,6 @@ export async function SupraDriveNewFilesUpload(req: MulterRequest, res: Response
     const supradriveuser = (req as any).user;
     const userid = supradriveuser.userid;
     const username = supradriveuser.username;
-    console.log("upload video req from userid: " + userid + " and username: " + username);
-    console.log(req.body);
-    console.log(req.file);
     if (req.body) {
         console.log("\x1b[1m\x1b[30m[" + ts + "] [\x1b[32mOK\x1b[30m] [\x1b[35m" + username + "\x1b[30m] => \x1b[32mPOST\x1b[30m => \x1b[36m" + req.originalUrl);
         let posts: any = await sqlSupraDrive.SupraDriveNewFilesUpload(userid, username, req.body, req.file);
@@ -496,7 +493,7 @@ export async function SupraDriveGetMusic(req: Request, res: Response) {
 
 }
 
-export async function SupraDriveGetFileDetails(req: Request, res: Response) {
+export async function SupraDriveDownloadFile(req: Request, res: Response) {
     const ts = moment(new Date()).format("DD.MM.YYYY HH:mm:ss");
     const supradriveuser = (req as any).user;
     const userid = supradriveuser.userid;
@@ -518,7 +515,7 @@ export async function SupraDriveGetFileDetails(req: Request, res: Response) {
         return false;
     }
 
-    const filepath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'file', fileinfo[0].foldernamedisk, fileinfo[0].filefilenamedisk);
+    const filepath = path.join(SUPRADRIVE_PATH, 'userdata', username, 'file', fileinfo[0].foldernamedisk, fileinfo[0].filenamedisk);
 
     if (!fs.existsSync(filepath)) {
         return res.status(404).json({ error: "File not found" });
@@ -540,7 +537,7 @@ export async function SupraDriveGetFileDetails(req: Request, res: Response) {
             "Content-Range": `bytes ${start}-${end}/${fileSize}`,
             "Accept-Ranges": "bytes",
             "Content-Length": chunkSize,
-            "Content-Type": "audio/mpeg",
+            "Content-Type": fileinfo[0].fileformat,
         };
 
         res.writeHead(206, head);
@@ -548,7 +545,7 @@ export async function SupraDriveGetFileDetails(req: Request, res: Response) {
     } else {
         const head = {
             "Content-Length": fileSize,
-            "Content-Type": "audio/mpeg",
+            "Content-Type": fileinfo[0].fileformat,
         };
 
         res.writeHead(200, head);

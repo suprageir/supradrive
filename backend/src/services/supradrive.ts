@@ -1074,13 +1074,11 @@ export abstract class sqlSupraDrive {
     public static async SupraDriveNewFilesUpload(userid: number, username: string, body: any, file: any): Promise<any> {
         const folderid = body.folderid;
         const filename = file.originalname.toString("utf-8");
-        const lastmodified = file.lastModified;
         let filesha1 = await getFileSHA1(file.path);
         let filesize = file.size || null;
         const filenamedisk = await fnFilenameDisk(filename, filesha1);
         const filecreated = body.created;
-        const fileExt = path.extname(filename).toLowerCase();
-
+        const fileExt = path.extname(filename).toLowerCase().substring(1);
 
         try {
             const query = `SELECT fileid FROM file WHERE filesha1 = ?`;
@@ -1127,9 +1125,6 @@ export abstract class sqlSupraDrive {
             console.error("File move error:", e);
             return APIResponse("error", 500, "File system error", "", null);
         }
-
-
-        // fs.writeFileSync(metaPath, JSON.stringify(musicMetadata, null, 4), "utf8");
 
         try {
             const query = `INSERT INTO file (filefolderid, fileuserid, filesha1, filecreated, filename, filenamedisk, filesize, fileext, fileformat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
