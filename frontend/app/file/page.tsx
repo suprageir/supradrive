@@ -450,7 +450,7 @@ export default function Page() {
             {displayFileInfo && (
                 <Notification
                     type="info"
-                    message={files[currentFileIndex]?.filename + " (" + formatBytes(files[currentFileIndex]?.filesize) + ") " + moment(files[currentFileIndex]?.filedate).format("DD.MM.YYYY HH:mm:ss")}
+                    message={file?.filename + " (" + formatBytes(file?.filesize) + ") " + moment(file?.filedate).format("DD.MM.YYYY HH:mm:ss")}
                     onClose={() => setDisplayFileInfo(false)}
                 />
             )}
