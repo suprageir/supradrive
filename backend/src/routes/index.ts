@@ -1,6 +1,39 @@
 const supradriveauth = require("src/middleware/supradriveauth");
 import { Router } from 'express';
-import { SupraDriveAuthLogin, SupraDriveAuthToken, SupraDriveNewFolder, SupraDriveGetFolders, SupraDriveGetVideosFolder, SupraDriveEncryptedTextSave, SupraDriveGetFile, SupraDriveEncryptedTextUpload, SupraDriveNewImagesFolder, SupraDriveNewVideosFolder, SupraDriveGetImagesFolder, SupraDriveNewImagesUpload, SupraDriveNewVideosUpload, SupraDriveGetImage, SupraDriveGetVideo, SupraDriveGetImageTags, SupraDriveGetImageUserTags, SupraDriveAddImageTag, SupraDriveRemoveImageTag, SupraDriveAddImageUserTag, SupraDriveRemoveImageUserTag, SupraDriveGetImageLocationTags, SupraDriveAddImageLocationTag, SupraDriveRemoveImageLocationTag, SupraDriveGetMusicFolder, SupraDriveNewMusicFolder, SupraDriveNewMusicUpload, SupraDriveGetMusic } from './supradrive';
+import {
+  SupraDriveAuthLogin,
+  SupraDriveAuthToken,
+  SupraDriveNewFolder,
+  SupraDriveGetFolders,
+  SupraDriveGetVideosFolder,
+  SupraDriveEncryptedTextSave,
+  SupraDriveGetFile,
+  SupraDriveEncryptedTextUpload,
+  SupraDriveNewImagesFolder,
+  SupraDriveNewVideosFolder,
+  SupraDriveGetImagesFolder,
+  SupraDriveNewImagesUpload,
+  SupraDriveNewVideosUpload,
+  SupraDriveGetImage,
+  SupraDriveGetVideo,
+  SupraDriveGetImageTags,
+  SupraDriveGetImageUserTags,
+  SupraDriveAddImageTag,
+  SupraDriveRemoveImageTag,
+  SupraDriveAddImageUserTag,
+  SupraDriveRemoveImageUserTag,
+  SupraDriveGetImageLocationTags,
+  SupraDriveAddImageLocationTag,
+  SupraDriveRemoveImageLocationTag,
+  SupraDriveGetMusicFolder,
+  SupraDriveNewMusicFolder,
+  SupraDriveNewMusicUpload,
+  SupraDriveGetMusic,
+  SupraDriveGetFileDetails,
+  SupraDriveGetFilesFolder,
+  SupraDriveNewFilesFolder,
+  SupraDriveNewFilesUpload
+} from './supradrive';
 
 import multer from 'multer';
 
@@ -63,6 +96,10 @@ apiRouter.post('/supradrive/music/folder', supradriveauth, SupraDriveNewMusicFol
 apiRouter.post('/supradrive/music/upload', supradriveauth, upload.single('file'), SupraDriveNewMusicUpload);
 apiRouter.get('/supradrive/music/:fileid', supradriveauth, SupraDriveGetMusic);
 
+apiRouter.get('/supradrive/file/folder/:foldersubid', supradriveauth, SupraDriveGetFilesFolder);
+apiRouter.post('/supradrive/file/folder', supradriveauth, SupraDriveNewFilesFolder);
+apiRouter.post('/supradrive/file/upload', supradriveauth, upload.single('file'), SupraDriveNewFilesUpload);
+apiRouter.get('/supradrive/file/:fileid', supradriveauth, SupraDriveGetFileDetails);
 
 
 

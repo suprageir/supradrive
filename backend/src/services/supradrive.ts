@@ -10,6 +10,9 @@ import ExifParser from 'exif-parser';
 import { APIResponse } from "@shared/APIResponse";
 const ffmpeg = require("fluent-ffmpeg");
 
+
+import { promises as fileinfo } from 'fs';
+
 import { rename } from 'fs/promises';
 import { promisify } from 'util';
 
@@ -499,6 +502,34 @@ export abstract class sqlSupraDrive {
             return APIResponse("error", 500, "Folder creation failed", e.message, null);
         }
     }
+
+    public static async SupraDriveNewFilesFolder(userid: number, username: string, body: any): Promise<any> {
+        let foldersubid = body.foldersubid || null;
+        let foldername = body.foldername;
+        let foldernamedisk = await fnFolderNameDB(foldername);
+        try {
+            // Insert folder and get the new folderid
+            const query = `INSERT INTO filefolder (foldersubid, folderuserid, foldername, foldernamedisk) VALUES (?, ?, ?, ?)`;
+            const values = [foldersubid, userid, foldername, foldernamedisk];
+            const [result] = await supradrive.query(query, values);
+
+            // Get the newly inserted folderid
+            const folderid = result.insertId;
+
+            // Create the new foldername with the folderid appended
+            const updatedFolderName = `${foldernamedisk}_${folderid}`;
+
+            // Update the foldername in the database
+            const updateQuery = `UPDATE filefolder SET foldernamedisk = ? WHERE folderid = ?`;
+            await supradrive.query(updateQuery, [updatedFolderName, folderid]);
+
+            return APIResponse("success", 200, `Folder ${foldername} created successfully`, "", folderid);
+        } catch (e: any) {
+            console.log(e);
+            return APIResponse("error", 500, "Folder creation failed", e.message, null);
+        }
+    }
+
 
 
 
@@ -1040,6 +1071,81 @@ export abstract class sqlSupraDrive {
 
 
 
+    public static async SupraDriveNewFilesUpload(userid: number, username: string, body: any, file: any): Promise<any> {
+        const folderid = body.folderid;
+        const filename = file.originalname.toString("utf-8");
+        const lastmodified = file.lastModified;
+        let filesha1 = await getFileSHA1(file.path);
+        let filesize = file.size || null;
+        const filenamedisk = await fnFilenameDisk(filename, filesha1);
+        const filecreated = body.created;
+        const fileExt = path.extname(filename).toLowerCase();
+
+
+        try {
+            const query = `SELECT fileid FROM file WHERE filesha1 = ?`;
+            const values = [filesha1];
+            var [sqlfileid] = await supradrive.query(query, values);
+            if (sqlfileid.length > 0) {
+                await unlink(file.path);
+                return APIResponse("success", 200, filename + " already exists in database. File is not uploaded.", "", sqlfileid[0].fileid);
+            }
+        } catch (e) {
+            console.error("SQL Error:", e);
+            return APIResponse("error", 500, "Database error", "", null);
+        }
+
+        let foldernamedisk = "";
+        try {
+            const foldername = `SELECT foldernamedisk FROM filefolder WHERE folderid = ?`;
+            const values = [folderid];
+            const [result] = await supradrive.query(foldername, values);
+            foldernamedisk = result[0]?.foldernamedisk || "";
+        } catch (e) {
+            console.error("SQL Error:", e);
+            return APIResponse("error", 500, "Database error", "", null);
+        }
+
+        const userDir = path.join(SUPRADRIVE_PATH, "userdata", username);
+        const fileDir = path.join(userDir, "file");
+        const folderDir = path.join(fileDir, foldernamedisk);
+
+        [userDir, fileDir, folderDir].forEach(dir => {
+            if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        });
+
+        const filePath = path.join(folderDir, filenamedisk);
+
+        if (fs.existsSync(filePath)) {
+            await unlink(file.path);
+            return APIResponse("success", 200, filename + " already exists on disk but not in database. File is not uploaded.", "", null);
+        }
+
+        try {
+            await moveFile(file.path, filePath);
+        } catch (e) {
+            console.error("File move error:", e);
+            return APIResponse("error", 500, "File system error", "", null);
+        }
+
+
+        // fs.writeFileSync(metaPath, JSON.stringify(musicMetadata, null, 4), "utf8");
+
+        try {
+            const query = `INSERT INTO file (filefolderid, fileuserid, filesha1, filecreated, filename, filenamedisk, filesize, fileext, fileformat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const values = [folderid, userid, filesha1, filecreated, filename, filenamedisk, filesize, fileExt, file.mimetype];
+            const [result] = await supradrive.query(query, values);
+            let insertId = result.insertId || null;
+            return APIResponse("success", 200, "File " + filename + " uploaded successfully", "", insertId);
+        } catch (e) {
+            console.error("Database insert error:", e);
+            return APIResponse("error", 500, "Database error", "", null);
+        }
+    }
+
+
+
+
     public static async getFolders(userid: number, username: string, foldersysid: number): Promise<SupraDrive[]> {
         if (foldersysid === 0) {
             try {
@@ -1245,6 +1351,43 @@ export abstract class sqlSupraDrive {
 
             try {
                 var [files] = await supradrive.query(`SELECT m.*, f.foldernamedisk FROM musicfile m LEFT JOIN musicfolder f ON m.musicfolderid = f.folderid WHERE m.musicfolderid = ? AND m.musicuserid = ? AND m.musicwiped = '0'`, [foldersubid, userid]);
+
+                files = await Promise.all(files.map(async file => {
+                    return { ...file };
+                }));
+
+            } catch (e) {
+                console.log(e);
+            }
+
+
+        }
+
+        const res = [{ folders, files }];
+
+        let SupraDrive = res.map((r: any) => {
+            return <SupraDrive>r;
+        })
+        return SupraDrive;
+    }
+
+    public static async SupraDriveGetFilesFolder(userid: number, username: string, foldersubid: number): Promise<SupraDrive[]> {
+        if (foldersubid === 0) {
+            try {
+                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername,foldernamedisk FROM \`filefolder\` WHERE foldersubid IS NULL AND folderuserid=? AND folderwiped='0' ORDER BY foldername ASC`, [userid]);
+            } catch (e) {
+                console.log(e);
+            }
+        }
+        else {
+            try {
+                var [folders] = await supradrive.query(`SELECT folderid,foldersubid,folderuserid,foldername,foldernamedisk FROM \`filefolder\` WHERE foldersubid=? AND folderuserid=? AND folderwiped='0' ORDER BY foldername ASC`, [foldersubid, userid]);
+            } catch (e) {
+                console.log(e);
+            }
+
+            try {
+                var [files] = await supradrive.query(`SELECT f.*, fo.foldernamedisk FROM file f LEFT JOIN filefolder fo ON fo.folderid = f.filefolderid WHERE f.filefolderid = ? AND f.fileuserid = ? AND f.filewiped = '0'`, [foldersubid, userid]);
 
                 files = await Promise.all(files.map(async file => {
                     return { ...file };
