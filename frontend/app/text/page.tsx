@@ -442,11 +442,6 @@ export default function Page() {
         setFileContent("");
         setFileName("Untitled");
     }
-    const openModalEncryption = () => {
-        setNewKey("");
-        setIsModalEncryptionOpen(true);
-
-    }
     const closeModalEncryption = () => setIsModalEncryptionOpen(false);
     const openModalNewFolder = () => {
         setIsModalNewFolderOpen(true);

@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from 'axios';
 import Link from "next/link";
 import LoadingScreen from "@/app/components/LoadingScreen";
@@ -57,7 +57,8 @@ export default function Page() {
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
-    
+
+
     const handleChangeThumbSize = (size: number | null) => {
         if (size) {
             setThumbSize(size);
@@ -627,7 +628,27 @@ export default function Page() {
                                             );
                                         }
                                     })}
-
+                                    {
+                                        menuPosition && (
+                                            <ul
+                                                className="absolute bg-black text-green-700 shadow-lg border rounded-lg w-40 p-2 space-y-2"
+                                                style={{ top: menuPosition.y, left: menuPosition.x }}
+                                            >
+                                                {menuItems.map((item, index) => (
+                                                    <li
+                                                        key={index}
+                                                        className="p-2 hover:text-green-500 cursor-pointer"
+                                                        onClick={() => {
+                                                            item.action();
+                                                            setMenuPosition(null);
+                                                        }}
+                                                    >
+                                                        {item.label}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )
+                                    }
                                 </div>
 
                                 {
