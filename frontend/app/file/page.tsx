@@ -297,26 +297,26 @@ export default function Page() {
             });
     };
 
-    const handleGetFile = (fileid: number) => {
-        axios.get(APIURL + "/supradrive/file/" + fileid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
-            .then(async (response) => {
-                setFile(response.data);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-    }
+    // const handleGetFile = (fileid: number) => {
+    //     axios.get(APIURL + "/supradrive/file/" + fileid, { withCredentials: true, headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem("supradrivetoken"), 'Content-Type': 'application/json' } })
+    //         .then(async (response) => {
+    //             setFile(response.data);
+    //         })
+    //         .catch((error) => {
+    //             console.log(error);
+    //         });
+    // }
 
-    const handleFileInfo = (fileid: number | boolean) => {
-        if (typeof fileid === "number") {
-            setDisplayFileInfo(true);
-            setCurrentFileIndex(fileid);
-        }
-        else {
-            setDisplayFileInfo(false);
-            setCurrentFileIndex(0);
-        }
-    }
+    // const handleFileInfo = (fileid: number | boolean) => {
+    //     if (typeof fileid === "number") {
+    //         setDisplayFileInfo(true);
+    //         setCurrentFileIndex(fileid);
+    //     }
+    //     else {
+    //         setDisplayFileInfo(false);
+    //         setCurrentFileIndex(0);
+    //     }
+    // }
 
     const setNewFolderName = (foldername: string) => {
         foldername = foldername.replace(/[^a-zA-ZæøåÆØÅ0-9-_ .]/g, '');
