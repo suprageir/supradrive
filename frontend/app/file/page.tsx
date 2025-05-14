@@ -618,7 +618,7 @@ export default function Page() {
                                             );
                                         }
                                     })}
-                                    {files?.map((file, index) => {
+                                    {files?.map((file: any, index) => {
                                         if (file.filename) {
                                             return (
                                                 <div key={index} onClick={() => file.fileid}>
