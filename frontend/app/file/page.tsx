@@ -51,7 +51,7 @@ export default function Page() {
     const [currentUploadSize, setCurrentUploadSize] = useState<number>(0);
     const [currentUploadedSize, setCurrentUploadedSize] = useState<number>(0);
     const [displayFileInfo, setDisplayFileInfo] = useState<boolean>(false);
-    const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
+    // const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
     const [isModalUploadFilesOpen, setIsModalUploadFilesOpen] = useState<boolean>(false);
     const [filesFolders, setFilesFolders] = useState<any[]>([]);
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
