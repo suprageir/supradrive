@@ -1073,7 +1073,7 @@ export abstract class sqlSupraDrive {
 
     public static async SupraDriveNewFilesUpload(userid: number, username: string, body: any, file: any): Promise<any> {
         const folderid = body.folderid;
-        const filename = file.originalname.toString("utf-8");
+        const filename = file.originalname.toString();
         let filesha1 = await getFileSHA1(file.path);
         let filesize = file.size || null;
         const filenamedisk = await fnFilenameDisk(filename, filesha1);
